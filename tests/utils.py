@@ -1,6 +1,7 @@
 from itertools import groupby
 from typing import (Any,
                     Iterable,
+                    Sequence,
                     Tuple,
                     TypeVar,
                     Union)
@@ -8,7 +9,8 @@ from typing import (Any,
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
-from locus.hints import Coordinate
+from locus.hints import (Coordinate,
+                         Point)
 from locus.kd import (NIL,
                       Node,
                       Tree)
@@ -32,7 +34,7 @@ def is_tree_balanced(tree: Tree) -> bool:
 
 
 def is_tree_valid(tree: Tree) -> bool:
-    return is_node_valid(tree.root)
+    return is_node_valid(tree.points, tree.root)
 
 
 def to_balanced_tree_height(size: int) -> int:
@@ -49,14 +51,16 @@ def is_node_balanced(node: Node) -> bool:
     return all(is_node_balanced(child) for child in to_node_children(node))
 
 
-def is_node_valid(node: Node) -> bool:
+def is_node_valid(points: Sequence[Point], node: Node) -> bool:
+    hyperplane = points[node.index][node.axis]
     if (node.left is not NIL
-            and node.point[node.axis] < node.left.point[node.axis]):
+            and hyperplane < points[node.left.index][node.axis]):
         return False
     if (node.right is not NIL
-            and node.point[node.axis] > node.right.point[node.axis]):
+            and hyperplane > points[node.right.index][node.axis]):
         return False
-    return all(is_node_valid(child) for child in to_node_children(node))
+    return all(is_node_valid(points, child)
+               for child in to_node_children(node))
 
 
 def to_node_height(node: Union[Node, NIL]) -> int:

@@ -1,9 +1,8 @@
 from heapq import (heappush,
                    heapreplace)
-from operator import itemgetter
-from typing import (Iterable,
-                    Iterator,
+from typing import (Iterator,
                     List,
+                    Sequence,
                     Union)
 
 from reprit.base import generate_repr
@@ -18,14 +17,14 @@ NIL = None
 
 
 class Node:
-    __slots__ = 'point', 'axis', 'left', 'right'
+    __slots__ = 'index', 'axis', 'left', 'right'
 
     def __init__(self,
-                 point: Point,
+                 index: int,
                  axis: int,
                  left: Union['Node', NIL],
                  right: Union['Node', NIL]) -> None:
-        self.point = point
+        self.index = index
         self.axis = axis
         self.left = left
         self.right = right
@@ -34,67 +33,58 @@ class Node:
 
 
 class Tree:
-    __slots__ = 'root',
+    __slots__ = 'root', 'points'
 
-    def __init__(self, root: Union[Node, NIL]) -> None:
-        self.root = root
+    def __init__(self, points: Sequence[Point]) -> None:
+        self.points = points
+        self.root = _create_node(points, range(len(points)), len(points[0]), 0)
+
+    __repr__ = generate_repr(__init__)
 
     def __iter__(self) -> Iterator[Point]:
-        node = self.root
-        queue = []
-        push, pop = queue.append, queue.pop
-        while True:
-            while node is not NIL:
-                push(node)
-                node = node.left
-            if not queue:
-                return
-            node = pop()
-            yield node.point
-            node = node.right
-
-    @classmethod
-    def from_iterable(cls, _points: Iterable[Point]) -> 'Tree':
-        points = list(_points)
-        dimension = len(points[0])
-        return cls(_create_node(points, 0, dimension))
-
-    __repr__ = generate_repr(from_iterable)
-
-    @property
-    def _points(self) -> List[Point]:
-        return list(self)
+        return iter(self.points)
 
     def query_ball(self, center: Point, radius: Coordinate) -> List[Point]:
-        return list(self._query_ball(center, radius))
+        return [self.points[index]
+                for index in self._query_ball_indices(center, radius)]
 
-    def _query_ball(self, center: Point,
-                    radius: Coordinate) -> Iterator[Point]:
-        queue = [self.root]
+    def query_ball_indices(self, center: Point,
+                           radius: Coordinate) -> List[int]:
+        return list(self._query_ball_indices(center, radius))
+
+    def _query_ball_indices(self, center: Point,
+                            radius: Coordinate) -> Iterator[int]:
+        points, queue = self.points, [self.root]
         push, pop = queue.append, queue.pop
         squared_radius = radius * radius
         while queue:
             node = pop()
-            if _squared_distance(node.point, center) <= squared_radius:
-                yield node.point
-            hyperplane_delta = center[node.axis] - node.point[node.axis]
+            node_point = points[node.index]
+            if _squared_distance(node_point, center) <= squared_radius:
+                yield node.index
+            hyperplane_delta = center[node.axis] - node_point[node.axis]
             if node.left is not NIL and hyperplane_delta <= radius:
                 push(node.left)
             if node.right is not NIL and -radius <= hyperplane_delta:
                 push(node.right)
 
     def query_interval(self, interval: Interval) -> List[Point]:
-        return list(self._query_interval(interval))
+        return [self.points[index]
+                for index in self._query_interval_indices(interval)]
 
-    def _query_interval(self, interval: Interval) -> List[Point]:
-        queue = [self.root]
+    def query_interval_indices(self, interval: Interval) -> List[int]:
+        return list(self._query_interval_indices(interval))
+
+    def _query_interval_indices(self, interval: Interval) -> List[int]:
+        points, queue = self.points, [self.root]
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()
-            if _point_in_interval(node.point, interval):
-                yield node.point
+            node_point = points[node.index]
+            if _point_in_interval(node_point, interval):
+                yield node.index
             min_coordinate, max_coordinate = interval[node.axis]
-            hyperplane = node.point[node.axis]
+            hyperplane = node_point[node.axis]
             if node.left is not NIL and min_coordinate <= hyperplane:
                 push(node.left)
             if node.right is not NIL and hyperplane <= max_coordinate:
@@ -102,11 +92,11 @@ class Tree:
 
     def n_nearest(self, n: int, point: Point) -> List[Point]:
         items = []
-        queue = [self.root]
+        points, queue = self.points, [self.root]
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()
-            node_point = node.point
+            node_point = points[node.index]
             distance_to_point = _squared_distance(node_point, point)
             item = -distance_to_point, node_point
             if len(items) < n:
@@ -133,19 +123,22 @@ class Tree:
         return result
 
 
-def _create_node(points: List[Point],
-                 axis: int,
-                 dimension: int) -> Union[Node, NIL]:
-    if not points:
+def _create_node(points: Sequence[Point],
+                 indices: Sequence[int],
+                 dimension: int,
+                 axis: int) -> Union[Node, NIL]:
+    if not indices:
         return NIL
-    middle_index = len(points) // 2
-    points = sorted(points,
-                    key=itemgetter(axis))
+    pivot_index = len(indices) // 2
+    indices = sorted(indices,
+                     key=lambda index: points[index][axis])
     next_axis = (axis + 1) % dimension
-    return Node(points[middle_index], axis,
-                _create_node(points[:middle_index], next_axis, dimension),
-                _create_node(points[middle_index + 1:], next_axis, dimension))
+    return Node(indices[pivot_index], axis,
+                _create_node(points, indices[:pivot_index], dimension,
+                             next_axis),
+                _create_node(points, indices[pivot_index + 1:], dimension,
+                             next_axis))
 
 
-def tree(points: Iterable[Point]) -> Tree:
-    return Tree.from_iterable(points)
+def tree(points: Sequence[Point]) -> Tree:
+    return Tree(points)
