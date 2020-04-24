@@ -60,6 +60,8 @@ class Tree:
         self._root = _create_node(points, range(len(points)), len(points[0]),
                                   0)
 
+    __repr__ = generate_repr(__init__)
+
     @property
     def points(self) -> Sequence[Point]:
         """
@@ -77,7 +79,45 @@ class Tree:
         """
         return self._points
 
-    __repr__ = generate_repr(__init__)
+    def n_nearest(self, n: int, point: Point) -> List[Point]:
+        return [self.points[index]
+                for index in self.n_nearest_indices(n, point)]
+
+    def n_nearest_indices(self, n: int, point: Point) -> List[int]:
+        items = []
+        points, queue = self.points, [self._root]
+        push, pop = queue.append, queue.pop
+        while queue:
+            node = pop()
+            node_point = points[node.index]
+            distance_to_point = _squared_distance(node_point, point)
+            item = -distance_to_point, node.index
+            if len(items) < n:
+                heappush(items, item)
+            elif distance_to_point < -items[0][0]:
+                heapreplace(items, item)
+            hyperplane_delta = point[node.axis] - node_point[node.axis]
+            point_is_on_the_left = hyperplane_delta < 0
+            if point_is_on_the_left:
+                if node.left is not NIL:
+                    push(node.left)
+            elif node.right is not NIL:
+                push(node.right)
+            if len(items) < n or hyperplane_delta ** 2 < -items[0][0]:
+                if point_is_on_the_left:
+                    if node.right is not NIL:
+                        push(node.right)
+                elif node.left is not NIL:
+                    push(node.left)
+        return [index for _, index in items]
+
+    def nearest(self, point: Point) -> Point:
+        result, = self.n_nearest(1, point)
+        return result
+
+    def nearest_index(self, point: Point) -> int:
+        result, = self.n_nearest_indices(1, point)
+        return result
 
     def query_ball(self, center: Point, radius: Coordinate) -> List[Point]:
         """
@@ -152,46 +192,6 @@ class Tree:
                 push(node.left)
             if node.right is not NIL and hyperplane <= max_coordinate:
                 push(node.right)
-
-    def n_nearest(self, n: int, point: Point) -> List[Point]:
-        return [self.points[index]
-                for index in self.n_nearest_indices(n, point)]
-
-    def n_nearest_indices(self, n: int, point: Point) -> List[int]:
-        items = []
-        points, queue = self.points, [self._root]
-        push, pop = queue.append, queue.pop
-        while queue:
-            node = pop()
-            node_point = points[node.index]
-            distance_to_point = _squared_distance(node_point, point)
-            item = -distance_to_point, node.index
-            if len(items) < n:
-                heappush(items, item)
-            elif distance_to_point < -items[0][0]:
-                heapreplace(items, item)
-            hyperplane_delta = point[node.axis] - node_point[node.axis]
-            point_is_on_the_left = hyperplane_delta < 0
-            if point_is_on_the_left:
-                if node.left is not NIL:
-                    push(node.left)
-            elif node.right is not NIL:
-                push(node.right)
-            if len(items) < n or hyperplane_delta ** 2 < -items[0][0]:
-                if point_is_on_the_left:
-                    if node.right is not NIL:
-                        push(node.right)
-                elif node.left is not NIL:
-                    push(node.left)
-        return [index for _, index in items]
-
-    def nearest(self, point: Point) -> Point:
-        result, = self.n_nearest(1, point)
-        return result
-
-    def nearest_index(self, point: Point) -> int:
-        result, = self.n_nearest_indices(1, point)
-        return result
 
 
 def _create_node(points: Sequence[Point],
