@@ -4,7 +4,8 @@ from typing import Optional
 
 from hypothesis import strategies
 
-from locus.hints import Coordinate
+from locus.hints import (Coordinate,
+                         Point)
 from tests.bounds import (MAX_AXES_COUNT,
                           MAX_COORDINATE,
                           MIN_COORDINATE)
@@ -59,6 +60,15 @@ coordinates_strategies = strategies.sampled_from(
         [factory(MIN_COORDINATE, MAX_COORDINATE)
          for factory in coordinates_strategies_factories.values()])
 axes = strategies.integers(1, MAX_AXES_COUNT)
-points_strategies = strategies.builds(to_homogeneous_tuples,
+
+
+def coordinates_to_points(coordinates: Strategy[Coordinate],
+                          *,
+                          dimension: int) -> Strategy[Point]:
+    return to_homogeneous_tuples(coordinates,
+                                 size=dimension)
+
+
+points_strategies = strategies.builds(coordinates_to_points,
                                       coordinates_strategies,
-                                      size=axes)
+                                      dimension=axes)
