@@ -126,7 +126,7 @@ class Tree:
                         push(node.right)
                 elif node.left is not NIL:
                     push(node.left)
-        return items
+        return [point for _, point in items]
 
     def nearest(self, point: Point) -> Point:
         result, = self.n_nearest(1, point)
