@@ -31,6 +31,6 @@ def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
     to_point_distance = partial(squared_distance, point)
     assert 0 < len(result) <= n
     assert all_equal(map(len, result))
-    assert all(point in tree for point in result)
-    assert (set(nsmallest(n, map(to_point_distance, tree)))
+    assert all(point in tree.points for point in result)
+    assert (set(nsmallest(n, map(to_point_distance, tree.points)))
             == set(map(to_point_distance, result)))
