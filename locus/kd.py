@@ -83,9 +83,11 @@ class Tree:
         return [self.points[index]
                 for index in self.n_nearest_indices(n, point)]
 
-    def n_nearest_indices(self, n: int, point: Point) -> List[int]:
+    def n_nearest_indices(self, n: int, point: Point) -> Sequence[int]:
+        if n >= len(self._points):
+            return range(len(self._points))
         items = []
-        points, queue = self.points, [self._root]
+        points, queue = self._points, [self._root]
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()
