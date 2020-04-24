@@ -18,7 +18,7 @@ def test_basic(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
 
     result = tree.n_nearest(n, point)
 
-    assert isinstance(result, list)
+    assert isinstance(result, (list, type(tree.points)))
     assert all(is_point(element) for element in result)
 
 
