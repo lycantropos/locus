@@ -33,12 +33,16 @@ class Node:
 
 
 class Tree:
-    __slots__ = '_root', 'points'
+    __slots__ = '_root', '_points'
 
     def __init__(self, points: Sequence[Point]) -> None:
-        self.points = points
+        self._points = points
         self._root = _create_node(points, range(len(points)), len(points[0]),
                                   0)
+
+    @property
+    def points(self) -> Sequence[Point]:
+        return self._points
 
     __repr__ = generate_repr(__init__)
 
