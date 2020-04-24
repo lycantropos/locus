@@ -38,7 +38,7 @@ def test_properties(tree_with_ball: Tuple[Tree, Point, Coordinate]) -> None:
         return squared_distance(tree.points[index], center)
 
     indices = range(len(tree.points))
-    assert sum(center == point for point in tree) <= len(result)
+    assert sum(center == point for point in tree.points) <= len(result)
     assert all(index in indices for index in result)
     assert all(to_center_distance(point) <= radius * radius
                for point in result)
