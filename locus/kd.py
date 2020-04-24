@@ -91,6 +91,10 @@ class Tree:
                 push(node.right)
 
     def n_nearest(self, n: int, point: Point) -> List[Point]:
+        return [self.points[index]
+                for index in self.n_nearest_indices(n, point)]
+
+    def n_nearest_indices(self, n: int, point: Point) -> List[int]:
         items = []
         points, queue = self.points, [self.root]
         push, pop = queue.append, queue.pop
@@ -98,7 +102,7 @@ class Tree:
             node = pop()
             node_point = points[node.index]
             distance_to_point = _squared_distance(node_point, point)
-            item = -distance_to_point, node_point
+            item = -distance_to_point, node.index
             if len(items) < n:
                 heappush(items, item)
             elif distance_to_point < -items[0][0]:
@@ -116,7 +120,7 @@ class Tree:
                         push(node.right)
                 elif node.left is not NIL:
                     push(node.left)
-        return [point for _, point in items]
+        return [index for _, index in items]
 
     def nearest(self, point: Point) -> Point:
         result, = self.n_nearest(1, point)
