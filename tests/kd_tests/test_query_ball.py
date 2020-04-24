@@ -38,11 +38,11 @@ def test_properties(tree_with_ball: Tuple[Tree, Point, Coordinate]) -> None:
     result = tree.query_ball(center, radius)
 
     to_center_distance = partial(squared_distance, center)
-    assert sum(center == point for point in tree) <= len(result)
+    assert sum(center == point for point in tree.points) <= len(result)
     assert all_equal(map(len, result))
-    assert all(point in tree for point in result)
+    assert all(point in tree.points for point in result)
     assert all(to_center_distance(point) <= radius * radius
                for point in result)
     assert all(point in result
-               for point in tree
+               for point in tree.points
                if to_center_distance(point) <= radius * radius)
