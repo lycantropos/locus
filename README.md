@@ -67,6 +67,31 @@ Install:
   pypy setup.py install
   ```
 
+Usage
+-----
+```python
+>>> from locus import kd
+>>> points = list(zip(range(-10, 11), range(0, 20)))
+>>> tree = kd.Tree(points)
+>>> tree.nearest_index((0, 0))
+5
+>>> tree.nearest((0, 0))
+(-5, 5)
+>>> tree.n_nearest_indices(2, (0, 0))
+[6, 5]
+>>> tree.n_nearest(2, (0, 0))
+[(-4, 6), (-5, 5)]
+>>> tree.query_ball_indices((0, 3), 5)
+[7, 6]
+>>> tree.query_ball((0, 3), 5)
+[(-3, 7), (-4, 6)]
+>>> tree.query_interval_indices(((-1, 1), (0, 10)))
+[10, 9]
+>>> tree.query_interval(((-1, 1), (0, 10)))
+[(0, 10), (-1, 9)]
+
+```
+
 Development
 -----------
 
