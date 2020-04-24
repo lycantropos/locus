@@ -167,6 +167,30 @@ class Tree:
         return result
 
     def nearest_index(self, point: Point) -> int:
+        """
+        Searches for index of a point in the tree
+        that is nearest to the given point.
+
+        Time complexity:
+            ``O(log size)``
+        Memory complexity:
+            ``O(log size)``
+
+        where ``size = len(self.points)``.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Nearest_neighbour_search
+
+        :param point: input point.
+        :returns: index of a point in the tree nearest to the input point.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.nearest_index((0, 0)) == 2
+        True
+        >>> tree.nearest((-3, 2)) == 2
+        True
+        """
         result, = self.n_nearest_indices(1, point)
         return result
 
