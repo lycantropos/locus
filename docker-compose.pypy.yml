@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  locus-pypy:
+    build:
+      context: .
+      args:
+        - PYTHON_IMAGE=${PYPY_IMAGE_NAME}
+        - PYTHON_IMAGE_VERSION=${PYPY_IMAGE_VERSION}
+    image: lycantropos/locus-pypy:0.0.0
+    volumes:
+      - ./locus/:/opt/locus/locus/
+      - ./tests/:/opt/locus/tests/
+      - ./README.md:/opt/locus/README.md
+      - ./requirements.txt:/opt/locus/requirements.txt
+      - ./requirements-tests.txt:/opt/locus/requirements-tests.txt
+      - ./setup.py:/opt/locus/setup.py
+      - ./pytest.ini:/opt/locus/pytest.ini
+    entrypoint: pytest
