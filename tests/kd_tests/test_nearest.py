@@ -19,6 +19,11 @@ def test_basic(tree_with_point: Tuple[Tree, Point]) -> None:
     assert is_point(result)
 
 
+@given(strategies.trees)
+def test_fixed_points(tree: Tree) -> None:
+    assert all(tree.nearest(point) == point for point in tree.points)
+
+
 @given(strategies.trees_with_points)
 def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
     tree, point = tree_with_point

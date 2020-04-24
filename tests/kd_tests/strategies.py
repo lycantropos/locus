@@ -19,6 +19,7 @@ from tests.utils import (Strategy,
 
 non_empty_points_lists = points_strategies.flatmap(partial(strategies.lists,
                                                            min_size=1))
+trees = non_empty_points_lists.map(Tree)
 
 
 def points_to_trees(points: Strategy[Point],
