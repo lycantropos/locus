@@ -80,6 +80,30 @@ class Tree:
         return self._points
 
     def n_nearest(self, n: int, point: Point) -> List[Point]:
+        """
+        Searches for points in the tree that are nearest to the given point.
+
+        Time complexity:
+            ``O(min(n, size) * log size)``
+        Memory complexity:
+            ``O(min(n, size) * log size)``
+
+        where ``size = len(self.points)``.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Nearest_neighbour_search
+
+        :param n: positive upper bound for number of result points.
+        :param point: input point.
+        :returns: points in the tree nearest to the input point.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.n_nearest(2, (0, 0)) == [(-3, 2), (-2, 3)]
+        True
+        >>> set(tree.n_nearest(len(points), (0, 0))) == set(points)
+        True
+        """
         return [self.points[index]
                 for index in self.n_nearest_indices(n, point)]
 
