@@ -23,3 +23,14 @@ script:
 
 after_success:
   - python -m codecov -f coverage.xml -X gcov
+
+deploy:
+  provider: pypi
+  on:
+    branch: master
+    python: 3.5
+  user: __token__
+  password:
+    secure: jV1QwyucaIHYN/LGhZt49dQuIDXVPjeGuM+yq+iNIlVNoMUA64m8wVhCZzn6/hCY2a9RR/52qVRXOyS8Ys4893CMntprgsYtq4Z/E8K3njFCUsDCrjiLiXZJeiFUtOxB8wOEV8MFmfYtkD5vJgZQ+qSKkFA90l4N0ORpMaRjF35PXt2SN2+gKoAUoCzzizm/i+IJObGGRXxwdU3WlqekGCtsuHg5vYpefMz/bEcqlZyHTL0dwGiRmMjWPGDXJts8tOtdEJOeWClyqhmnw9LCAg1mHCM/OT2ocPLTLgYvcDF/6Y/Sxe/mNsbo64U5ZuLbfjvYPWP/thE3eja+ZN5IEEeOmzy5X6a52ggpS75+CFYmTirhOxwyJFq9Nm/0z2KYakFzlkZkwY5B5CfruAZ+3l0AiUGL1/I5IeeM/mytg0lBY/ftHCPQ+e5Zh5dqsxMllhPp12geNkJgLDIxSR4fKdfyuVUOHSLKP/ngobIgNwrrbPsV2DJIKAlb0UZOE/7jxsaC53nNt4bYKSIMEakNVqYxsHj+dkod/XhmD9LafrHtA6OqW43a64RbOmCP9ZNa6gOEigNIP/v5uljAXuoHuwa8AG4XYTqObq5UmSYt/ejrM25dZ7kV9Z98QKAB2UkLwuMH1VeI4bkgQjeZABdmWli6pR7ni8cQOa0tCQc+PXM=
+  distributions: sdist bdist_wheel
+  skip_existing: true
