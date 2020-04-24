@@ -30,11 +30,11 @@ def to_homogeneous_tuples(elements: Strategy[Domain],
 
 
 def is_tree_balanced(tree: Tree) -> bool:
-    return is_node_balanced(tree.root)
+    return is_node_balanced(tree._root)
 
 
 def is_tree_valid(tree: Tree) -> bool:
-    return is_node_valid(tree.points, tree.root)
+    return is_node_valid(tree.points, tree._root)
 
 
 def to_balanced_tree_height(size: int) -> int:
@@ -42,7 +42,7 @@ def to_balanced_tree_height(size: int) -> int:
 
 
 def to_tree_height(tree: Tree) -> int:
-    return to_node_height(tree.root)
+    return to_node_height(tree._root)
 
 
 def is_node_balanced(node: Node) -> bool:

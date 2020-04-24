@@ -33,11 +33,12 @@ class Node:
 
 
 class Tree:
-    __slots__ = 'root', 'points'
+    __slots__ = '_root', 'points'
 
     def __init__(self, points: Sequence[Point]) -> None:
         self.points = points
-        self.root = _create_node(points, range(len(points)), len(points[0]), 0)
+        self._root = _create_node(points, range(len(points)), len(points[0]),
+                                  0)
 
     __repr__ = generate_repr(__init__)
 
@@ -54,7 +55,7 @@ class Tree:
 
     def _query_ball_indices(self, center: Point,
                             radius: Coordinate) -> Iterator[int]:
-        points, queue = self.points, [self.root]
+        points, queue = self.points, [self._root]
         push, pop = queue.append, queue.pop
         squared_radius = radius * radius
         while queue:
@@ -76,7 +77,7 @@ class Tree:
         return list(self._query_interval_indices(interval))
 
     def _query_interval_indices(self, interval: Interval) -> List[int]:
-        points, queue = self.points, [self.root]
+        points, queue = self.points, [self._root]
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()
@@ -96,7 +97,7 @@ class Tree:
 
     def n_nearest_indices(self, n: int, point: Point) -> List[int]:
         items = []
-        points, queue = self.points, [self.root]
+        points, queue = self.points, [self._root]
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()
