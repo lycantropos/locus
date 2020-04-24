@@ -126,6 +126,10 @@ class Tree:
         result, = self.n_nearest(1, point)
         return result
 
+    def nearest_index(self, point: Point) -> int:
+        result, = self.n_nearest_indices(1, point)
+        return result
+
 
 def _create_node(points: Sequence[Point],
                  indices: Sequence[int],
