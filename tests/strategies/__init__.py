@@ -1,1 +1,1 @@
-from .base import coordinates_strategies
+from .base import points_strategies

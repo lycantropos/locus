@@ -1,16 +1,15 @@
 import sys
 from decimal import Decimal
-from fractions import Fraction
-from functools import partial
 from typing import Optional
 
 from hypothesis import strategies
 
 from locus.hints import Coordinate
-from tests.utils import Strategy
-
-MAX_COORDINATE = 10 ** 15
-MIN_COORDINATE = -MAX_COORDINATE
+from tests.bounds import (MAX_AXES_COUNT,
+                          MAX_COORDINATE,
+                          MIN_COORDINATE)
+from tests.utils import (Strategy,
+                         to_homogeneous_tuples)
 
 
 def to_floats(min_value: Optional[Coordinate] = None,
@@ -59,3 +58,7 @@ coordinates_strategies_factories = {
 coordinates_strategies = strategies.sampled_from(
         [factory(MIN_COORDINATE, MAX_COORDINATE)
          for factory in coordinates_strategies_factories.values()])
+axes = strategies.integers(1, MAX_AXES_COUNT)
+points_strategies = strategies.builds(to_homogeneous_tuples,
+                                      coordinates_strategies,
+                                      size=axes)

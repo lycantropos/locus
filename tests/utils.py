@@ -1,4 +1,6 @@
-from typing import (Iterable,
+from itertools import groupby
+from typing import (Any,
+                    Iterable,
                     Tuple,
                     TypeVar,
                     Union)
@@ -6,6 +8,7 @@ from typing import (Iterable,
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
+from locus.hints import Coordinate
 from locus.kd import (NIL,
                       Node,
                       Tree)
@@ -68,3 +71,16 @@ def to_node_children(node: Node) -> Iterable[Node]:
         yield node.left
     if node.right is not NIL:
         yield node.right
+
+
+def is_point(value: Any) -> bool:
+    return (isinstance(value, tuple)
+            and len(value) > 0
+            and all_equal(map(type, value)) == 1
+            and all(isinstance(sub_element, Coordinate)
+                    for sub_element in value))
+
+
+def all_equal(iterable: Iterable[Domain]) -> bool:
+    groups = groupby(iterable)
+    return next(groups, True) and not next(groups, False)
