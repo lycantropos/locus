@@ -43,6 +43,19 @@ class Tree:
     __slots__ = '_root', '_points'
 
     def __init__(self, points: Sequence[Point]) -> None:
+        """
+        Initializes tree from points.
+
+        Time complexity:
+            ``O(dimension * size * log size)``
+        Memory complexity:
+            ``O(size)``
+
+        where ``dimension = len(points[0])``, ``size = len(points)``.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        """
         self._points = points
         self._root = _create_node(points, range(len(points)), len(points[0]),
                                   0)
