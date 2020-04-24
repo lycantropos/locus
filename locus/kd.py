@@ -33,6 +33,13 @@ class Node:
 
 
 class Tree:
+    """
+    Represents `k`-dimensional (aka *kd*) tree.
+
+    Reference:
+        https://en.wikipedia.org/wiki/K-d_tree
+    """
+
     __slots__ = '_root', '_points'
 
     def __init__(self, points: Sequence[Point]) -> None:
