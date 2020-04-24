@@ -42,9 +42,6 @@ class Tree:
 
     __repr__ = generate_repr(__init__)
 
-    def __iter__(self) -> Iterator[Point]:
-        return iter(self.points)
-
     def query_ball(self, center: Point, radius: Coordinate) -> List[Point]:
         return [self.points[index]
                 for index in self._query_ball_indices(center, radius)]
