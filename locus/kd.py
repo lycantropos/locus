@@ -80,6 +80,34 @@ class Tree:
     __repr__ = generate_repr(__init__)
 
     def query_ball(self, center: Point, radius: Coordinate) -> List[Point]:
+        """
+        Searches for points that lie inside the closed ball
+        with given center and radius.
+
+        Time complexity:
+            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
+        Memory complexity:
+            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
+
+        where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
+        ``hits_count`` --- number of found points.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Range_search
+
+        :param center: center of the ball.
+        :param radius: radius of the ball.
+        :returns: points which lie inside the ball.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.query_ball((0, 0), 0) == []
+        True
+        >>> tree.query_ball((0, 0), 2) == []
+        True
+        >>> tree.query_ball((0, 0), 4) == [(-3, 2), (-2, 3)]
+        True
+        """
         return [self.points[index]
                 for index in self._query_ball_indices(center, radius)]
 
