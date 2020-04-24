@@ -6,7 +6,9 @@ from hypothesis import given
 from locus.core.utils import squared_distance
 from locus.hints import Point
 from locus.kd import Tree
-from tests.utils import is_point
+from tests.utils import (all_unique,
+                         equivalence,
+                         is_point)
 from . import strategies
 
 
@@ -22,6 +24,13 @@ def test_basic(tree_with_point: Tuple[Tree, Point]) -> None:
 @given(strategies.trees)
 def test_fixed_points(tree: Tree) -> None:
     assert all(tree.nearest(point) == point for point in tree.points)
+
+
+@given(strategies.trees)
+def test_uniqueness_criteria(tree: Tree) -> None:
+    assert equivalence(all(tree.nearest(point) is point
+                           for point in tree.points),
+                       all_unique(tree.points))
 
 
 @given(strategies.trees_with_points)
