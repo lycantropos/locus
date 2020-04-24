@@ -138,7 +138,3 @@ def _create_node(points: Sequence[Point],
                              next_axis),
                 _create_node(points, indices[pivot_index + 1:], dimension,
                              next_axis))
-
-
-def tree(points: Sequence[Point]) -> Tree:
-    return Tree(points)

@@ -7,8 +7,7 @@ from hypothesis import strategies
 from locus.hints import (Coordinate,
                          Interval,
                          Point)
-from locus.kd import (Tree,
-                      tree)
+from locus.kd import Tree
 from tests.strategies import (axes,
                               coordinates_strategies,
                               coordinates_to_points,
@@ -25,7 +24,7 @@ def points_to_trees(points: Strategy[Point],
     return (strategies.lists(points,
                              min_size=min_size,
                              max_size=max_size)
-            .map(tree))
+            .map(Tree))
 
 
 def points_to_trees_with_points(points: Strategy[Point]
@@ -42,7 +41,7 @@ def points_to_trees_with_points_and_sizes(points: Strategy[Point]
                                                               int]]:
     def to_trees_with_points_and_sizes(points_list: List[Point]
                                        ) -> Strategy[Tuple[Tree, Point, int]]:
-        return strategies.tuples(strategies.just(tree(points_list)), points,
+        return strategies.tuples(strategies.just(Tree(points_list)), points,
                                  strategies.integers(1, len(points_list)))
 
     return (strategies.lists(points,
