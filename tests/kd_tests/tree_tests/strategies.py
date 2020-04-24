@@ -5,6 +5,7 @@ from typing import (List,
 from hypothesis import strategies
 
 from locus.hints import (Coordinate,
+                         Interval,
                          Point)
 from locus.kd import (Tree,
                       tree)
@@ -13,7 +14,8 @@ from tests.strategies import (axes,
                               coordinates_to_points,
                               points_strategies)
 from tests.utils import (Strategy,
-                         identity)
+                         identity,
+                         to_homogeneous_tuples)
 
 
 def points_to_trees(points: Strategy[Point],
@@ -71,3 +73,47 @@ trees_with_balls = (strategies.builds(coordinates_to_trees_with_balls,
                                       coordinates_strategies,
                                       dimension=axes)
                     .flatmap(identity))
+
+
+def coordinates_to_trees_with_intervals(coordinates: Strategy[Coordinate],
+                                        *,
+                                        dimension: int,
+                                        min_tree_size: int = 1,
+                                        max_tree_size: Optional[int] = None
+                                        ) -> Strategy[Tuple[Tree, Interval]]:
+    return strategies.tuples(coordinates_to_trees(coordinates,
+                                                  dimension=dimension,
+                                                  min_tree_size=min_tree_size,
+                                                  max_tree_size=max_tree_size),
+                             coordinates_to_intervals(coordinates,
+                                                      dimension=dimension))
+
+
+def coordinates_to_trees(coordinates: Strategy[Coordinate],
+                         *,
+                         dimension: int,
+                         min_tree_size: int = 1,
+                         max_tree_size: Optional[int] = None):
+    return points_to_trees(coordinates_to_points(coordinates,
+                                                 dimension=dimension),
+                           min_size=min_tree_size,
+                           max_size=max_tree_size)
+
+
+def coordinates_to_intervals(coordinates: Strategy[Coordinate],
+                             *,
+                             dimension: int
+                             ) -> Strategy[Interval]:
+    return to_homogeneous_tuples(strategies.lists(coordinates,
+                                                  min_size=2,
+                                                  max_size=2,
+                                                  unique=True)
+                                 .map(sorted)
+                                 .map(tuple),
+                                 size=dimension)
+
+
+trees_with_intervals = (strategies.builds(coordinates_to_trees_with_intervals,
+                                          coordinates_strategies,
+                                          dimension=axes)
+                        .flatmap(identity))
