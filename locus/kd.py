@@ -81,7 +81,7 @@ class Tree:
 
     def n_nearest(self, n: int, point: Point) -> Sequence[Point]:
         """
-        Searches for points in the tree that are nearest to the given point.
+        Searches for points in the tree the nearest to the given point.
 
         Time complexity:
             ``O(min(n, size) * log size)``
@@ -95,7 +95,7 @@ class Tree:
 
         :param n: positive upper bound for number of result points.
         :param point: input point.
-        :returns: points in the tree nearest to the input point.
+        :returns: points in the tree the nearest to the input point.
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
