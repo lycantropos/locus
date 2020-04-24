@@ -84,3 +84,7 @@ def is_point(value: Any) -> bool:
 def all_equal(iterable: Iterable[Domain]) -> bool:
     groups = groupby(iterable)
     return next(groups, True) and not next(groups, False)
+
+
+def identity(value: Domain) -> Domain:
+    return value
