@@ -1,12 +1,25 @@
-import sys
-from typing import Tuple, List
+from typing import (List,
+                    Tuple)
 
 from hypothesis import strategies
 
 from locus.hints import Point
-from locus.kd import Tree, tree
+from locus.kd import (Tree,
+                      tree)
 from tests.strategies import points_strategies
 from tests.utils import Strategy
+
+
+def points_to_trees_with_points(points: Strategy[Point]
+                                ) -> Strategy[Tuple[Tree, Point]]:
+    return strategies.tuples(strategies.lists(points,
+                                              min_size=1)
+                             .map(tree),
+                             points)
+
+
+trees_with_points = (points_strategies
+                     .flatmap(points_to_trees_with_points))
 
 
 def points_to_trees_with_points_and_sizes(points: Strategy[Point]
