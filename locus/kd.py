@@ -8,8 +8,10 @@ from typing import (Iterable,
 
 from reprit.base import generate_repr
 
-from .core.utils import squared_distance as _squared_distance
+from .core.utils import (point_in_interval as _point_in_interval,
+                         squared_distance as _squared_distance)
 from .hints import (Coordinate,
+                    Interval,
                     Point)
 
 NIL = None
@@ -79,6 +81,23 @@ class Tree:
             if node.left is not NIL and hyperplane_delta <= radius:
                 push(node.left)
             if node.right is not NIL and -radius <= hyperplane_delta:
+                push(node.right)
+
+    def query_interval(self, interval: Interval) -> List[Point]:
+        return list(self._query_interval(interval))
+
+    def _query_interval(self, interval: Interval) -> List[Point]:
+        queue = [self.root]
+        push, pop = queue.append, queue.pop
+        while queue:
+            node = pop()
+            if _point_in_interval(node.point, interval):
+                yield node.point
+            min_coordinate, max_coordinate = interval[node.axis]
+            hyperplane = node.point[node.axis]
+            if node.left is not NIL and min_coordinate <= hyperplane:
+                push(node.left)
+            if node.right is not NIL and hyperplane <= max_coordinate:
                 push(node.right)
 
     def n_nearest(self, n: int, point: Point) -> List[Point]:
