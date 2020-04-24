@@ -213,7 +213,7 @@ class Tree:
         >>> tree = Tree(points)
         >>> tree.nearest_index((0, 0)) == 2
         True
-        >>> tree.nearest((-3, 2)) == 2
+        >>> tree.nearest_index((-3, 2)) == 2
         True
         """
         result, = self.n_nearest_indices(1, point)
