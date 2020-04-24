@@ -27,9 +27,9 @@ def test_properties(tree_with_interval: Tuple[Tree, Interval]) -> None:
     result = tree.query_interval(interval)
 
     assert all_equal(map(len, result))
-    assert all(point in tree for point in result)
+    assert all(point in tree.points for point in result)
     assert all(point_in_interval(point, interval)
                for point in result)
     assert all(point in result
-               for point in tree
+               for point in tree.points
                if point_in_interval(point, interval))
