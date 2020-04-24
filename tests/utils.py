@@ -20,6 +20,10 @@ Range = TypeVar('Range')
 Strategy = SearchStrategy
 
 
+def equivalence(left_statement: bool, right_statement: bool) -> bool:
+    return left_statement is right_statement
+
+
 def to_homogeneous_tuples(elements: Strategy[Domain],
                           *,
                           size: int) -> Strategy[Tuple[Domain, ...]]:
@@ -88,6 +92,17 @@ def is_point(value: Any) -> bool:
 def all_equal(iterable: Iterable[Domain]) -> bool:
     groups = groupby(iterable)
     return next(groups, True) and not next(groups, False)
+
+
+def all_unique(iterable: Iterable[Domain]) -> bool:
+    seen = set()
+    register = seen.add
+    for element in iterable:
+        if element in seen:
+            return False
+        else:
+            register(element)
+    return True
 
 
 def identity(value: Domain) -> Domain:

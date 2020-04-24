@@ -6,6 +6,8 @@ from locus.core.utils import squared_distance
 from locus.hints import (Coordinate,
                          Point)
 from locus.kd import Tree
+from tests.utils import (all_unique,
+                         equivalence)
 from . import strategies
 
 
@@ -16,6 +18,13 @@ def test_basic(tree_with_point: Tuple[Tree, Point]) -> None:
     result = tree.nearest_index(point)
 
     assert isinstance(result, int)
+
+
+@given(strategies.trees)
+def test_uniqueness_criteria(tree: Tree) -> None:
+    assert equivalence(all(tree.nearest_index(point) == index
+                           for index, point in enumerate(tree.points)),
+                       all_unique(tree.points))
 
 
 @given(strategies.trees_with_points)
