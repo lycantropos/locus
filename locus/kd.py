@@ -62,6 +62,19 @@ class Tree:
 
     @property
     def points(self) -> Sequence[Point]:
+        """
+        Returns underlying points.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.points == points
+        True
+        """
         return self._points
 
     __repr__ = generate_repr(__init__)
