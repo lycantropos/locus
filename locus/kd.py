@@ -330,6 +330,32 @@ class Tree:
                 for index in self._query_interval_indices(interval)]
 
     def query_interval_indices(self, interval: Interval) -> List[int]:
+        """
+        Searches for indices of points that lie inside the closed interval.
+
+        Time complexity:
+            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
+        Memory complexity:
+            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
+
+        where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
+        ``hits_count`` --- number of found points.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Range_search
+
+        :param interval: interval to search in.
+        :returns: indices of points which lie inside the interval.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.query_interval_indices(((-3, 3), (0, 1))) == []
+        True
+        >>> tree.query_interval_indices(((-3, 3), (0, 2))) == [2]
+        True
+        >>> tree.query_interval_indices(((-3, 3), (0, 3))) == [2, 3]
+        True
+        """
         return list(self._query_interval_indices(interval))
 
     def _query_interval_indices(self, interval: Interval) -> List[int]:
