@@ -28,7 +28,7 @@ def test_zero_ball(tree_with_center: Tuple[Tree, Point]) -> None:
 
     result = tree.query_ball(center, 0)
 
-    assert not result or result == [center]
+    assert not result or set(result) == {center}
 
 
 @given(strategies.trees_with_balls)
@@ -38,7 +38,7 @@ def test_properties(tree_with_ball: Tuple[Tree, Point, Coordinate]) -> None:
     result = tree.query_ball(center, radius)
 
     to_center_distance = partial(squared_distance, center)
-    assert (center in tree) <= len(result)
+    assert sum(center == point for point in tree) <= len(result)
     assert all_equal(map(len, result))
     assert all(point in tree for point in result)
     assert all(to_center_distance(point) <= radius * radius
