@@ -49,7 +49,7 @@ class Tree:
         Time complexity:
             ``O(dimension * size * log size)``
         Memory complexity:
-            ``O(size)``
+            ``O(dimension * size)``
 
         where ``dimension = len(points[0])``, ``size = len(points)``.
 
