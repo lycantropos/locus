@@ -26,5 +26,6 @@ def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
     result = tree.nearest(point)
 
     to_point_distance = partial(squared_distance, point)
-    assert result in tree
-    assert min(map(to_point_distance, tree)) == to_point_distance(result)
+    assert result in tree.points
+    assert (min(map(to_point_distance, tree.points))
+            == to_point_distance(result))
