@@ -361,8 +361,7 @@ class Tree:
         >>> tree.query_interval(((-3, 3), (0, 3))) == [(-3, 2), (-2, 3)]
         True
         """
-        return [self.points[index]
-                for index in self._query_interval_indices(interval)]
+        return [point for _, point in self._query_interval_items(interval)]
 
     def query_interval_indices(self, interval: Interval) -> List[int]:
         """
@@ -391,15 +390,15 @@ class Tree:
         >>> tree.query_interval_indices(((-3, 3), (0, 3))) == [2, 3]
         True
         """
-        return list(self._query_interval_indices(interval))
+        return [index for index, _ in self._query_interval_items(interval)]
 
-    def _query_interval_indices(self, interval: Interval) -> List[int]:
+    def _query_interval_items(self, interval: Interval) -> List[Item]:
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()
             if _point_in_interval(node.point, interval):
-                yield node.index
+                yield node.index, node.point
             min_coordinate, max_coordinate = interval[node.axis]
             if node.left is not NIL and min_coordinate <= node.coordinate:
                 push(node.left)
