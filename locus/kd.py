@@ -75,7 +75,7 @@ class Tree:
         >>> tree = Tree(points)
         """
         self._points = points
-        self._root = _create_node(node_cls, points, range(len(points)),
+        self._root = _create_node(node_cls, range(len(points)), points,
                                   len(points[0]), 0)
 
     __repr__ = generate_repr(__init__)
@@ -408,8 +408,8 @@ class Tree:
 
 
 def _create_node(cls: Type[Node],
-                 points: Sequence[Point],
                  indices: Sequence[int],
+                 points: Sequence[Point],
                  dimension: int,
                  axis: int) -> Union[Node, NIL]:
     if not indices:
@@ -420,7 +420,7 @@ def _create_node(cls: Type[Node],
     pivot_index = indices[middle_index]
     next_axis = (axis + 1) % dimension
     return cls(pivot_index, points[pivot_index], axis,
-               _create_node(cls, points, indices[:middle_index], dimension,
+               _create_node(cls, indices[:middle_index], points, dimension,
                             next_axis),
-               _create_node(cls, points, indices[middle_index + 1:], dimension,
+               _create_node(cls, indices[middle_index + 1:], points, dimension,
                             next_axis))
