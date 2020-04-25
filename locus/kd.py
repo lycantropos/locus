@@ -3,31 +3,47 @@ from heapq import (heappush,
 from typing import (Iterator,
                     List,
                     Sequence,
+                    Tuple,
+                    Type,
                     Union)
 
 from reprit.base import generate_repr
 
-from .core.utils import (point_in_interval as _point_in_interval,
-                         squared_distance as _squared_distance)
+from .core.utils import (linear_distance as _linear_distance,
+                         planar_distance as _planar_distance,
+                         point_in_interval as _point_in_interval)
 from .hints import (Coordinate,
                     Interval,
                     Point)
 
+Item = Tuple[int, Point]
 NIL = None
 
 
 class Node:
-    __slots__ = 'index', 'axis', 'left', 'right'
+    __slots__ = 'index', 'point', 'axis', 'left', 'right'
 
     def __init__(self,
                  index: int,
+                 point: Point,
                  axis: int,
                  left: Union['Node', NIL],
                  right: Union['Node', NIL]) -> None:
         self.index = index
+        self.point = point
         self.axis = axis
         self.left = left
         self.right = right
+
+    @property
+    def coordinate(self) -> Coordinate:
+        return self.point[self.axis]
+
+    def distance_to_point(self, point: Point) -> Coordinate:
+        return _planar_distance(self.point, point)
+
+    def distance_to_coordinate(self, coordinate: Coordinate) -> Coordinate:
+        return _linear_distance(self.coordinate, coordinate)
 
     __repr__ = generate_repr(__init__)
 
@@ -40,9 +56,11 @@ class Tree:
         https://en.wikipedia.org/wiki/K-d_tree
     """
 
-    __slots__ = '_root', '_points'
+    __slots__ = '_points', '_root'
 
-    def __init__(self, points: Sequence[Point]) -> None:
+    def __init__(self, points: Sequence[Point],
+                 *,
+                 node_cls: Type[Node] = Node) -> None:
         """
         Initializes tree from points.
 
@@ -57,10 +75,27 @@ class Tree:
         >>> tree = Tree(points)
         """
         self._points = points
-        self._root = _create_node(points, range(len(points)), len(points[0]),
-                                  0)
+        self._root = _create_node(node_cls, points, range(len(points)),
+                                  len(points[0]), 0)
 
     __repr__ = generate_repr(__init__)
+
+    @property
+    def node_cls(self) -> Type[Node]:
+        """
+        Returns type of the nodes.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.node_cls is Node
+        True
+        """
+        return type(self._root)
 
     @property
     def points(self) -> Sequence[Point]:
@@ -104,10 +139,9 @@ class Tree:
         >>> set(tree.n_nearest(len(points), (0, 0))) == set(points)
         True
         """
-        return (self._points
-                if n >= len(self._points)
-                else [self._points[index]
-                      for index in self.n_nearest_indices(n, point)])
+        return ([point for _, point in self._n_nearest_items(n, point)]
+                if n < len(self._points)
+                else self._points)
 
     def n_nearest_indices(self, n: int, point: Point) -> Sequence[int]:
         """
@@ -135,34 +169,36 @@ class Tree:
         >>> tree.n_nearest_indices(len(points), (0, 0)) == range(len(points))
         True
         """
-        if n >= len(self._points):
-            return range(len(self._points))
+        return ([index for index, _ in self._n_nearest_items(n, point)]
+                if n < len(self._points)
+                else range(len(self._points)))
+
+    def _n_nearest_items(self, n: int, point: Point) -> List[Item]:
         items = []
-        points, queue = self._points, [self._root]
+        queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()
-            node_point = points[node.index]
-            distance_to_point = _squared_distance(node_point, point)
-            item = -distance_to_point, node.index
+            distance_to_point = node.distance_to_point(point)
+            item = -distance_to_point, node.index, node.point
             if len(items) < n:
                 heappush(items, item)
             elif distance_to_point < -items[0][0]:
                 heapreplace(items, item)
-            hyperplane_delta = point[node.axis] - node_point[node.axis]
-            point_is_on_the_left = hyperplane_delta < 0
+            point_is_on_the_left = point[node.axis] < node.coordinate
             if point_is_on_the_left:
                 if node.left is not NIL:
                     push(node.left)
             elif node.right is not NIL:
                 push(node.right)
-            if len(items) < n or hyperplane_delta ** 2 < -items[0][0]:
+            if len(items) < n or (node.distance_to_coordinate(point[node.axis])
+                                  < -items[0][0]):
                 if point_is_on_the_left:
                     if node.right is not NIL:
                         push(node.right)
                 elif node.left is not NIL:
                     push(node.left)
-        return [index for _, index in items]
+        return [(index, point) for _, index, point in items]
 
     def nearest(self, point: Point) -> Point:
         """
@@ -248,8 +284,7 @@ class Tree:
         >>> tree.query_ball((0, 0), 4) == [(-3, 2), (-2, 3)]
         True
         """
-        return [self.points[index]
-                for index in self._query_ball_indices(center, radius)]
+        return [point for _, point in self._query_ball_items(center, radius)]
 
     def query_ball_indices(self, center: Point,
                            radius: Coordinate) -> List[int]:
@@ -281,19 +316,19 @@ class Tree:
         >>> tree.query_ball_indices((0, 0), 4) == [2, 3]
         True
         """
-        return list(self._query_ball_indices(center, radius))
+        return [index
+                for index, _ in self._query_ball_items(center,
+                                                       radius)]
 
-    def _query_ball_indices(self, center: Point,
-                            radius: Coordinate) -> Iterator[int]:
-        points, queue = self.points, [self._root]
+    def _query_ball_items(self, center: Point, radius: Coordinate
+                          ) -> Iterator[Item]:
+        queue = [self._root]
         push, pop = queue.append, queue.pop
-        squared_radius = radius * radius
         while queue:
             node = pop()
-            node_point = points[node.index]
-            if _squared_distance(node_point, center) <= squared_radius:
-                yield node.index
-            hyperplane_delta = center[node.axis] - node_point[node.axis]
+            if node.distance_to_point(center) <= radius:
+                yield node.index, node.point
+            hyperplane_delta = center[node.axis] - node.coordinate
             if node.left is not NIL and hyperplane_delta <= radius:
                 push(node.left)
             if node.right is not NIL and -radius <= hyperplane_delta:
@@ -359,33 +394,33 @@ class Tree:
         return list(self._query_interval_indices(interval))
 
     def _query_interval_indices(self, interval: Interval) -> List[int]:
-        points, queue = self.points, [self._root]
+        queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()
-            node_point = points[node.index]
-            if _point_in_interval(node_point, interval):
+            if _point_in_interval(node.point, interval):
                 yield node.index
             min_coordinate, max_coordinate = interval[node.axis]
-            hyperplane = node_point[node.axis]
-            if node.left is not NIL and min_coordinate <= hyperplane:
+            if node.left is not NIL and min_coordinate <= node.coordinate:
                 push(node.left)
-            if node.right is not NIL and hyperplane <= max_coordinate:
+            if node.right is not NIL and node.coordinate <= max_coordinate:
                 push(node.right)
 
 
-def _create_node(points: Sequence[Point],
+def _create_node(cls: Type[Node],
+                 points: Sequence[Point],
                  indices: Sequence[int],
                  dimension: int,
                  axis: int) -> Union[Node, NIL]:
     if not indices:
         return NIL
-    pivot_index = len(indices) // 2
     indices = sorted(indices,
                      key=lambda index: points[index][axis])
+    middle_index = len(indices) // 2
+    pivot_index = indices[middle_index]
     next_axis = (axis + 1) % dimension
-    return Node(indices[pivot_index], axis,
-                _create_node(points, indices[:pivot_index], dimension,
-                             next_axis),
-                _create_node(points, indices[pivot_index + 1:], dimension,
-                             next_axis))
+    return cls(pivot_index, points[pivot_index], axis,
+               _create_node(cls, points, indices[:middle_index], dimension,
+                            next_axis),
+               _create_node(cls, points, indices[middle_index + 1:], dimension,
+                            next_axis))

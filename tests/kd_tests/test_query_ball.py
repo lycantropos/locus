@@ -3,7 +3,7 @@ from typing import Tuple
 
 from hypothesis import given
 
-from locus.core.utils import squared_distance
+from locus.core.utils import planar_distance
 from locus.hints import (Coordinate,
                          Point)
 from locus.kd import Tree
@@ -37,12 +37,12 @@ def test_properties(tree_with_ball: Tuple[Tree, Point, Coordinate]) -> None:
 
     result = tree.query_ball(center, radius)
 
-    to_center_distance = partial(squared_distance, center)
+    to_center_distance = partial(planar_distance, center)
     assert sum(center == point for point in tree.points) <= len(result)
     assert all_equal(map(len, result))
     assert all(point in tree.points for point in result)
-    assert all(to_center_distance(point) <= radius * radius
+    assert all(to_center_distance(point) <= radius
                for point in result)
     assert all(point in result
                for point in tree.points
-               if to_center_distance(point) <= radius * radius)
+               if to_center_distance(point) <= radius)

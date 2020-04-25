@@ -2,7 +2,7 @@ from typing import Tuple
 
 from hypothesis import given
 
-from locus.core.utils import squared_distance
+from locus.core.utils import planar_distance
 from locus.hints import (Coordinate,
                          Point)
 from locus.kd import Tree
@@ -34,7 +34,7 @@ def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
     result = tree.nearest_index(point)
 
     def to_point_distance(index: int) -> Coordinate:
-        return squared_distance(tree.points[index], point)
+        return planar_distance(tree.points[index], point)
 
     indices = range(len(tree.points))
     assert result in indices

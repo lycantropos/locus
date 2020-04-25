@@ -3,7 +3,7 @@ from typing import Tuple
 
 from hypothesis import given
 
-from locus.core.utils import squared_distance
+from locus.core.utils import planar_distance
 from locus.hints import Point
 from locus.kd import Tree
 from tests.utils import (all_unique,
@@ -39,7 +39,7 @@ def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
 
     result = tree.nearest(point)
 
-    to_point_distance = partial(squared_distance, point)
+    to_point_distance = partial(planar_distance, point)
     assert result in tree.points
     assert (min(map(to_point_distance, tree.points))
             == to_point_distance(result))
