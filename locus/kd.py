@@ -450,7 +450,7 @@ class Tree:
             if node.right is not NIL and -radius <= hyperplane_delta:
                 push(node.right)
 
-    def query_interval(self, interval: Interval) -> List[Point]:
+    def query_interval_points(self, interval: Interval) -> List[Point]:
         """
         Searches for points that lie inside the closed interval.
 
@@ -470,11 +470,11 @@ class Tree:
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.query_interval(((-3, 3), (0, 1))) == []
+        >>> tree.query_interval_points(((-3, 3), (0, 1))) == []
         True
-        >>> tree.query_interval(((-3, 3), (0, 2))) == [(-3, 2)]
+        >>> tree.query_interval_points(((-3, 3), (0, 2))) == [(-3, 2)]
         True
-        >>> tree.query_interval(((-3, 3), (0, 3))) == [(-3, 2), (-2, 3)]
+        >>> tree.query_interval_points(((-3, 3), (0, 3))) == [(-3, 2), (-2, 3)]
         True
         """
         return [point for _, point in self._query_interval_items(interval)]

@@ -87,7 +87,7 @@ Usage
 [(-3, 7), (-4, 6)]
 >>> tree.query_interval_indices(((-1, 1), (0, 10)))
 [10, 9]
->>> tree.query_interval(((-1, 1), (0, 10)))
+>>> tree.query_interval_points(((-1, 1), (0, 10)))
 [(0, 10), (-1, 9)]
 
 ```
