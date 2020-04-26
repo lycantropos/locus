@@ -229,7 +229,7 @@ class Tree:
         >>> tree.nearest((-3, 2)) == (-3, 2)
         True
         """
-        result, = self.n_nearest(1, point)
+        _, result = self.nearest_item(point)
         return result
 
     def nearest_index(self, point: Point) -> int:
@@ -257,7 +257,56 @@ class Tree:
         >>> tree.nearest_index((-3, 2)) == 2
         True
         """
-        result, = self.n_nearest_indices(1, point)
+        result, _ = self.nearest_item(point)
+        return result
+
+    def nearest_item(self, point: Point) -> Item:
+        """
+        Searches for pair of index and point in the tree
+        that is the nearest to the given point.
+
+        Time complexity:
+            ``O(log size)``
+        Memory complexity:
+            ``O(log size)``
+
+        where ``size = len(self.points)``.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Nearest_neighbour_search
+
+        :param point: input point.
+        :returns:
+            pair of index and point in the tree nearest to the input point.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.nearest_item((0, 0)) == (2, (-3, 2))
+        True
+        >>> tree.nearest_item((-3, 2)) == (2, (-3, 2))
+        True
+        """
+        node = self._root
+        result, min_distance = node.item, node.distance_to_point(point)
+        queue = [node]
+        push, pop = queue.append, queue.pop
+        while queue:
+            node = pop()
+            distance_to_point = node.distance_to_point(point)
+            if distance_to_point < min_distance:
+                result, min_distance = node.item, distance_to_point
+            point_is_on_the_left = point[node.axis] < node.coordinate
+            if point_is_on_the_left:
+                if node.left is not NIL:
+                    push(node.left)
+            elif node.right is not NIL:
+                push(node.right)
+            if node.distance_to_coordinate(point[node.axis]) < min_distance:
+                if point_is_on_the_left:
+                    if node.right is not NIL:
+                        push(node.right)
+                elif node.left is not NIL:
+                    push(node.left)
         return result
 
     def query_ball(self, center: Point, radius: Coordinate) -> List[Point]:
