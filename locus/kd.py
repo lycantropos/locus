@@ -195,8 +195,7 @@ class Tree:
         :param n: positive upper bound for number of result indices.
         :param point: input point.
         :returns:
-            pairs of index and point in the tree
-            the nearest to the input point.
+            indices with points in the tree the nearest to the input point.
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
