@@ -340,8 +340,8 @@ class Tree:
                     push(node.left)
         return result
 
-    def query_ball_points(self, center: Point, radius: Coordinate
-                          ) -> List[Point]:
+    def find_ball_points(self, center: Point, radius: Coordinate
+                         ) -> List[Point]:
         """
         Searches for points in the tree
         that lie inside the closed ball with given center and radius.
@@ -363,17 +363,17 @@ class Tree:
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.query_ball_points((0, 0), 0) == []
+        >>> tree.find_ball_points((0, 0), 0) == []
         True
-        >>> tree.query_ball_points((0, 0), 2) == []
+        >>> tree.find_ball_points((0, 0), 2) == []
         True
-        >>> tree.query_ball_points((0, 0), 4) == [(-3, 2), (-2, 3)]
+        >>> tree.find_ball_points((0, 0), 4) == [(-3, 2), (-2, 3)]
         True
         """
-        return [point for _, point in self._query_ball_items(center, radius)]
+        return [point for _, point in self._find_ball_items(center, radius)]
 
-    def query_ball_indices(self, center: Point, radius: Coordinate
-                           ) -> List[int]:
+    def find_ball_indices(self, center: Point, radius: Coordinate
+                          ) -> List[int]:
         """
         Searches for indices of points in the tree
         that lie inside the closed ball with given center and radius.
@@ -395,17 +395,16 @@ class Tree:
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.query_ball_indices((0, 0), 0) == []
+        >>> tree.find_ball_indices((0, 0), 0) == []
         True
-        >>> tree.query_ball_indices((0, 0), 2) == []
+        >>> tree.find_ball_indices((0, 0), 2) == []
         True
-        >>> tree.query_ball_indices((0, 0), 4) == [2, 3]
+        >>> tree.find_ball_indices((0, 0), 4) == [2, 3]
         True
         """
-        return [index for index, _ in self._query_ball_items(center, radius)]
+        return [index for index, _ in self._find_ball_items(center, radius)]
 
-    def query_ball_items(self, center: Point, radius: Coordinate
-                         ) -> List[Item]:
+    def find_ball_items(self, center: Point, radius: Coordinate) -> List[Item]:
         """
         Searches for indices with points in the tree
         that lie inside the closed ball with given center and radius.
@@ -427,17 +426,17 @@ class Tree:
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.query_ball_items((0, 0), 0) == []
+        >>> tree.find_ball_items((0, 0), 0) == []
         True
-        >>> tree.query_ball_items((0, 0), 2) == []
+        >>> tree.find_ball_items((0, 0), 2) == []
         True
-        >>> tree.query_ball_items((0, 0), 4) == [(2, (-3, 2)), (3, (-2, 3))]
+        >>> tree.find_ball_items((0, 0), 4) == [(2, (-3, 2)), (3, (-2, 3))]
         True
         """
-        return list(self._query_ball_items(center, radius))
+        return list(self._find_ball_items(center, radius))
 
-    def _query_ball_items(self, center: Point, radius: Coordinate
-                          ) -> Iterator[Item]:
+    def _find_ball_items(self, center: Point, radius: Coordinate
+                         ) -> Iterator[Item]:
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
@@ -450,7 +449,7 @@ class Tree:
             if node.right is not NIL and -radius <= hyperplane_delta:
                 push(node.right)
 
-    def query_interval_points(self, interval: Interval) -> List[Point]:
+    def find_interval_points(self, interval: Interval) -> List[Point]:
         """
         Searches for points that lie inside the closed interval.
 
@@ -470,16 +469,16 @@ class Tree:
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.query_interval_points(((-3, 3), (0, 1))) == []
+        >>> tree.find_interval_points(((-3, 3), (0, 1))) == []
         True
-        >>> tree.query_interval_points(((-3, 3), (0, 2))) == [(-3, 2)]
+        >>> tree.find_interval_points(((-3, 3), (0, 2))) == [(-3, 2)]
         True
-        >>> tree.query_interval_points(((-3, 3), (0, 3))) == [(-3, 2), (-2, 3)]
+        >>> tree.find_interval_points(((-3, 3), (0, 3))) == [(-3, 2), (-2, 3)]
         True
         """
-        return [point for _, point in self._query_interval_items(interval)]
+        return [point for _, point in self._find_interval_items(interval)]
 
-    def query_interval_indices(self, interval: Interval) -> List[int]:
+    def find_interval_indices(self, interval: Interval) -> List[int]:
         """
         Searches for indices of points that lie inside the closed interval.
 
@@ -499,16 +498,16 @@ class Tree:
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.query_interval_indices(((-3, 3), (0, 1))) == []
+        >>> tree.find_interval_indices(((-3, 3), (0, 1))) == []
         True
-        >>> tree.query_interval_indices(((-3, 3), (0, 2))) == [2]
+        >>> tree.find_interval_indices(((-3, 3), (0, 2))) == [2]
         True
-        >>> tree.query_interval_indices(((-3, 3), (0, 3))) == [2, 3]
+        >>> tree.find_interval_indices(((-3, 3), (0, 3))) == [2, 3]
         True
         """
-        return [index for index, _ in self._query_interval_items(interval)]
+        return [index for index, _ in self._find_interval_items(interval)]
 
-    def query_interval_items(self, interval: Interval) -> List[Item]:
+    def find_interval_items(self, interval: Interval) -> List[Item]:
         """
         Searches for indices with points in the tree
         that lie inside the closed interval.
@@ -530,17 +529,17 @@ class Tree:
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.query_interval_items(((-3, 3), (0, 1))) == []
+        >>> tree.find_interval_items(((-3, 3), (0, 1))) == []
         True
-        >>> tree.query_interval_items(((-3, 3), (0, 2))) == [(2, (-3, 2))]
+        >>> tree.find_interval_items(((-3, 3), (0, 2))) == [(2, (-3, 2))]
         True
-        >>> (tree.query_interval_items(((-3, 3), (0, 3)))
+        >>> (tree.find_interval_items(((-3, 3), (0, 3)))
         ...  == [(2, (-3, 2)), (3, (-2, 3))])
         True
         """
-        return list(self._query_interval_items(interval))
+        return list(self._find_interval_items(interval))
 
-    def _query_interval_items(self, interval: Interval) -> List[Item]:
+    def _find_interval_items(self, interval: Interval) -> List[Item]:
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:

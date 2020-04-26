@@ -14,7 +14,7 @@ from . import strategies
 def test_basic(tree_with_interval: Tuple[Tree, Interval]) -> None:
     tree, interval = tree_with_interval
 
-    result = tree.query_interval_points(interval)
+    result = tree.find_interval_points(interval)
 
     assert isinstance(result, list)
     assert all(is_point(element) for element in result)
@@ -24,7 +24,7 @@ def test_basic(tree_with_interval: Tuple[Tree, Interval]) -> None:
 def test_properties(tree_with_interval: Tuple[Tree, Interval]) -> None:
     tree, interval = tree_with_interval
 
-    result = tree.query_interval_points(interval)
+    result = tree.find_interval_points(interval)
 
     assert all_equal(map(len, result))
     assert all(point in tree.points for point in result)
