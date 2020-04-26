@@ -401,7 +401,7 @@ class Tree:
         while queue:
             node = pop()
             if _point_in_interval(node.point, interval):
-                yield node.index, node.point
+                yield node.item
             min_coordinate, max_coordinate = interval[node.axis]
             if node.left is not NIL and min_coordinate <= node.coordinate:
                 push(node.left)
