@@ -39,6 +39,10 @@ class Node:
     def coordinate(self) -> Coordinate:
         return self.point[self.axis]
 
+    @property
+    def item(self) -> Item:
+        return self.index, self.point
+
     def distance_to_point(self, point: Point) -> Coordinate:
         return _planar_distance(self.point, point)
 
