@@ -373,8 +373,8 @@ class Tree:
         """
         return [point for _, point in self._query_ball_items(center, radius)]
 
-    def query_ball_indices(self, center: Point,
-                           radius: Coordinate) -> List[int]:
+    def query_ball_indices(self, center: Point, radius: Coordinate
+                           ) -> List[int]:
         """
         Searches for indices of points that lie inside the closed ball
         with given center and radius.
