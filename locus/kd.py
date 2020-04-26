@@ -309,8 +309,7 @@ class Tree:
             https://en.wikipedia.org/wiki/K-d_tree#Nearest_neighbour_search
 
         :param point: input point.
-        :returns:
-            pair of index and point in the tree nearest to the input point.
+        :returns: index with point in the tree the nearest to the input point.
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
