@@ -179,7 +179,7 @@ class Tree:
 
     def n_nearest_items(self, n: int, point: Point) -> Sequence[Item]:
         """
-        Searches for pairs of indices and points in the tree
+        Searches for indices with points in the tree
         that are the nearest to the given point.
 
         Time complexity:
