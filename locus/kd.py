@@ -178,31 +178,32 @@ class Tree:
                 else range(len(self._points)))
 
     def _n_nearest_items(self, n: int, point: Point) -> List[Item]:
-        items = []
+        candidates = []
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()
             distance_to_point = node.distance_to_point(point)
-            item = -distance_to_point, node.index, node.point
-            if len(items) < n:
-                heappush(items, item)
-            elif distance_to_point < -items[0][0]:
-                heapreplace(items, item)
+            candidate = -distance_to_point, node.item
+            if len(candidates) < n:
+                heappush(candidates, candidate)
+            elif distance_to_point < -candidates[0][0]:
+                heapreplace(candidates, candidate)
             point_is_on_the_left = point[node.axis] < node.coordinate
             if point_is_on_the_left:
                 if node.left is not NIL:
                     push(node.left)
             elif node.right is not NIL:
                 push(node.right)
-            if len(items) < n or (node.distance_to_coordinate(point[node.axis])
-                                  < -items[0][0]):
+            if (len(candidates) < n
+                    or (node.distance_to_coordinate(point[node.axis])
+                        < -candidates[0][0])):
                 if point_is_on_the_left:
                     if node.right is not NIL:
                         push(node.right)
                 elif node.left is not NIL:
                     push(node.left)
-        return [(index, point) for _, index, point in items]
+        return [item for _, item in candidates]
 
     def nearest(self, point: Point) -> Point:
         """
