@@ -118,35 +118,6 @@ class Tree:
         """
         return self._points
 
-    def n_nearest_points(self, n: int, point: Point) -> Sequence[Point]:
-        """
-        Searches for points in the tree the nearest to the given point.
-
-        Time complexity:
-            ``O(min(n, size) * log size)``
-        Memory complexity:
-            ``O(min(n, size) * log size)``
-
-        where ``size = len(self.points)``.
-
-        Reference:
-            https://en.wikipedia.org/wiki/K-d_tree#Nearest_neighbour_search
-
-        :param n: positive upper bound for number of result points.
-        :param point: input point.
-        :returns: points in the tree the nearest to the input point.
-
-        >>> points = list(zip(range(-5, 6), range(10)))
-        >>> tree = Tree(points)
-        >>> tree.n_nearest_points(2, (0, 0)) == [(-3, 2), (-2, 3)]
-        True
-        >>> tree.n_nearest_points(len(points), (0, 0)) == points
-        True
-        """
-        return ([point for _, point in self._n_nearest_items(n, point)]
-                if n < len(self._points)
-                else self._points)
-
     def n_nearest_indices(self, n: int, point: Point) -> Sequence[int]:
         """
         Searches for indices of points in the tree
@@ -176,6 +147,35 @@ class Tree:
         return ([index for index, _ in self._n_nearest_items(n, point)]
                 if n < len(self._points)
                 else range(len(self._points)))
+
+    def n_nearest_points(self, n: int, point: Point) -> Sequence[Point]:
+        """
+        Searches for points in the tree the nearest to the given point.
+
+        Time complexity:
+            ``O(min(n, size) * log size)``
+        Memory complexity:
+            ``O(min(n, size) * log size)``
+
+        where ``size = len(self.points)``.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Nearest_neighbour_search
+
+        :param n: positive upper bound for number of result points.
+        :param point: input point.
+        :returns: points in the tree the nearest to the input point.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.n_nearest_points(2, (0, 0)) == [(-3, 2), (-2, 3)]
+        True
+        >>> tree.n_nearest_points(len(points), (0, 0)) == points
+        True
+        """
+        return ([point for _, point in self._n_nearest_items(n, point)]
+                if n < len(self._points)
+                else self._points)
 
     def n_nearest_items(self, n: int, point: Point) -> Sequence[Item]:
         """
@@ -237,33 +237,6 @@ class Tree:
                     push(node.left)
         return [item for _, item in candidates]
 
-    def nearest_point(self, point: Point) -> Point:
-        """
-        Searches for point in the tree that is the nearest to the given point.
-
-        Time complexity:
-            ``O(log size)``
-        Memory complexity:
-            ``O(log size)``
-
-        where ``size = len(self.points)``.
-
-        Reference:
-            https://en.wikipedia.org/wiki/K-d_tree#Nearest_neighbour_search
-
-        :param point: input point.
-        :returns: point in the tree the nearest to the input point.
-
-        >>> points = list(zip(range(-5, 6), range(10)))
-        >>> tree = Tree(points)
-        >>> tree.nearest_point((0, 0)) == (-3, 2)
-        True
-        >>> tree.nearest_point((-3, 2)) == (-3, 2)
-        True
-        """
-        _, result = self.nearest_item(point)
-        return result
-
     def nearest_index(self, point: Point) -> int:
         """
         Searches for index of a point in the tree
@@ -290,6 +263,33 @@ class Tree:
         True
         """
         result, _ = self.nearest_item(point)
+        return result
+
+    def nearest_point(self, point: Point) -> Point:
+        """
+        Searches for point in the tree that is the nearest to the given point.
+
+        Time complexity:
+            ``O(log size)``
+        Memory complexity:
+            ``O(log size)``
+
+        where ``size = len(self.points)``.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Nearest_neighbour_search
+
+        :param point: input point.
+        :returns: point in the tree the nearest to the input point.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.nearest_point((0, 0)) == (-3, 2)
+        True
+        >>> tree.nearest_point((-3, 2)) == (-3, 2)
+        True
+        """
+        _, result = self.nearest_item(point)
         return result
 
     def nearest_item(self, point: Point) -> Item:
@@ -340,38 +340,6 @@ class Tree:
                     push(node.left)
         return result
 
-    def find_ball_points(self, center: Point, radius: Coordinate
-                         ) -> List[Point]:
-        """
-        Searches for points in the tree
-        that lie inside the closed ball with given center and radius.
-
-        Time complexity:
-            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
-        Memory complexity:
-            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
-
-        where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
-        ``hits_count`` --- number of found points.
-
-        Reference:
-            https://en.wikipedia.org/wiki/K-d_tree#Range_search
-
-        :param center: center of the ball.
-        :param radius: radius of the ball.
-        :returns: points in the tree which lie inside the ball.
-
-        >>> points = list(zip(range(-5, 6), range(10)))
-        >>> tree = Tree(points)
-        >>> tree.find_ball_points((0, 0), 0) == []
-        True
-        >>> tree.find_ball_points((0, 0), 2) == []
-        True
-        >>> tree.find_ball_points((0, 0), 4) == [(-3, 2), (-2, 3)]
-        True
-        """
-        return [point for _, point in self._find_ball_items(center, radius)]
-
     def find_ball_indices(self, center: Point, radius: Coordinate
                           ) -> List[int]:
         """
@@ -403,6 +371,38 @@ class Tree:
         True
         """
         return [index for index, _ in self._find_ball_items(center, radius)]
+
+    def find_ball_points(self, center: Point, radius: Coordinate
+                         ) -> List[Point]:
+        """
+        Searches for points in the tree
+        that lie inside the closed ball with given center and radius.
+
+        Time complexity:
+            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
+        Memory complexity:
+            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
+
+        where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
+        ``hits_count`` --- number of found points.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Range_search
+
+        :param center: center of the ball.
+        :param radius: radius of the ball.
+        :returns: points in the tree which lie inside the ball.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.find_ball_points((0, 0), 0) == []
+        True
+        >>> tree.find_ball_points((0, 0), 2) == []
+        True
+        >>> tree.find_ball_points((0, 0), 4) == [(-3, 2), (-2, 3)]
+        True
+        """
+        return [point for _, point in self._find_ball_items(center, radius)]
 
     def find_ball_items(self, center: Point, radius: Coordinate) -> List[Item]:
         """
@@ -449,35 +449,6 @@ class Tree:
             if node.right is not NIL and -radius <= hyperplane_delta:
                 push(node.right)
 
-    def find_interval_points(self, interval: Interval) -> List[Point]:
-        """
-        Searches for points that lie inside the closed interval.
-
-        Time complexity:
-            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
-        Memory complexity:
-            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
-
-        where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
-        ``hits_count`` --- number of found points.
-
-        Reference:
-            https://en.wikipedia.org/wiki/K-d_tree#Range_search
-
-        :param interval: interval to search in.
-        :returns: points which lie inside the interval.
-
-        >>> points = list(zip(range(-5, 6), range(10)))
-        >>> tree = Tree(points)
-        >>> tree.find_interval_points(((-3, 3), (0, 1))) == []
-        True
-        >>> tree.find_interval_points(((-3, 3), (0, 2))) == [(-3, 2)]
-        True
-        >>> tree.find_interval_points(((-3, 3), (0, 3))) == [(-3, 2), (-2, 3)]
-        True
-        """
-        return [point for _, point in self._find_interval_items(interval)]
-
     def find_interval_indices(self, interval: Interval) -> List[int]:
         """
         Searches for indices of points that lie inside the closed interval.
@@ -506,6 +477,35 @@ class Tree:
         True
         """
         return [index for index, _ in self._find_interval_items(interval)]
+
+    def find_interval_points(self, interval: Interval) -> List[Point]:
+        """
+        Searches for points that lie inside the closed interval.
+
+        Time complexity:
+            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
+        Memory complexity:
+            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
+
+        where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
+        ``hits_count`` --- number of found points.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Range_search
+
+        :param interval: interval to search in.
+        :returns: points which lie inside the interval.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.find_interval_points(((-3, 3), (0, 1))) == []
+        True
+        >>> tree.find_interval_points(((-3, 3), (0, 2))) == [(-3, 2)]
+        True
+        >>> tree.find_interval_points(((-3, 3), (0, 3))) == [(-3, 2), (-2, 3)]
+        True
+        """
+        return [point for _, point in self._find_interval_items(interval)]
 
     def find_interval_items(self, interval: Interval) -> List[Item]:
         """
