@@ -330,7 +330,7 @@ class Tree:
         while queue:
             node = pop()
             if node.distance_to_point(center) <= radius:
-                yield node.index, node.point
+                yield node.item
             hyperplane_delta = center[node.axis] - node.coordinate
             if node.left is not NIL and hyperplane_delta <= radius:
                 push(node.left)
