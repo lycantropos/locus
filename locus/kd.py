@@ -374,8 +374,8 @@ class Tree:
     def query_ball_indices(self, center: Point, radius: Coordinate
                            ) -> List[int]:
         """
-        Searches for indices of points that lie inside the closed ball
-        with given center and radius.
+        Searches for indices of points in the tree
+        that lie inside the closed ball with given center and radius.
 
         Time complexity:
             ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
@@ -390,7 +390,7 @@ class Tree:
 
         :param center: center of the ball.
         :param radius: radius of the ball.
-        :returns: indices of points which lie inside the ball.
+        :returns: indices of points in the tree which lie inside the ball.
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
