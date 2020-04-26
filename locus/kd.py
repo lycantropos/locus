@@ -118,7 +118,7 @@ class Tree:
         """
         return self._points
 
-    def n_nearest(self, n: int, point: Point) -> Sequence[Point]:
+    def n_nearest_points(self, n: int, point: Point) -> Sequence[Point]:
         """
         Searches for points in the tree the nearest to the given point.
 
@@ -138,9 +138,9 @@ class Tree:
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.n_nearest(2, (0, 0)) == [(-3, 2), (-2, 3)]
+        >>> tree.n_nearest_points(2, (0, 0)) == [(-3, 2), (-2, 3)]
         True
-        >>> set(tree.n_nearest(len(points), (0, 0))) == set(points)
+        >>> tree.n_nearest_points(len(points), (0, 0)) == points
         True
         """
         return ([point for _, point in self._n_nearest_items(n, point)]

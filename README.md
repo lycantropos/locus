@@ -79,7 +79,7 @@ Usage
 (-5, 5)
 >>> tree.n_nearest_indices(2, (0, 0))
 [6, 5]
->>> tree.n_nearest(2, (0, 0))
+>>> tree.n_nearest_points(2, (0, 0))
 [(-4, 6), (-5, 5)]
 >>> tree.query_ball_indices((0, 3), 5)
 [7, 6]

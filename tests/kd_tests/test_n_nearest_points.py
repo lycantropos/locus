@@ -16,7 +16,7 @@ from . import strategies
 def test_basic(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
     tree, point, n = tree_with_point_and_n
 
-    result = tree.n_nearest(n, point)
+    result = tree.n_nearest_points(n, point)
 
     assert isinstance(result, (list, type(tree.points)))
     assert all(is_point(element) for element in result)
@@ -26,7 +26,7 @@ def test_basic(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
 def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
     tree, point, n = tree_with_point_and_n
 
-    result = tree.n_nearest(n, point)
+    result = tree.n_nearest_points(n, point)
 
     to_point_distance = partial(planar_distance, point)
     assert 0 < len(result) <= n
