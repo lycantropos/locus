@@ -316,9 +316,7 @@ class Tree:
         >>> tree.query_ball_indices((0, 0), 4) == [2, 3]
         True
         """
-        return [index
-                for index, _ in self._query_ball_items(center,
-                                                       radius)]
+        return [index for index, _ in self._query_ball_items(center, radius)]
 
     def _query_ball_items(self, center: Point, radius: Coordinate
                           ) -> Iterator[Item]:
