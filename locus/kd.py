@@ -507,6 +507,38 @@ class Tree:
         """
         return [index for index, _ in self._query_interval_items(interval)]
 
+    def query_interval_items(self, interval: Interval) -> List[Item]:
+        """
+        Searches for indices with points in the tree
+        that lie inside the closed interval.
+
+        Time complexity:
+            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
+        Memory complexity:
+            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
+
+        where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
+        ``hits_count`` --- number of found points.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Range_search
+
+        :param interval: interval to search in.
+        :returns:
+            indices with points in the tree which lie inside the interval.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.query_interval_items(((-3, 3), (0, 1))) == []
+        True
+        >>> tree.query_interval_items(((-3, 3), (0, 2))) == [(2, (-3, 2))]
+        True
+        >>> (tree.query_interval_items(((-3, 3), (0, 3)))
+        ...  == [(2, (-3, 2)), (3, (-2, 3))])
+        True
+        """
+        return list(self._query_interval_items(interval))
+
     def _query_interval_items(self, interval: Interval) -> List[Item]:
         queue = [self._root]
         push, pop = queue.append, queue.pop
