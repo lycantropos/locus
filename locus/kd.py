@@ -295,7 +295,7 @@ class Tree:
 
     def nearest_item(self, point: Point) -> Item:
         """
-        Searches for pair of index and point in the tree
+        Searches for index with point in the tree
         that is the nearest to the given point.
 
         Time complexity:
