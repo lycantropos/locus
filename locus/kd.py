@@ -177,6 +177,39 @@ class Tree:
                 if n < len(self._points)
                 else range(len(self._points)))
 
+    def n_nearest_items(self, n: int, point: Point) -> Sequence[Item]:
+        """
+        Searches for pairs of indices and points in the tree
+        that are the nearest to the given point.
+
+        Time complexity:
+            ``O(min(n, size) * log size)``
+        Memory complexity:
+            ``O(min(n, size) * log size)``
+
+        where ``size = len(self.points)``.
+
+        Reference:
+            https://en.wikipedia.org/wiki/K-d_tree#Nearest_neighbour_search
+
+        :param n: positive upper bound for number of result indices.
+        :param point: input point.
+        :returns:
+            pairs of index and point in the tree
+            the nearest to the input point.
+
+        >>> points = list(zip(range(-5, 6), range(10)))
+        >>> tree = Tree(points)
+        >>> tree.n_nearest_items(2, (0, 0)) == [(2, (-3, 2)), (3, (-2, 3))]
+        True
+        >>> (tree.n_nearest_items(len(points), (0, 0))
+        ...  == list(enumerate(points)))
+        True
+        """
+        return (self._n_nearest_items(n, point)
+                if n < len(self._points)
+                else list(enumerate(self._points)))
+
     def _n_nearest_items(self, n: int, point: Point) -> List[Item]:
         candidates = []
         queue = [self._root]
