@@ -237,7 +237,7 @@ class Tree:
                     push(node.left)
         return [item for _, item in candidates]
 
-    def nearest(self, point: Point) -> Point:
+    def nearest_point(self, point: Point) -> Point:
         """
         Searches for point in the tree that is the nearest to the given point.
 
@@ -256,9 +256,9 @@ class Tree:
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.nearest((0, 0)) == (-3, 2)
+        >>> tree.nearest_point((0, 0)) == (-3, 2)
         True
-        >>> tree.nearest((-3, 2)) == (-3, 2)
+        >>> tree.nearest_point((-3, 2)) == (-3, 2)
         True
         """
         _, result = self.nearest_item(point)

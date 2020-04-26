@@ -75,7 +75,7 @@ Usage
 >>> tree = kd.Tree(points)
 >>> tree.nearest_index((0, 0))
 5
->>> tree.nearest((0, 0))
+>>> tree.nearest_point((0, 0))
 (-5, 5)
 >>> tree.n_nearest_indices(2, (0, 0))
 [6, 5]

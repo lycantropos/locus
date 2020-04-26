@@ -16,19 +16,19 @@ from . import strategies
 def test_basic(tree_with_point: Tuple[Tree, Point]) -> None:
     tree, point = tree_with_point
 
-    result = tree.nearest(point)
+    result = tree.nearest_point(point)
 
     assert is_point(result)
 
 
 @given(strategies.trees)
 def test_fixed_points(tree: Tree) -> None:
-    assert all(tree.nearest(point) == point for point in tree.points)
+    assert all(tree.nearest_point(point) == point for point in tree.points)
 
 
 @given(strategies.trees)
 def test_uniqueness_criteria(tree: Tree) -> None:
-    assert equivalence(all(tree.nearest(point) is point
+    assert equivalence(all(tree.nearest_point(point) is point
                            for point in tree.points),
                        all_unique(tree.points))
 
@@ -37,7 +37,7 @@ def test_uniqueness_criteria(tree: Tree) -> None:
 def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
     tree, point = tree_with_point
 
-    result = tree.nearest(point)
+    result = tree.nearest_point(point)
 
     to_point_distance = partial(planar_distance, point)
     assert result in tree.points
