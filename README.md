@@ -83,7 +83,7 @@ Usage
 [(-4, 6), (-5, 5)]
 >>> tree.query_ball_indices((0, 3), 5)
 [7, 6]
->>> tree.query_ball((0, 3), 5)
+>>> tree.query_ball_points((0, 3), 5)
 [(-3, 7), (-4, 6)]
 >>> tree.query_interval_indices(((-1, 1), (0, 10)))
 [10, 9]

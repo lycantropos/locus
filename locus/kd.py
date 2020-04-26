@@ -340,7 +340,8 @@ class Tree:
                     push(node.left)
         return result
 
-    def query_ball(self, center: Point, radius: Coordinate) -> List[Point]:
+    def query_ball_points(self, center: Point, radius: Coordinate
+                          ) -> List[Point]:
         """
         Searches for points in the tree
         that lie inside the closed ball with given center and radius.
@@ -362,11 +363,11 @@ class Tree:
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.query_ball((0, 0), 0) == []
+        >>> tree.query_ball_points((0, 0), 0) == []
         True
-        >>> tree.query_ball((0, 0), 2) == []
+        >>> tree.query_ball_points((0, 0), 2) == []
         True
-        >>> tree.query_ball((0, 0), 4) == [(-3, 2), (-2, 3)]
+        >>> tree.query_ball_points((0, 0), 4) == [(-3, 2), (-2, 3)]
         True
         """
         return [point for _, point in self._query_ball_items(center, radius)]

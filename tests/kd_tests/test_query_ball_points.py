@@ -16,7 +16,7 @@ from . import strategies
 def test_basic(tree_with_ball: Tuple[Tree, Point, Coordinate]) -> None:
     tree, center, radius = tree_with_ball
 
-    result = tree.query_ball(center, radius)
+    result = tree.query_ball_points(center, radius)
 
     assert isinstance(result, list)
     assert all(is_point(element) for element in result)
@@ -26,7 +26,7 @@ def test_basic(tree_with_ball: Tuple[Tree, Point, Coordinate]) -> None:
 def test_zero_ball(tree_with_center: Tuple[Tree, Point]) -> None:
     tree, center = tree_with_center
 
-    result = tree.query_ball(center, 0)
+    result = tree.query_ball_points(center, 0)
 
     assert not result or set(result) == {center}
 
@@ -35,7 +35,7 @@ def test_zero_ball(tree_with_center: Tuple[Tree, Point]) -> None:
 def test_properties(tree_with_ball: Tuple[Tree, Point, Coordinate]) -> None:
     tree, center, radius = tree_with_ball
 
-    result = tree.query_ball(center, radius)
+    result = tree.query_ball_points(center, radius)
 
     to_center_distance = partial(planar_distance, center)
     assert sum(center == point for point in tree.points) <= len(result)
