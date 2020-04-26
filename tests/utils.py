@@ -81,6 +81,13 @@ def to_node_children(node: Node) -> Iterable[Node]:
         yield node.right
 
 
+def is_item(value: Any) -> bool:
+    return (isinstance(value, tuple)
+            and len(value) == 2
+            and isinstance(value[0], int)
+            and is_point(value[1]))
+
+
 def is_point(value: Any) -> bool:
     return (isinstance(value, tuple)
             and len(value) > 0
