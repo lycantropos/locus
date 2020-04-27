@@ -562,7 +562,7 @@ def _create_node(cls: Type[Node],
         return NIL
     indices = sorted(indices,
                      key=lambda index: points[index][axis])
-    middle_index = len(indices) // 2
+    middle_index = (len(indices) - 1) // 2
     pivot_index = indices[middle_index]
     next_axis = (axis + 1) % dimension
     return cls(pivot_index, points[pivot_index], axis,
