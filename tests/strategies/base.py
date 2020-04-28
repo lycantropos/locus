@@ -1,5 +1,7 @@
 import sys
 from decimal import Decimal
+from fractions import Fraction
+from functools import partial
 from typing import Optional
 
 from hypothesis import strategies
@@ -52,9 +54,9 @@ def to_digits_count(number: float,
 
 
 coordinates_strategies_factories = {
-    # float: to_floats,
-    # Fraction: partial(strategies.fractions,
-    #                   max_denominator=MAX_COORDINATE),
+    float: to_floats,
+    Fraction: partial(strategies.fractions,
+                      max_denominator=MAX_COORDINATE),
     int: strategies.integers}
 coordinates_strategies = strategies.sampled_from(
         [factory(MIN_COORDINATE, MAX_COORDINATE)
