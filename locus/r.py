@@ -126,7 +126,8 @@ class Tree:
 
         where ``size = len(intervals)``.
 
-        >>> intervals = [((0, 1), (0, 1))]
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
         """
         self._intervals = intervals
@@ -145,7 +146,8 @@ class Tree:
         Memory complexity:
             ``O(1)``
 
-        >>> intervals = [((0, 1), (0, 1))]
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
         >>> tree.intervals == intervals
         True
@@ -162,7 +164,8 @@ class Tree:
         Memory complexity:
             ``O(1)``
 
-        >>> intervals = [((0, 1), (0, 1))]
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
         >>> tree.node_cls is Node
         True
@@ -179,7 +182,8 @@ class Tree:
         Memory complexity:
             ``O(1)``
 
-        >>> intervals = [((0, 1), (0, 1))]
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
         >>> tree.max_children == 16
         True
