@@ -33,6 +33,16 @@ class Node:
                  index: int,
                  interval: Interval,
                  children: Optional[Sequence['Node']]) -> None:
+        """
+        Initializes node.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> node = Node(5, ((-10, 10), (0, 20)), None)
+        """
         self.index = index
         self.interval = interval
         self.children = children
