@@ -9,9 +9,9 @@ from typing import (Iterator,
 
 from reprit.base import generate_repr
 
+from .core import interval as _interval
 from .core.utils import (linear_distance as _linear_distance,
-                         planar_distance as _planar_distance,
-                         point_in_interval as _point_in_interval)
+                         planar_distance as _planar_distance)
 from .hints import (Coordinate,
                     Interval,
                     Point)
@@ -544,7 +544,7 @@ class Tree:
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()
-            if _point_in_interval(node.point, interval):
+            if _interval.contains_point(interval, node.point):
                 yield node.item
             min_coordinate, max_coordinate = interval[node.axis]
             if node.left is not NIL and min_coordinate <= node.coordinate:

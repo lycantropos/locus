@@ -10,11 +10,9 @@ from typing import (Iterator,
 from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
+from .core import interval as _interval
 from .core.utils import (HILBERT_MAX_COORDINATE,
                          ceil_division,
-                         distance_to_planar_interval,
-                         is_interval_subset_of,
-                         merge_intervals,
                          to_hilbert_index)
 from .hints import (Coordinate,
                     Interval,
@@ -45,7 +43,7 @@ class Node:
         return self.index, self.interval
 
     def distance_to_point(self, point: Point) -> Coordinate:
-        return distance_to_planar_interval(point, self.interval)
+        return _interval.planar_distance_to_point(self.interval, point)
 
 
 class Tree:
@@ -229,7 +227,7 @@ class Tree:
 
     def _find_interval_items(self, interval: Interval) -> Iterator[Item]:
         yield from (enumerate(self._intervals)
-                    if is_interval_subset_of(self._root.interval, interval)
+                    if _interval.is_subset_of(self._root.interval, interval)
                     else _find_node_interval_items(self._root, interval))
 
     def n_nearest_indices(self, n: int, point: Point) -> Sequence[int]:
@@ -350,7 +348,7 @@ def _create_root(intervals: Sequence[Interval],
     intervals_count = len(intervals)
     nodes = [node_cls(index, interval, None)
              for index, interval in enumerate(intervals)]
-    interval = reduce(merge_intervals, intervals)
+    interval = reduce(_interval.merge, intervals)
     if intervals_count <= max_children:
         # only one node, skip sorting and just fill the root box
         return node_cls(len(nodes), interval, nodes)
@@ -386,7 +384,7 @@ def _create_root(intervals: Sequence[Interval],
                 stop = min(start + max_children, level_limit)
                 children = nodes[start:stop]
                 nodes.append(node_cls(len(nodes),
-                                      reduce(merge_intervals,
+                                      reduce(_interval.merge,
                                              [child.interval
                                               for child in children]),
                                       children))
@@ -406,10 +404,9 @@ def _node_to_leaves(node: Node) -> Iterator[Node]:
 
 def _find_node_interval_items(node: Node,
                               interval: Interval) -> Iterator[Item]:
-    if is_interval_subset_of(node.interval, interval):
+    if _interval.is_subset_of(node.interval, interval):
         for node_leaf in _node_to_leaves(node):
             yield node_leaf.item
-    elif (not node.is_leaf
-          and is_interval_subset_of(interval, node.interval)):
+    elif not node.is_leaf and _interval.is_subset_of(interval, node.interval):
         for child in node.children:
             yield from _find_node_interval_items(child, interval)
