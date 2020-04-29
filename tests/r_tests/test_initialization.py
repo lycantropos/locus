@@ -27,5 +27,5 @@ def test_properties(intervals: List[Interval], max_children: int) -> None:
 
     assert is_r_tree_valid(result)
     assert is_r_tree_balanced(result)
-    assert to_r_tree_height(result) == to_balanced_tree_height(len(intervals),
+    assert to_r_tree_height(result) >= to_balanced_tree_height(len(intervals),
                                                                max_children)
