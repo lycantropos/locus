@@ -114,3 +114,23 @@ def all_unique(iterable: Iterable[Domain]) -> bool:
 
 def identity(value: Domain) -> Domain:
     return value
+
+
+def to_hilbert_index_complete(size: int, x: int, y: int) -> int:
+    result = 0
+    step = size // 2
+    while step > 0:
+        rx = (x & step) > 0
+        ry = (y & step) > 0
+        result += step * step * ((3 * rx) ^ ry)
+        x, y = rot(size, x, y, rx, ry)
+        step //= 2
+    return result
+
+
+def rot(size: int, x: int, y: int, rx: int, ry: int) -> Tuple[int, int]:
+    if not ry:
+        if rx == 1:
+            x, y = size - 1 - x, size - 1 - y
+        x, y = y, x
+    return x, y

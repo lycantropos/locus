@@ -11,11 +11,11 @@ from locus.hints import (Coordinate,
 from locus.kd import Tree
 from tests.strategies import (axes,
                               coordinates_strategies,
+                              coordinates_to_intervals,
                               coordinates_to_points,
                               points_strategies)
 from tests.utils import (Strategy,
-                         identity,
-                         to_homogeneous_tuples)
+                         identity)
 
 non_empty_points_lists = points_strategies.flatmap(partial(strategies.lists,
                                                            min_size=1))
@@ -102,19 +102,6 @@ def coordinates_to_trees(coordinates: Strategy[Coordinate],
                                                  dimension=dimension),
                            min_size=min_tree_size,
                            max_size=max_tree_size)
-
-
-def coordinates_to_intervals(coordinates: Strategy[Coordinate],
-                             *,
-                             dimension: int
-                             ) -> Strategy[Interval]:
-    return to_homogeneous_tuples(strategies.lists(coordinates,
-                                                  min_size=2,
-                                                  max_size=2,
-                                                  unique=True)
-                                 .map(sorted)
-                                 .map(tuple),
-                                 size=dimension)
 
 
 trees_with_intervals = (strategies.builds(coordinates_to_trees_with_intervals,

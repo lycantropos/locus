@@ -7,6 +7,7 @@ from typing import Optional
 from hypothesis import strategies
 
 from locus.hints import (Coordinate,
+                         Interval,
                          Point)
 from tests.bounds import (MAX_AXES_COUNT,
                           MAX_COORDINATE,
@@ -74,3 +75,16 @@ def coordinates_to_points(coordinates: Strategy[Coordinate],
 points_strategies = strategies.builds(coordinates_to_points,
                                       coordinates_strategies,
                                       dimension=axes)
+
+
+def coordinates_to_intervals(coordinates: Strategy[Coordinate],
+                             *,
+                             dimension: int
+                             ) -> Strategy[Interval]:
+    return to_homogeneous_tuples(strategies.lists(coordinates,
+                                                  min_size=2,
+                                                  max_size=2,
+                                                  unique=True)
+                                 .map(sorted)
+                                 .map(tuple),
+                                 size=dimension)
