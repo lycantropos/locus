@@ -137,6 +137,19 @@ class Tree:
 
     @property
     def intervals(self) -> Sequence[Interval]:
+        """
+        Returns underlying intervals.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> intervals = [((0, 1), (0, 1))]
+        >>> tree = Tree(intervals)
+        >>> tree.intervals == intervals
+        True
+        """
         return self._intervals
 
     @property
