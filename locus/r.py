@@ -401,6 +401,8 @@ class Tree:
         >>> tree.nearest_item((10, 10)) == (9, ((-10, 10), (0, 10)))
         True
         """
+        if self._root.is_leaf:
+            return self._root.item
         queue = PriorityQueue((0, 0, self._root))
         while queue:
             node = queue.pop()[2]
