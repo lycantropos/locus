@@ -22,7 +22,7 @@ NIL = None
 
 class Node:
     """
-    Represents node of *kd* tree.
+    Represents node of *kd*-tree.
 
     Can be subclassed for custom metrics definition.
     """
