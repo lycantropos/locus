@@ -359,7 +359,7 @@ class Tree:
 
         :param center: center of the ball.
         :param radius: radius of the ball.
-        :returns: indices of points in the tree which lie inside the ball.
+        :returns: indices of points in the tree that lie inside the ball.
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
@@ -391,7 +391,7 @@ class Tree:
 
         :param center: center of the ball.
         :param radius: radius of the ball.
-        :returns: points in the tree which lie inside the ball.
+        :returns: points in the tree that lie inside the ball.
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
@@ -422,7 +422,7 @@ class Tree:
 
         :param center: center of the ball.
         :param radius: radius of the ball.
-        :returns: indices with points in the tree which lie inside the ball.
+        :returns: indices with points in the tree that lie inside the ball.
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
@@ -465,7 +465,7 @@ class Tree:
             https://en.wikipedia.org/wiki/K-d_tree#Range_search
 
         :param interval: interval to search in.
-        :returns: indices of points which lie inside the interval.
+        :returns: indices of points that lie inside the interval.
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
@@ -494,7 +494,7 @@ class Tree:
             https://en.wikipedia.org/wiki/K-d_tree#Range_search
 
         :param interval: interval to search in.
-        :returns: points which lie inside the interval.
+        :returns: points that lie inside the interval.
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
@@ -525,7 +525,7 @@ class Tree:
 
         :param interval: interval to search in.
         :returns:
-            indices with points in the tree which lie inside the interval.
+            indices with points in the tree that lie inside the interval.
 
         >>> points = list(zip(range(-5, 6), range(10)))
         >>> tree = Tree(points)
