@@ -92,16 +92,6 @@ def _create_root(intervals: Sequence[Interval],
         return nodes[-1]
 
 
-def _node_to_hilbert_index(node, double_min_x, double_min_y,
-                           double_width, double_height) -> int:
-    return to_hilbert_index(floor(HILBERT_MAX_COORDINATE
-                                  * ((node.min_x + node.max_x - double_min_x)
-                                     / double_width)),
-                            floor(HILBERT_MAX_COORDINATE
-                                  * (node.min_y + node.max_y - double_min_y)
-                                  / double_height))
-
-
 class Tree:
     """
     Represents packed 2-dimensional Hilbert *R*-tree.
