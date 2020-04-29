@@ -115,6 +115,20 @@ class Tree:
                  *,
                  max_children: int = 16,
                  node_cls: Type[Node] = Node) -> None:
+        """
+        Initializes tree from intervals.
+
+
+        Time complexity:
+            ``O(size * log size)``
+        Memory complexity:
+            ``O(size)``
+
+        where ``size = len(intervals)``.
+
+        >>> intervals = [((0, 1), (0, 1))]
+        >>> tree = Tree(intervals)
+        """
         self._intervals = intervals
         self._max_children = max_children
         self._root = _create_root(intervals, max_children, node_cls)
