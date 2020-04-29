@@ -21,6 +21,12 @@ Item = Tuple[int, Interval]
 
 
 class Node:
+    """
+    Represents node of *R*-tree.
+
+    Can be subclassed for custom metrics definition.
+    """
+
     __slots__ = 'index', 'interval', 'children'
 
     def __init__(self,
