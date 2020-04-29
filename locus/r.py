@@ -141,11 +141,12 @@ class Tree:
         that lie inside the given closed interval.
 
         Time complexity:
-            ``O(log size + hits_count)``
+            ``O(max_children * log size + hits_count)``
         Memory complexity:
-            ``O(log size + hits_count)``
+            ``O(max_children * log size + hits_count)``
 
         where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``,
         ``hits_count`` --- number of found indices.
 
         :param interval: input interval.
@@ -168,11 +169,12 @@ class Tree:
         Searches for intervals that lie inside the given closed interval.
 
         Time complexity:
-            ``O(log size + hits_count)``
+            ``O(max_children * log size + hits_count)``
         Memory complexity:
-            ``O(log size + hits_count)``
+            ``O(max_children * log size + hits_count)``
 
         where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``,
         ``hits_count`` --- number of found intervals.
 
         :param interval: input interval.
@@ -200,11 +202,12 @@ class Tree:
         that lie inside the given closed interval.
 
         Time complexity:
-            ``O(log size + hits_count)``
+            ``O(max_children * log size + hits_count)``
         Memory complexity:
-            ``O(log size + hits_count)``
+            ``O(max_children * log size + hits_count)``
 
         where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``,
         ``hits_count`` --- number of found indices with intervals.
 
         :param interval: input interval.
@@ -237,13 +240,14 @@ class Tree:
         the nearest to the given point.
 
         Time complexity:
-            ``O(n * log size)`` if ``n < size``,
-            ``O(1)`` otherwise.
+            ``O(n * max_children * log size)`` if ``n < size``,
+            ``O(1)`` otherwise
         Memory complexity:
-            ``O(n * log size)`` if ``n < size``,
-            ``O(1)`` otherwise.
+            ``O(n * max_children * log size)`` if ``n < size``,
+            ``O(1)`` otherwise
 
-        where ``size = len(self.intervals)``.
+        where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``.
 
         :param n: positive upper bound for number of result indices.
         :param point: input point.
@@ -268,13 +272,14 @@ class Tree:
         Searches for intervals in the tree the nearest to the given point.
 
         Time complexity:
-            ``O(n * log size)`` if ``n < size``,
-            ``O(1)`` otherwise.
+            ``O(n * max_children * log size)`` if ``n < size``,
+            ``O(1)`` otherwise
         Memory complexity:
-            ``O(n * log size)`` if ``n < size``,
-            ``O(1)`` otherwise.
+            ``O(n * max_children * log size)`` if ``n < size``,
+            ``O(1)`` otherwise
 
-        where ``size = len(self.intervals)``.
+        where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``.
 
         :param n: positive upper bound for number of result intervals.
         :param point: input point.
@@ -299,13 +304,14 @@ class Tree:
         the nearest to the given point.
 
         Time complexity:
-            ``O(n * log size)`` if ``n < size``,
-            ``O(size)`` otherwise.
+            ``O(n * max_children * log size)`` if ``n < size``,
+            ``O(size)`` otherwise
         Memory complexity:
-            ``O(n * log size)`` if ``n < size``,
-            ``O(size)`` otherwise.
+            ``O(n * max_children * log size)`` if ``n < size``,
+            ``O(size)`` otherwise
 
-        where ``size = len(self.intervals)``.
+        where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``.
 
         :param n:
             positive upper bound for number of result indices with intervals.
