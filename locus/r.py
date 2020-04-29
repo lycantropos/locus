@@ -51,6 +51,18 @@ class Node:
 
     @property
     def is_leaf(self) -> bool:
+        """
+        Checks whether the node is a leaf.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> node = Node(5, ((-10, 10), (0, 20)), None)
+        >>> node.is_leaf
+        True
+        """
         return self.children is None
 
     @property
