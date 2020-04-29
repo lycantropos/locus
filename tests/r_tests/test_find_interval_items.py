@@ -19,6 +19,12 @@ def test_basic(tree_with_interval: Tuple[Tree, Interval]) -> None:
     assert all(is_r_item(element) for element in result)
 
 
+@given(strategies.trees)
+def test_base_intervals(tree: Tree) -> None:
+    assert all((index, interval) in tree.find_interval_items(interval)
+               for index, interval in enumerate(tree.intervals))
+
+
 @given(strategies.trees_with_intervals)
 def test_properties(tree_with_interval: Tuple[Tree, Interval]) -> None:
     tree, interval = tree_with_interval
