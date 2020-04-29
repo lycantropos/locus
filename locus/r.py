@@ -68,8 +68,8 @@ def _create_root(intervals: Sequence[Interval],
                                           * (min_y + max_y - double_tree_min_y)
                                           / double_tree_delta_y))
 
-        _presort([node_key(node) for node in nodes], nodes,
-                 0, intervals_count - 1, max_children)
+        nodes = sorted(nodes,
+                       key=node_key)
         nodes_count = step = len(intervals)
         levels_limits = [nodes_count]
         while True:
@@ -195,41 +195,6 @@ def _interval_does_not_contain(goal: Interval, test: Interval) -> bool:
     (test_min_x, test_max_x), (test_min_y, test_max_y) = test
     return (test_max_x < goal_min_x or test_min_x > goal_max_x
             or test_max_y < goal_min_y or test_min_y > goal_max_y)
-
-
-def _presort(keys: List[int],
-             nodes: List[Node],
-             start: int,
-             stop: int,
-             node_size: int) -> None:
-    if start // node_size >= stop // node_size:
-        return
-    pivot_index = _partition(keys, nodes, start, stop)
-    _presort(keys, nodes, start, pivot_index, node_size)
-    _presort(keys, nodes, pivot_index + 1, stop, node_size)
-
-
-def _partition(keys: List[int],
-               nodes: List[Node],
-               start: int,
-               stop: int) -> int:
-    pivot = keys[(start + stop) // 2]
-    start -= 1
-    stop += 1
-    while True:
-        while True:
-            start += 1
-            if pivot <= keys[start]:
-                break
-        while True:
-            stop -= 1
-            if keys[stop] <= pivot:
-                break
-        if start >= stop:
-            break
-        keys[start], keys[stop], nodes[start], nodes[stop] = (
-            keys[stop], keys[start], nodes[stop], nodes[start])
-    return stop
 
 
 def _merge_intervals(left: Interval, right: Interval) -> Interval:
