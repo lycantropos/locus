@@ -67,6 +67,18 @@ class Node:
 
     @property
     def item(self) -> Item:
+        """
+        Returns underlying index with interval.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> node = Node(5, ((-10, 10), (0, 20)), None)
+        >>> node.item == (5, ((-10, 10), (0, 20)))
+        True
+        """
         return self.index, self.interval
 
     def distance_to_point(self, point: Point) -> Coordinate:
