@@ -75,7 +75,9 @@ class Tree:
         """
         self._intervals = intervals
         self._max_children = max_children
-        self._root = _create_root(intervals, max_children, node_cls)
+        self._root = (_create_root(intervals, max_children, node_cls)
+                      if len(intervals) > 1
+                      else node_cls(0, intervals[0], None))
 
     __repr__ = generate_repr(__init__)
 
