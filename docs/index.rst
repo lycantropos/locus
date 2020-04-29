@@ -15,3 +15,10 @@ kd module
 .. automodule:: locus.kd
     :members:
     :special-members:
+
+r module
+========
+
+.. automodule:: locus.r
+    :members:
+    :special-members:
