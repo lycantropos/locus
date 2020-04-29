@@ -10,10 +10,9 @@ from typing import (Iterator,
 from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
-from .core import interval as _interval
-from .core.utils import (HILBERT_MAX_COORDINATE,
-                         ceil_division,
-                         to_hilbert_index)
+from .core import (hilbert as _hilbert,
+                   interval as _interval)
+from .core.utils import ceil_division
 from .hints import (Coordinate,
                     Interval,
                     Point)
@@ -361,12 +360,12 @@ def _create_root(intervals: Sequence[Interval],
                      double_tree_x_min: Coordinate = 2 * x_min,
                      double_tree_y_min: Coordinate = 2 * y_min) -> int:
             (x_min, x_max), (y_min, y_max) = node.interval
-            return to_hilbert_index(floor(HILBERT_MAX_COORDINATE
-                                          * (x_min + x_max - double_tree_x_min)
-                                          / double_tree_delta_x),
-                                    floor(HILBERT_MAX_COORDINATE
-                                          * (y_min + y_max - double_tree_y_min)
-                                          / double_tree_delta_y))
+            return _hilbert.index(floor(_hilbert.MAX_COORDINATE
+                                        * (x_min + x_max - double_tree_x_min)
+                                        / double_tree_delta_x),
+                                  floor(_hilbert.MAX_COORDINATE
+                                        * (y_min + y_max - double_tree_y_min)
+                                        / double_tree_delta_y))
 
         nodes = sorted(nodes,
                        key=node_key)
