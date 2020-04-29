@@ -75,9 +75,7 @@ class Tree:
         """
         self._intervals = intervals
         self._max_children = max_children
-        self._root = (_create_root(intervals, max_children, node_cls)
-                      if len(intervals) > 1
-                      else node_cls(0, intervals[0], None))
+        self._root = _create_root(intervals, max_children, node_cls)
 
     __repr__ = generate_repr(__init__)
 
@@ -401,8 +399,6 @@ class Tree:
         >>> tree.nearest_item((10, 10)) == (9, ((-10, 10), (0, 10)))
         True
         """
-        if self._root.is_leaf:
-            return self._root.item
         queue = PriorityQueue((0, 0, self._root))
         while queue:
             node = queue.pop()[2]
