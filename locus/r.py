@@ -321,24 +321,21 @@ class Tree:
         ...  == list(enumerate(intervals)))
         True
         """
-        return (self._n_nearest_items(n, point)
-                if n < len(self._intervals)
-                else list(enumerate(self._intervals)))
+        return list(self._n_nearest_items(n, point)
+                    if n < len(self._intervals)
+                    else enumerate(self._intervals))
 
-    def _n_nearest_items(self, n: int, point: Point) -> List[Item]:
+    def _n_nearest_items(self, n: int, point: Point) -> Iterator[Item]:
         queue = PriorityQueue((0, 0, self._root))
-        items = []
-        while queue:
+        while n and queue:
             node = queue.pop()[2]
             for child in node.children:
                 queue.push((child.distance_to_point(point),
                             -child.index - 1 if child.is_leaf else child.index,
                             child))
-            while queue and queue.peek()[1] < 0:
-                items.append(queue.pop()[2].item)
-                if len(items) == n:
-                    return items
-        return items
+            while n and queue and queue.peek()[1] < 0:
+                yield queue.pop()[2].item
+                n -= 1
 
 
 def _create_root(intervals: Sequence[Interval],
