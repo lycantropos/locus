@@ -150,32 +150,33 @@ class Tree:
                     else _find_node_interval_items(self._root, interval))
 
     def n_nearest_indices(self, n: int, point: Point) -> Sequence[int]:
-        return ([index for index, _ in self.n_nearest_items(n, point)]
+        return ([index for index, _ in self._n_nearest_items(n, point)]
                 if n < len(self._intervals)
                 else range(len(self._intervals)))
 
     def n_nearest_intervals(self, n: int, point: Point) -> Sequence[Interval]:
-        return ([interval for _, interval in self.n_nearest_items(n, point)]
+        return ([interval for _, interval in self._n_nearest_items(n, point)]
                 if n < len(self._intervals)
                 else self._intervals)
 
-    def n_nearest_items(self, n: int, point: Point) -> List[Item]:
+    def n_nearest_items(self, n: int, point: Point) -> Sequence[Item]:
+        return (self._n_nearest_items(n, point)
+                if n < len(self._intervals)
+                else list(enumerate(self._intervals)))
+
+    def _n_nearest_items(self, n: int, point: Point) -> List[Item]:
         queue = PriorityQueue((0, 0, self._root))
         items = []
         while queue:
             node = queue.pop()[2]
             for child in node.children:
                 queue.push((child.distance_to_point(point),
-                            -child.index - 1
-                            if child.children is None
-                            else child.index,
+                            -child.index - 1 if child.is_leaf else child.index,
                             child))
             while queue and queue.peek()[1] < 0:
                 items.append(queue.pop()[2].item)
                 if len(items) == n:
-                    queue.clear()
                     return items
-        queue.clear()
         return items
 
 
