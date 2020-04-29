@@ -134,7 +134,7 @@ def is_kd_item(value: Any) -> bool:
 def is_point(value: Any) -> bool:
     return (isinstance(value, tuple)
             and len(value) > 0
-            and all_equal(map(type, value)) == 1
+            and all_equal(map(type, value))
             and all(isinstance(sub_element, Coordinate)
                     for sub_element in value))
 
