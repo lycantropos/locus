@@ -352,7 +352,7 @@ class Tree:
             ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
 
         where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
-        ``hits_count`` --- number of found points.
+        ``hits_count`` --- number of found indices.
 
         Reference:
             https://en.wikipedia.org/wiki/K-d_tree#Range_search
@@ -415,7 +415,7 @@ class Tree:
             ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
 
         where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
-        ``hits_count`` --- number of found points.
+        ``hits_count`` --- number of found indices with points.
 
         Reference:
             https://en.wikipedia.org/wiki/K-d_tree#Range_search
@@ -459,7 +459,7 @@ class Tree:
             ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
 
         where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
-        ``hits_count`` --- number of found points.
+        ``hits_count`` --- number of found indices.
 
         Reference:
             https://en.wikipedia.org/wiki/K-d_tree#Range_search
@@ -518,7 +518,7 @@ class Tree:
             ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
 
         where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
-        ``hits_count`` --- number of found points.
+        ``hits_count`` --- number of found indices with points.
 
         Reference:
             https://en.wikipedia.org/wiki/K-d_tree#Range_search
