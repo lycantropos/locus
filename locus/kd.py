@@ -53,6 +53,13 @@ class Node:
 
     @property
     def coordinate(self) -> Coordinate:
+        """
+        Returns coordinate on which branching was performed.
+
+        >>> node = Node(5, (-10, 10), 0, NIL, NIL)
+        >>> node.coordinate == -10
+        True
+        """
         return self.point[self.axis]
 
     @property
