@@ -405,6 +405,6 @@ def _find_node_interval_items(node: Node,
     if _interval.is_subset_of(node.interval, interval):
         for node_leaf in _node_to_leaves(node):
             yield node_leaf.item
-    elif not node.is_leaf and _interval.is_subset_of(interval, node.interval):
+    elif not node.is_leaf and _interval.overlap(interval, node.interval):
         for child in node.children:
             yield from _find_node_interval_items(child, interval)
