@@ -103,6 +103,13 @@ def _node_to_hilbert_index(node, double_min_x, double_min_y,
 
 
 class Tree:
+    """
+    Represents packed 2-dimensional Hilbert *R*-tree.
+
+    Reference:
+        https://en.wikipedia.org/wiki/Hilbert_R-tree#Packed_Hilbert_R-trees
+    """
+
     def __init__(self,
                  intervals: Sequence[Interval],
                  *,
