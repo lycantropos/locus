@@ -72,23 +72,39 @@ Usage
 ```python
 >>> from locus import kd
 >>> points = list(zip(range(-10, 11), range(0, 20)))
->>> tree = kd.Tree(points)
->>> tree.nearest_index((0, 0))
+>>> kd_tree = kd.Tree(points)
+>>> kd_tree.nearest_index((0, 0))
 5
->>> tree.nearest_point((0, 0))
+>>> kd_tree.nearest_point((0, 0))
 (-5, 5)
->>> tree.n_nearest_indices(2, (0, 0))
+>>> kd_tree.n_nearest_indices(2, (0, 0))
 [6, 5]
->>> tree.n_nearest_points(2, (0, 0))
+>>> kd_tree.n_nearest_points(2, (0, 0))
 [(-4, 6), (-5, 5)]
->>> tree.find_ball_indices((0, 3), 5)
+>>> kd_tree.find_ball_indices((0, 3), 5)
 [6, 7]
->>> tree.find_ball_points((0, 3), 5)
+>>> kd_tree.find_ball_points((0, 3), 5)
 [(-4, 6), (-3, 7)]
->>> tree.find_interval_indices(((-1, 1), (0, 10)))
+>>> kd_tree.find_interval_indices(((-1, 1), (0, 10)))
 [9, 10]
->>> tree.find_interval_points(((-1, 1), (0, 10)))
+>>> kd_tree.find_interval_points(((-1, 1), (0, 10)))
 [(-1, 9), (0, 10)]
+>>> from locus import r
+>>> intervals = list(zip(zip(range(-10, 11), range(0, 20)), 
+...                      zip(range(-20, 0), range(-10, 11))))
+>>> r_tree = r.Tree(intervals)
+>>> r_tree.nearest_index((0, 0))
+10
+>>> r_tree.nearest_interval((0, 0))
+((0, 10), (-10, 0))
+>>> r_tree.n_nearest_indices(2, (0, 0))
+[10, 11]
+>>> r_tree.n_nearest_intervals(2, (0, 0))
+[((0, 10), (-10, 0)), ((1, 11), (-9, 1))]
+>>> r_tree.find_interval_indices(((0, 10), (-10, 10)))
+[10]
+>>> r_tree.find_interval_intervals(((0, 10), (-10, 10)))
+[((0, 10), (-10, 0))]
 
 ```
 
