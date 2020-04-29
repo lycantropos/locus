@@ -5,8 +5,8 @@ from locus.hints import (Coordinate,
                          Point)
 
 
-def ceil_division(left: int, right: int) -> int:
-    return -(-left // right)
+def ceil_division(dividend: int, divisor: int) -> int:
+    return -(-dividend // divisor)
 
 
 HILBERT_SQUARE_SIZE = 2 ** 16
