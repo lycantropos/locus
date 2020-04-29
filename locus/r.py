@@ -368,6 +368,30 @@ class Tree:
         result, _ = self.nearest_item(point)
         return result
 
+    def nearest_interval(self, point: Point) -> Interval:
+        """
+        Searches for interval in the tree the nearest to the given point.
+
+        Time complexity:
+            ``O(max_children * log size)``
+        Memory complexity:
+            ``O(max_children * log size)``
+
+        where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``.
+
+        :param point: input point.
+        :returns: interval in the tree the nearest to the input point.
+
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
+        >>> tree = Tree(intervals)
+        >>> tree.nearest_interval((0, 0)) == ((-10, 10), (0, 10))
+        True
+        """
+        _, result = self.nearest_item(point)
+        return result
+
     def nearest_item(self, point: Point) -> Item:
         """
         Searches for index with interval in the tree
