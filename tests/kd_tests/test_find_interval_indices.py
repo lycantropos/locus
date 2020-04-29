@@ -2,7 +2,7 @@ from typing import Tuple
 
 from hypothesis import given
 
-from locus.core.utils import point_in_interval
+from locus.core.interval import contains_point
 from locus.hints import Interval
 from locus.kd import Tree
 from . import strategies
@@ -26,8 +26,8 @@ def test_properties(tree_with_interval: Tuple[Tree, Interval]) -> None:
 
     indices = range(len(tree.points))
     assert all(index in indices for index in result)
-    assert all(point_in_interval(tree.points[index], interval)
+    assert all(contains_point(interval, tree.points[index])
                for index in result)
     assert all(index in result
                for index in indices
-               if point_in_interval(tree.points[index], interval))
+               if contains_point(interval, tree.points[index]))
