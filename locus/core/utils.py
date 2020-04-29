@@ -15,8 +15,6 @@ HILBERT_MAX_COORDINATE = HILBERT_SQUARE_SIZE - 1
 
 def to_hilbert_index(x: int, y: int) -> int:
     # based on https://github.com/rawrunprotected/hilbert_curves
-    assert 0 <= x <= HILBERT_MAX_COORDINATE
-    assert 0 <= y <= HILBERT_MAX_COORDINATE
     a = x ^ y
     b = HILBERT_MAX_COORDINATE ^ a
     c, d = (HILBERT_MAX_COORDINATE ^ (x | y),
