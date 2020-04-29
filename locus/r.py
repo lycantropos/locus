@@ -35,61 +35,15 @@ class Node:
     __repr__ = generate_repr(__init__)
 
     @property
+    def is_leaf(self) -> bool:
+        return self.children is None
+
+    @property
     def item(self) -> Item:
         return self.index, self.interval
 
     def distance_to_point(self, point: Point) -> Coordinate:
         return distance_to_planar_interval(point, self.interval)
-
-
-def _create_root(intervals: Sequence[Interval],
-                 max_children: int,
-                 node_cls: Type[Node] = Node) -> Node:
-    intervals_count = len(intervals)
-    nodes = [node_cls(index, interval, None)
-             for index, interval in enumerate(intervals)]
-    interval = reduce(_merge_intervals, intervals)
-    if intervals_count <= max_children:
-        # only one node, skip sorting and just fill the root box
-        return node_cls(len(nodes), interval, nodes)
-    else:
-        (x_min, x_max), (y_min, y_max) = interval
-
-        def node_key(node: Node,
-                     double_tree_delta_x: Coordinate = 2 * (x_max - x_min),
-                     double_tree_delta_y: Coordinate = 2 * (y_max - y_min),
-                     double_tree_x_min: Coordinate = 2 * x_min,
-                     double_tree_y_min: Coordinate = 2 * y_min) -> int:
-            (x_min, x_max), (y_min, y_max) = node.interval
-            return to_hilbert_index(floor(HILBERT_MAX_COORDINATE
-                                          * (x_min + x_max - double_tree_x_min)
-                                          / double_tree_delta_x),
-                                    floor(HILBERT_MAX_COORDINATE
-                                          * (y_min + y_max - double_tree_y_min)
-                                          / double_tree_delta_y))
-
-        nodes = sorted(nodes,
-                       key=node_key)
-        nodes_count = step = len(intervals)
-        levels_limits = [nodes_count]
-        while True:
-            step = ceil_division(step, max_children)
-            if step == 1:
-                break
-            nodes_count += step
-            levels_limits.append(nodes_count)
-        start = 0
-        for level_limit in levels_limits:
-            while start < level_limit:
-                stop = min(start + max_children, level_limit)
-                children = nodes[start:stop]
-                nodes.append(node_cls(len(nodes),
-                                      reduce(_merge_intervals,
-                                             [child.interval
-                                              for child in children]),
-                                      children))
-                start = stop
-        return nodes[-1]
 
 
 class Tree:
@@ -191,21 +145,9 @@ class Tree:
         return list(self._find_interval_items(interval))
 
     def _find_interval_items(self, interval: Interval) -> Iterator[Item]:
-        queue = [self._root]
-        while queue:
-            node = queue.pop()
-            if _interval_does_not_contain(interval, node.interval):
-                continue
-            if node.children is None:
-                yield node.item
-            else:
-                for child in node.children:
-                    if _interval_does_not_contain(interval, child.interval):
-                        continue
-                    if child.children is None:
-                        yield child.item
-                    else:
-                        queue.extend(child.children)
+        yield from (enumerate(self._intervals)
+                    if _is_interval_subset_of(self._root.interval, interval)
+                    else _find_node_interval_items(self._root, interval))
 
     def n_nearest_indices(self, n: int, point: Point) -> Sequence[int]:
         return ([index for index, _ in self.n_nearest_items(n, point)]
@@ -237,15 +179,86 @@ class Tree:
         return items
 
 
-def _interval_does_not_contain(goal: Interval, test: Interval) -> bool:
-    (goal_min_x, goal_max_x), (goal_min_y, goal_max_y) = goal
-    (test_min_x, test_max_x), (test_min_y, test_max_y) = test
-    return (test_max_x < goal_min_x or test_min_x > goal_max_x
-            or test_max_y < goal_min_y or test_min_y > goal_max_y)
+def _create_root(intervals: Sequence[Interval],
+                 max_children: int,
+                 node_cls: Type[Node] = Node) -> Node:
+    intervals_count = len(intervals)
+    nodes = [node_cls(index, interval, None)
+             for index, interval in enumerate(intervals)]
+    interval = reduce(_merge_intervals, intervals)
+    if intervals_count <= max_children:
+        # only one node, skip sorting and just fill the root box
+        return node_cls(len(nodes), interval, nodes)
+    else:
+        (x_min, x_max), (y_min, y_max) = interval
+
+        def node_key(node: Node,
+                     double_tree_delta_x: Coordinate = 2 * (x_max - x_min),
+                     double_tree_delta_y: Coordinate = 2 * (y_max - y_min),
+                     double_tree_x_min: Coordinate = 2 * x_min,
+                     double_tree_y_min: Coordinate = 2 * y_min) -> int:
+            (x_min, x_max), (y_min, y_max) = node.interval
+            return to_hilbert_index(floor(HILBERT_MAX_COORDINATE
+                                          * (x_min + x_max - double_tree_x_min)
+                                          / double_tree_delta_x),
+                                    floor(HILBERT_MAX_COORDINATE
+                                          * (y_min + y_max - double_tree_y_min)
+                                          / double_tree_delta_y))
+
+        nodes = sorted(nodes,
+                       key=node_key)
+        nodes_count = step = len(intervals)
+        levels_limits = [nodes_count]
+        while True:
+            step = ceil_division(step, max_children)
+            if step == 1:
+                break
+            nodes_count += step
+            levels_limits.append(nodes_count)
+        start = 0
+        for level_limit in levels_limits:
+            while start < level_limit:
+                stop = min(start + max_children, level_limit)
+                children = nodes[start:stop]
+                nodes.append(node_cls(len(nodes),
+                                      reduce(_merge_intervals,
+                                             [child.interval
+                                              for child in children]),
+                                      children))
+                start = stop
+        return nodes[-1]
+
+
+def _node_to_leaves(node: Node) -> Iterator[Node]:
+    if node.is_leaf:
+        yield node
+    elif node.children[0].is_leaf:
+        yield from node.children
+    else:
+        for child in node.children:
+            yield from _node_to_leaves(child)
+
+
+def _find_node_interval_items(node: Node,
+                              interval: Interval) -> Iterator[Item]:
+    if _is_interval_subset_of(node.interval, interval):
+        for node_leaf in _node_to_leaves(node):
+            yield node_leaf.item
+    elif (not node.is_leaf
+          and _is_interval_subset_of(interval, node.interval)):
+        for child in node.children:
+            yield from _find_node_interval_items(child, interval)
+
+
+def _is_interval_subset_of(test: Interval, goal: Interval) -> bool:
+    (goal_x_min, goal_x_max), (goal_y_min, goal_y_max) = goal
+    (test_x_min, test_x_max), (test_y_min, test_y_max) = test
+    return (goal_x_min <= test_x_min and test_x_max <= goal_x_max
+            and goal_y_min <= test_y_min and test_y_max <= goal_y_max)
 
 
 def _merge_intervals(left: Interval, right: Interval) -> Interval:
-    (left_min_x, left_max_x), (left_min_y, left_max_y) = left
-    (right_min_x, right_max_x), (right_min_y, right_max_y) = right
-    return ((min(left_min_x, right_min_x), max(left_max_x, right_max_x)),
-            (min(left_min_y, right_min_y), max(left_max_y, right_max_y)))
+    (left_x_min, left_x_max), (left_y_min, left_y_max) = left
+    (right_x_min, right_x_max), (right_y_min, right_y_max) = right
+    return ((min(left_x_min, right_x_min), max(left_x_max, right_x_max)),
+            (min(left_y_min, right_y_min), max(left_y_max, right_y_max)))
