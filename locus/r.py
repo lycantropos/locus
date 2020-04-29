@@ -82,6 +82,18 @@ class Node:
         return self.index, self.interval
 
     def distance_to_point(self, point: Point) -> Coordinate:
+        """
+        Calculates distance to given point.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> node = Node(5, ((-10, 10), (0, 20)), None)
+        >>> node.distance_to_point((20, 0)) == 10
+        True
+        """
         return _interval.planar_distance_to_point(self.interval, point)
 
 
