@@ -131,11 +131,28 @@ def is_kd_item(value: Any) -> bool:
             and is_point(value[1]))
 
 
+def is_r_item(value: Any) -> bool:
+    return (isinstance(value, tuple)
+            and len(value) == 2
+            and isinstance(value[0], int)
+            and is_interval(value[1]))
+
+
 def is_point(value: Any) -> bool:
     return (isinstance(value, tuple)
             and len(value) > 0
             and all_equal(map(type, value))
             and all(isinstance(sub_element, Coordinate)
+                    for sub_element in value))
+
+
+def is_interval(value: Any) -> bool:
+    return (isinstance(value, tuple)
+            and len(value) > 0
+            and all(isinstance(sub_element, tuple)
+                    and len(sub_element) == 2
+                    and all_equal(map(type, sub_element)) == 1
+                    and list(sub_element) == sorted(sub_element)
                     for sub_element in value))
 
 
