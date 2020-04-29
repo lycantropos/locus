@@ -69,7 +69,7 @@ def distance_to_planar_interval(point: Point,
     (min_x, max_x), (min_y, max_y) = interval
     dx = distance_to_linear_interval(x, min_x, max_x)
     dy = distance_to_linear_interval(y, min_y, max_y)
-    return dx * dx + dy * dy
+    return sqrt(dx * dx + dy * dy)
 
 
 def distance_to_linear_interval(coordinate: Coordinate,
