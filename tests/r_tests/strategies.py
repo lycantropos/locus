@@ -47,12 +47,19 @@ trees_with_intervals = (coordinates_strategies
                         .flatmap(coordinates_to_trees_with_intervals))
 
 
-def coordinates_to_trees_with_points(coordinates: Strategy[Coordinate]
+def coordinates_to_trees_with_points(coordinates: Strategy[Coordinate],
+                                     *,
+                                     min_size: int = 1,
+                                     max_size: Optional[int] = None
                                      ) -> Strategy[Tuple[Tree, Point]]:
+    intervals = coordinates_to_intervals(coordinates,
+                                         dimension=2)
     return (strategies.tuples(
-            strategies.lists(coordinates_to_intervals(coordinates,
-                                                      dimension=2),
-                             min_size=1),
+            strategies.builds(Tree,
+                              strategies.lists(intervals,
+                                               min_size=min_size,
+                                               max_size=max_size),
+                              max_children=max_children_counts),
             coordinates_to_points(coordinates,
                                   dimension=2)))
 
