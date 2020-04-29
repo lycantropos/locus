@@ -10,5 +10,6 @@ max_children_counts = strategies.integers(2, MAX_COORDINATE)
 intervals_strategies = (coordinates_strategies
                         .map(partial(coordinates_to_intervals,
                                      dimension=2)))
-intervals_lists = intervals_strategies.flatmap(partial(strategies.lists,
-                                                       min_size=1))
+non_empty_intervals_lists = (intervals_strategies
+                             .flatmap(partial(strategies.lists,
+                                              min_size=1)))
