@@ -35,6 +35,16 @@ class Node:
                  axis: int,
                  left: Union['Node', NIL],
                  right: Union['Node', NIL]) -> None:
+        """
+        Initializes node.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> node = Node(5, (-10, 10), 0, NIL, NIL)
+        """
         self.index = index
         self.point = point
         self.axis = axis
