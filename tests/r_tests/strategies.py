@@ -19,6 +19,9 @@ intervals_strategies = (coordinates_strategies
 non_empty_intervals_lists = (intervals_strategies
                              .flatmap(partial(strategies.lists,
                                               min_size=1)))
+trees = strategies.builds(Tree,
+                          non_empty_intervals_lists,
+                          max_children=max_children_counts)
 
 
 def coordinates_to_trees_with_intervals(coordinates: Strategy[Coordinate],
