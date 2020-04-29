@@ -38,6 +38,6 @@ def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
     def to_point_distance(item: Item) -> Coordinate:
         return planar_distance(item[1], point)
 
-    assert result in enumerate(tree.points)
-    assert (min(map(to_point_distance, enumerate(tree.points)))
-            == to_point_distance(result))
+    items = list(enumerate(tree.points))
+    assert result in items
+    assert min(map(to_point_distance, items)) == to_point_distance(result)
