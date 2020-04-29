@@ -171,6 +171,19 @@ class Tree:
 
     @property
     def max_children(self) -> int:
+        """
+        Returns maximum number of children in each node.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> intervals = [((0, 1), (0, 1))]
+        >>> tree = Tree(intervals)
+        >>> tree.max_children == 16
+        True
+        """
         return self._max_children
 
     def find_interval_indices(self, interval: Interval) -> List[int]:
