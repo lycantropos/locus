@@ -11,7 +11,9 @@ from hypothesis.strategies import SearchStrategy
 from math import (ceil,
                   log)
 
-from locus import kd
+from locus import (kd,
+                   r)
+from locus.core.interval import is_subset_of
 from locus.hints import (Coordinate,
                          Point)
 
@@ -37,8 +39,16 @@ def is_kd_tree_balanced(tree: kd.Tree) -> bool:
     return is_kd_node_balanced(tree._root)
 
 
+def is_r_tree_balanced(tree: r.Tree) -> bool:
+    return is_r_node_balanced(tree._root)
+
+
 def is_kd_tree_valid(tree: kd.Tree) -> bool:
     return is_kd_node_valid(tree.points, tree._root)
+
+
+def is_r_tree_valid(tree: r.Tree) -> bool:
+    return is_r_node_valid(tree._root)
 
 
 def to_balanced_tree_height(size: int, max_children: int) -> int:
@@ -52,11 +62,24 @@ def to_kd_tree_height(tree: kd.Tree) -> int:
     return to_kd_node_height(tree._root)
 
 
+def to_r_tree_height(tree: r.Tree) -> int:
+    return to_r_node_height(tree._root)
+
+
 def is_kd_node_balanced(node: kd.Node) -> bool:
-    if abs(to_kd_node_height(node.left) - to_kd_node_height(node.right)) > 1:
-        return False
-    return all(is_kd_node_balanced(child)
-               for child in to_kd_node_children(node))
+    return (abs(to_kd_node_height(node.left)
+                - to_kd_node_height(node.right)) <= 1
+            and all(is_kd_node_balanced(child)
+                    for child in to_kd_node_children(node)))
+
+
+def is_r_node_balanced(node: r.Node) -> bool:
+    if node.is_leaf:
+        return True
+    else:
+        children_heights = list(map(to_r_node_height, node.children))
+        return (max(children_heights) - min(children_heights) <= 1
+                and all(is_r_node_balanced(child) for child in node.children))
 
 
 def is_kd_node_valid(points: Sequence[Point], node: kd.Node) -> bool:
@@ -71,12 +94,27 @@ def is_kd_node_valid(points: Sequence[Point], node: kd.Node) -> bool:
                for child in to_kd_node_children(node))
 
 
+def is_r_node_valid(node: r.Node) -> bool:
+    if node.is_leaf:
+        return True
+    else:
+        return (all(is_subset_of(child.interval, node.interval)
+                    for child in node.children)
+                and all(is_r_node_valid(child) for child in node.children))
+
+
 def to_kd_node_height(node: Union[kd.Node, kd.NIL]) -> int:
     if node is kd.NIL:
         return -1
     return max([1 + to_kd_node_height(child)
                 for child in to_kd_node_children(node)],
                default=0)
+
+
+def to_r_node_height(node: r.Node) -> int:
+    return (0
+            if node.is_leaf
+            else max(1 + to_r_node_height(child) for child in node.children))
 
 
 def to_kd_node_children(node: kd.Node) -> Iterable[kd.Node]:
