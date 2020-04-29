@@ -154,6 +154,19 @@ class Tree:
 
     @property
     def node_cls(self) -> Type[Node]:
+        """
+        Returns type of the nodes.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> intervals = [((0, 1), (0, 1))]
+        >>> tree = Tree(intervals)
+        >>> tree.node_cls is Node
+        True
+        """
         return type(self._root)
 
     @property
