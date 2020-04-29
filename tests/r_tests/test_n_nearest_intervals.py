@@ -18,7 +18,7 @@ def test_basic(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
 
     result = tree.n_nearest_intervals(n, point)
 
-    assert isinstance(result, list)
+    assert isinstance(result, (list, type(tree.intervals)))
     assert all(is_interval(element) for element in result)
 
 
