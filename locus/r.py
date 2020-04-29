@@ -194,6 +194,35 @@ class Tree:
                 for _, interval in self._find_interval_items(interval)]
 
     def find_interval_items(self, interval: Interval) -> List[Item]:
+        """
+        Searches for indices with intervals
+        that lie inside the given closed interval.
+
+        Time complexity:
+            ``O(log size + hits_count)``
+        Memory complexity:
+            ``O(log size + hits_count)``
+
+        where ``size = len(self.intervals)``,
+        ``hits_count`` --- number of found indices with intervals.
+
+        :param interval: input interval.
+        :returns: indices with intervals that lie inside the input interval.
+
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
+        >>> tree = Tree(intervals)
+        >>> (tree.find_interval_items(((-1, 1), (0, 1)))
+        ...  == [(0, ((-1, 1), (0, 1)))])
+        True
+        >>> (tree.find_interval_items(((-2, 2), (0, 2)))
+        ...  == [(0, ((-1, 1), (0, 1))), (1, ((-2, 2), (0, 2)))])
+        True
+        >>> (tree.find_interval_items(((-3, 3), (0, 3)))
+        ...  == [(0, ((-1, 1), (0, 1))), (1, ((-2, 2), (0, 2))),
+        ...      (2, ((-3, 3), (0, 3)))])
+        True
+        """
         return list(self._find_interval_items(interval))
 
     def _find_interval_items(self, interval: Interval) -> Iterator[Item]:
