@@ -64,6 +64,13 @@ class Node:
 
     @property
     def item(self) -> Item:
+        """
+        Returns underlying index with point.
+
+        >>> node = Node(5, (-10, 10), 0, NIL, NIL)
+        >>> node.item == (5, (-10, 10))
+        True
+        """
         return self.index, self.point
 
     def distance_to_point(self, point: Point) -> Coordinate:
