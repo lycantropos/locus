@@ -13,6 +13,8 @@ from reprit.base import generate_repr
 from .core.utils import (HILBERT_MAX_COORDINATE,
                          ceil_division,
                          distance_to_planar_interval,
+                         is_interval_subset_of,
+                         merge_intervals,
                          to_hilbert_index)
 from .hints import (Coordinate,
                     Interval,
@@ -227,7 +229,7 @@ class Tree:
 
     def _find_interval_items(self, interval: Interval) -> Iterator[Item]:
         yield from (enumerate(self._intervals)
-                    if _is_interval_subset_of(self._root.interval, interval)
+                    if is_interval_subset_of(self._root.interval, interval)
                     else _find_node_interval_items(self._root, interval))
 
     def n_nearest_indices(self, n: int, point: Point) -> Sequence[int]:
@@ -348,7 +350,7 @@ def _create_root(intervals: Sequence[Interval],
     intervals_count = len(intervals)
     nodes = [node_cls(index, interval, None)
              for index, interval in enumerate(intervals)]
-    interval = reduce(_merge_intervals, intervals)
+    interval = reduce(merge_intervals, intervals)
     if intervals_count <= max_children:
         # only one node, skip sorting and just fill the root box
         return node_cls(len(nodes), interval, nodes)
@@ -384,7 +386,7 @@ def _create_root(intervals: Sequence[Interval],
                 stop = min(start + max_children, level_limit)
                 children = nodes[start:stop]
                 nodes.append(node_cls(len(nodes),
-                                      reduce(_merge_intervals,
+                                      reduce(merge_intervals,
                                              [child.interval
                                               for child in children]),
                                       children))
@@ -404,24 +406,10 @@ def _node_to_leaves(node: Node) -> Iterator[Node]:
 
 def _find_node_interval_items(node: Node,
                               interval: Interval) -> Iterator[Item]:
-    if _is_interval_subset_of(node.interval, interval):
+    if is_interval_subset_of(node.interval, interval):
         for node_leaf in _node_to_leaves(node):
             yield node_leaf.item
     elif (not node.is_leaf
-          and _is_interval_subset_of(interval, node.interval)):
+          and is_interval_subset_of(interval, node.interval)):
         for child in node.children:
             yield from _find_node_interval_items(child, interval)
-
-
-def _is_interval_subset_of(test: Interval, goal: Interval) -> bool:
-    (goal_x_min, goal_x_max), (goal_y_min, goal_y_max) = goal
-    (test_x_min, test_x_max), (test_y_min, test_y_max) = test
-    return (goal_x_min <= test_x_min and test_x_max <= goal_x_max
-            and goal_y_min <= test_y_min and test_y_max <= goal_y_max)
-
-
-def _merge_intervals(left: Interval, right: Interval) -> Interval:
-    (left_x_min, left_x_max), (left_y_min, left_y_max) = left
-    (right_x_min, right_x_max), (right_y_min, right_y_max) = right
-    return ((min(left_x_min, right_x_min), max(left_x_max, right_x_max)),
-            (min(left_y_min, right_y_min), max(left_y_max, right_y_max)))

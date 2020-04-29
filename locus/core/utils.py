@@ -78,3 +78,17 @@ def distance_to_linear_interval(coordinate: Coordinate,
             else (coordinate - max_coordinate
                   if coordinate > max_coordinate
                   else 0))
+
+
+def is_interval_subset_of(test: Interval, goal: Interval) -> bool:
+    (goal_x_min, goal_x_max), (goal_y_min, goal_y_max) = goal
+    (test_x_min, test_x_max), (test_y_min, test_y_max) = test
+    return (goal_x_min <= test_x_min and test_x_max <= goal_x_max
+            and goal_y_min <= test_y_min and test_y_max <= goal_y_max)
+
+
+def merge_intervals(left: Interval, right: Interval) -> Interval:
+    (left_x_min, left_x_max), (left_y_min, left_y_max) = left
+    (right_x_min, right_x_max), (right_y_min, right_y_max) = right
+    return ((min(left_x_min, right_x_min), max(left_x_max, right_x_max)),
+            (min(left_y_min, right_y_min), max(left_y_max, right_y_max)))
