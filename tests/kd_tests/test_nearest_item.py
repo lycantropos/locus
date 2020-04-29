@@ -9,7 +9,7 @@ from locus.kd import (Item,
                       Tree)
 from tests.utils import (all_unique,
                          equivalence,
-                         is_item)
+                         is_kd_item)
 from . import strategies
 
 
@@ -19,7 +19,7 @@ def test_basic(tree_with_point: Tuple[Tree, Point]) -> None:
 
     result = tree.nearest_item(point)
 
-    assert is_item(result)
+    assert is_kd_item(result)
 
 
 @given(strategies.trees)

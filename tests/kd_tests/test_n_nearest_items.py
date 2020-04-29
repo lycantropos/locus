@@ -8,7 +8,7 @@ from locus.hints import (Coordinate,
                          Point)
 from locus.kd import (Item,
                       Tree)
-from tests.utils import is_item
+from tests.utils import is_kd_item
 from . import strategies
 
 
@@ -19,7 +19,7 @@ def test_basic(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
     result = tree.n_nearest_items(n, point)
 
     assert isinstance(result, list)
-    assert all(is_item(element) for element in result)
+    assert all(is_kd_item(element) for element in result)
 
 
 @given(strategies.trees_with_points_and_sizes)

@@ -4,10 +4,10 @@ from hypothesis import given
 
 from locus.hints import Point
 from locus.kd import Tree
-from tests.utils import (is_tree_balanced,
-                         is_tree_valid,
+from tests.utils import (is_kd_tree_balanced,
+                         is_kd_tree_valid,
                          to_balanced_tree_height,
-                         to_tree_height)
+                         to_kd_tree_height)
 from . import strategies
 
 
@@ -22,6 +22,6 @@ def test_basic(points: List[Point]) -> None:
 def test_properties(points: List[Point]) -> None:
     result = Tree(points)
 
-    assert is_tree_valid(result)
-    assert is_tree_balanced(result)
-    assert to_tree_height(result) == to_balanced_tree_height(len(points))
+    assert is_kd_tree_valid(result)
+    assert is_kd_tree_balanced(result)
+    assert to_kd_tree_height(result) == to_balanced_tree_height(len(points), 2)

@@ -5,7 +5,7 @@ from hypothesis import given
 from locus.core.interval import contains_point
 from locus.hints import Interval
 from locus.kd import Tree
-from tests.utils import is_item
+from tests.utils import is_kd_item
 from . import strategies
 
 
@@ -16,7 +16,7 @@ def test_basic(tree_with_interval: Tuple[Tree, Interval]) -> None:
     result = tree.find_interval_items(interval)
 
     assert isinstance(result, list)
-    assert all(is_item(element) for element in result)
+    assert all(is_kd_item(element) for element in result)
 
 
 @given(strategies.trees_with_intervals)

@@ -7,7 +7,7 @@ from locus.hints import (Coordinate,
                          Point)
 from locus.kd import (Item,
                       Tree)
-from tests.utils import is_item
+from tests.utils import is_kd_item
 from . import strategies
 
 
@@ -18,7 +18,7 @@ def test_basic(tree_with_ball: Tuple[Tree, Point, Coordinate]) -> None:
     result = tree.find_ball_items(center, radius)
 
     assert isinstance(result, list)
-    assert all(is_item(element) for element in result)
+    assert all(is_kd_item(element) for element in result)
 
 
 @given(strategies.trees_with_points)

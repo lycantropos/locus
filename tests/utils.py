@@ -8,12 +8,12 @@ from typing import (Any,
 
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
+from math import (ceil,
+                  log)
 
+from locus import kd
 from locus.hints import (Coordinate,
                          Point)
-from locus.kd import (NIL,
-                      Node,
-                      Tree)
 
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
@@ -33,55 +33,60 @@ def to_homogeneous_tuples(elements: Strategy[Domain],
             .map(tuple))
 
 
-def is_tree_balanced(tree: Tree) -> bool:
-    return is_node_balanced(tree._root)
+def is_kd_tree_balanced(tree: kd.Tree) -> bool:
+    return is_kd_node_balanced(tree._root)
 
 
-def is_tree_valid(tree: Tree) -> bool:
-    return is_node_valid(tree.points, tree._root)
+def is_kd_tree_valid(tree: kd.Tree) -> bool:
+    return is_kd_node_valid(tree.points, tree._root)
 
 
-def to_balanced_tree_height(size: int) -> int:
-    return size.bit_length() - 1
+def to_balanced_tree_height(size: int, max_children: int) -> int:
+    size_log2 = size.bit_length() - 1
+    return (size_log2
+            if max_children == 2
+            else ceil(size_log2 / log(max_children, 2)))
 
 
-def to_tree_height(tree: Tree) -> int:
-    return to_node_height(tree._root)
+def to_kd_tree_height(tree: kd.Tree) -> int:
+    return to_kd_node_height(tree._root)
 
 
-def is_node_balanced(node: Node) -> bool:
-    if abs(to_node_height(node.left) - to_node_height(node.right)) > 1:
+def is_kd_node_balanced(node: kd.Node) -> bool:
+    if abs(to_kd_node_height(node.left) - to_kd_node_height(node.right)) > 1:
         return False
-    return all(is_node_balanced(child) for child in to_node_children(node))
+    return all(is_kd_node_balanced(child)
+               for child in to_kd_node_children(node))
 
 
-def is_node_valid(points: Sequence[Point], node: Node) -> bool:
+def is_kd_node_valid(points: Sequence[Point], node: kd.Node) -> bool:
     hyperplane = points[node.index][node.axis]
-    if (node.left is not NIL
+    if (node.left is not kd.NIL
             and hyperplane < points[node.left.index][node.axis]):
         return False
-    if (node.right is not NIL
+    if (node.right is not kd.NIL
             and hyperplane > points[node.right.index][node.axis]):
         return False
-    return all(is_node_valid(points, child)
-               for child in to_node_children(node))
+    return all(is_kd_node_valid(points, child)
+               for child in to_kd_node_children(node))
 
 
-def to_node_height(node: Union[Node, NIL]) -> int:
-    if node is NIL:
+def to_kd_node_height(node: Union[kd.Node, kd.NIL]) -> int:
+    if node is kd.NIL:
         return -1
-    return max([1 + to_node_height(child) for child in to_node_children(node)],
+    return max([1 + to_kd_node_height(child)
+                for child in to_kd_node_children(node)],
                default=0)
 
 
-def to_node_children(node: Node) -> Iterable[Node]:
-    if node.left is not NIL:
+def to_kd_node_children(node: kd.Node) -> Iterable[kd.Node]:
+    if node.left is not kd.NIL:
         yield node.left
-    if node.right is not NIL:
+    if node.right is not kd.NIL:
         yield node.right
 
 
-def is_item(value: Any) -> bool:
+def is_kd_item(value: Any) -> bool:
     return (isinstance(value, tuple)
             and len(value) == 2
             and isinstance(value[0], int)
