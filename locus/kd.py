@@ -56,6 +56,11 @@ class Node:
         """
         Returns coordinate on which branching was performed.
 
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
         >>> node = Node(5, (-10, 10), 0, NIL, NIL)
         >>> node.coordinate == -10
         True
@@ -66,6 +71,11 @@ class Node:
     def item(self) -> Item:
         """
         Returns underlying index with point.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
 
         >>> node = Node(5, (-10, 10), 0, NIL, NIL)
         >>> node.item == (5, (-10, 10))
