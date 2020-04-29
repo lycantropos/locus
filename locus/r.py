@@ -345,6 +345,47 @@ class Tree:
                 yield queue.pop()[2].item
                 n -= 1
 
+    def nearest_item(self, point: Point) -> Item:
+        """
+        Searches for index with interval in the tree
+        the nearest to the given point.
+
+        Time complexity:
+            ``O(max_children * log size)``
+        Memory complexity:
+            ``O(max_children * log size)``
+
+        where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``.
+
+        :param point: input point.
+        :returns:
+            index with interval in the tree the nearest to the input point.
+
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
+        >>> tree = Tree(intervals)
+        >>> tree.nearest_item((0, 0)) == (9, ((-10, 10), (0, 10)))
+        True
+        >>> tree.nearest_item((-10, 0)) == (9, ((-10, 10), (0, 10)))
+        True
+        >>> tree.nearest_item((-10, 10)) == (9, ((-10, 10), (0, 10)))
+        True
+        >>> tree.nearest_item((10, 0)) == (9, ((-10, 10), (0, 10)))
+        True
+        >>> tree.nearest_item((10, 10)) == (9, ((-10, 10), (0, 10)))
+        True
+        """
+        queue = PriorityQueue((0, 0, self._root))
+        while queue:
+            node = queue.pop()[2]
+            for child in node.children:
+                queue.push((child.distance_to_point(point),
+                            -child.index - 1 if child.is_leaf else child.index,
+                            child))
+            if queue and queue.peek()[1] < 0:
+                return queue.pop()[2].item
+
 
 def _create_root(intervals: Sequence[Interval],
                  max_children: int,
