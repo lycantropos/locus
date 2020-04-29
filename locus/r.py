@@ -293,6 +293,35 @@ class Tree:
                 else self._intervals)
 
     def n_nearest_items(self, n: int, point: Point) -> Sequence[Item]:
+        """
+        Searches for indices with intervals in the tree
+        the nearest to the given point.
+
+        Time complexity:
+            ``O(n * log size)`` if ``n < size``,
+            ``O(size)`` otherwise.
+        Memory complexity:
+            ``O(n * log size)`` if ``n < size``,
+            ``O(size)`` otherwise.
+
+        where ``size = len(self.intervals)``.
+
+        :param n:
+            positive upper bound for number of result indices with intervals.
+        :param point: input point.
+        :returns:
+            indices with intervals in the tree the nearest to the input point.
+
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
+        >>> tree = Tree(intervals)
+        >>> (tree.n_nearest_items(2, (0, 0))
+        ...  == [(9, ((-10, 10), (0, 10))), (8, ((-9, 9), (0, 9)))])
+        True
+        >>> (tree.n_nearest_items(len(intervals), (0, 0))
+        ...  == list(enumerate(intervals)))
+        True
+        """
         return (self._n_nearest_items(n, point)
                 if n < len(self._intervals)
                 else list(enumerate(self._intervals)))
