@@ -99,6 +99,18 @@ class Node:
         return _planar_distance(self.point, point)
 
     def distance_to_coordinate(self, coordinate: Coordinate) -> Coordinate:
+        """
+        Calculates distance to given coordinate.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> node = Node(5, (-10, 10), 0, NIL, NIL)
+        >>> node.distance_to_coordinate(-1) == 9
+        True
+        """
         return _linear_distance(self.coordinate, coordinate)
 
     __repr__ = generate_repr(__init__)
