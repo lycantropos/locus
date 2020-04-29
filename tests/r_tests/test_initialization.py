@@ -11,7 +11,7 @@ from tests.utils import (is_r_tree_balanced,
 from . import strategies
 
 
-@given(strategies.non_empty_intervals_lists, strategies.max_children_counts)
+@given(strategies.intervals_lists, strategies.max_children_counts)
 def test_basic(intervals: List[Interval], max_children: int) -> None:
     result = Tree(intervals,
                   max_children=max_children)
@@ -20,7 +20,7 @@ def test_basic(intervals: List[Interval], max_children: int) -> None:
     assert result.max_children == max_children
 
 
-@given(strategies.non_empty_intervals_lists, strategies.max_children_counts)
+@given(strategies.intervals_lists, strategies.max_children_counts)
 def test_properties(intervals: List[Interval], max_children: int) -> None:
     result = Tree(intervals,
                   max_children=max_children)
