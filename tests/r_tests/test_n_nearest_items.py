@@ -33,6 +33,6 @@ def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
 
     items = list(enumerate(tree.intervals))
     assert 0 < len(result) <= n
-    assert all(point in items for point in result)
+    assert all(item in items for item in result)
     assert (set(nsmallest(n, map(to_point_distance, items)))
             == set(map(to_point_distance, result)))
