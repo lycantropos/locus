@@ -25,7 +25,7 @@ def index(x: int, y: int) -> int:
     a, b = c ^ (c >> 1), d ^ (d >> 1)
     i0 = x ^ y
     i1 = b | (MAX_COORDINATE ^ (i0 | a))
-    return ((interleave(i1) << 1) | interleave(i0)) >> 0
+    return (interleave(i1) << 1) | interleave(i0)
 
 
 def interleave(value: int) -> int:
