@@ -16,7 +16,9 @@ from tests.strategies import (coordinates_strategies,
 from tests.utils import Strategy
 
 MIN_INTERVALS_SIZE = 2
-max_children_counts = strategies.integers(2, MAX_COORDINATE)
+max_children_counts = (strategies.sampled_from([2 ** power
+                                                for power in range(1, 10)])
+                       | strategies.integers(2, MAX_COORDINATE))
 intervals_strategies = (coordinates_strategies
                         .map(partial(coordinates_to_intervals,
                                      dimension=2)))
