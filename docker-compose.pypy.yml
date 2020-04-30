@@ -7,7 +7,7 @@ services:
       args:
         - PYTHON_IMAGE=${PYPY_IMAGE_NAME}
         - PYTHON_IMAGE_VERSION=${PYPY_IMAGE_VERSION}
-    image: lycantropos/locus-pypy:0.4.0
+    image: lycantropos/locus-pypy:0.4.1-alpha
     volumes:
       - ./locus/:/opt/locus/locus/
       - ./tests/:/opt/locus/tests/
