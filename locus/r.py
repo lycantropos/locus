@@ -1,5 +1,5 @@
-from math import floor
 from functools import reduce
+from math import floor
 from typing import (Iterator,
                     List,
                     Optional,
