@@ -185,7 +185,7 @@ class Tree:
         """
         return self._max_children
 
-    def find_interval_indices(self, interval: Interval) -> List[int]:
+    def find_subsets_indices(self, interval: Interval) -> List[int]:
         """
         Searches for indices of intervals
         that lie inside the given closed interval.
@@ -205,16 +205,16 @@ class Tree:
         >>> intervals = [((-index, index), (0, index))
         ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
-        >>> tree.find_interval_indices(((-1, 1), (0, 1))) == [0]
+        >>> tree.find_subsets_indices(((-1, 1), (0, 1))) == [0]
         True
-        >>> tree.find_interval_indices(((-2, 2), (0, 2))) == [0, 1]
+        >>> tree.find_subsets_indices(((-2, 2), (0, 2))) == [0, 1]
         True
-        >>> tree.find_interval_indices(((-3, 3), (0, 3))) == [0, 1, 2]
+        >>> tree.find_subsets_indices(((-3, 3), (0, 3))) == [0, 1, 2]
         True
         """
-        return [index for index, _ in self._find_interval_items(interval)]
+        return [index for index, _ in self._find_subsets_items(interval)]
 
-    def find_interval_intervals(self, interval: Interval) -> List[Interval]:
+    def find_subsets(self, interval: Interval) -> List[Interval]:
         """
         Searches for intervals that lie inside the given closed interval.
 
@@ -233,20 +233,20 @@ class Tree:
         >>> intervals = [((-index, index), (0, index))
         ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
-        >>> (tree.find_interval_intervals(((-1, 1), (0, 1)))
+        >>> (tree.find_subsets(((-1, 1), (0, 1)))
         ...  == [((-1, 1), (0, 1))])
         True
-        >>> (tree.find_interval_intervals(((-2, 2), (0, 2)))
+        >>> (tree.find_subsets(((-2, 2), (0, 2)))
         ...  == [((-1, 1), (0, 1)), ((-2, 2), (0, 2))])
         True
-        >>> (tree.find_interval_intervals(((-3, 3), (0, 3)))
+        >>> (tree.find_subsets(((-3, 3), (0, 3)))
         ...  == [((-1, 1), (0, 1)), ((-2, 2), (0, 2)), ((-3, 3), (0, 3))])
         True
         """
         return [interval
-                for _, interval in self._find_interval_items(interval)]
+                for _, interval in self._find_subsets_items(interval)]
 
-    def find_interval_items(self, interval: Interval) -> List[Item]:
+    def find_subsets_items(self, interval: Interval) -> List[Item]:
         """
         Searches for indices with intervals
         that lie inside the given closed interval.
@@ -266,20 +266,20 @@ class Tree:
         >>> intervals = [((-index, index), (0, index))
         ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
-        >>> (tree.find_interval_items(((-1, 1), (0, 1)))
+        >>> (tree.find_subsets_items(((-1, 1), (0, 1)))
         ...  == [(0, ((-1, 1), (0, 1)))])
         True
-        >>> (tree.find_interval_items(((-2, 2), (0, 2)))
+        >>> (tree.find_subsets_items(((-2, 2), (0, 2)))
         ...  == [(0, ((-1, 1), (0, 1))), (1, ((-2, 2), (0, 2)))])
         True
-        >>> (tree.find_interval_items(((-3, 3), (0, 3)))
+        >>> (tree.find_subsets_items(((-3, 3), (0, 3)))
         ...  == [(0, ((-1, 1), (0, 1))), (1, ((-2, 2), (0, 2))),
         ...      (2, ((-3, 3), (0, 3)))])
         True
         """
-        return list(self._find_interval_items(interval))
+        return list(self._find_subsets_items(interval))
 
-    def _find_interval_items(self, interval: Interval) -> Iterator[Item]:
+    def _find_subsets_items(self, interval: Interval) -> Iterator[Item]:
         yield from (enumerate(self._intervals)
                     if _interval.is_subset_of(self._root.interval, interval)
                     else _find_node_interval_items(self._root, interval))
