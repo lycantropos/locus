@@ -12,7 +12,7 @@ from . import strategies
 def test_basic(tree_with_interval: Tuple[Tree, Interval]) -> None:
     tree, interval = tree_with_interval
 
-    result = tree.find_interval_indices(interval)
+    result = tree.find_subsets_indices(interval)
 
     assert isinstance(result, list)
     assert all(isinstance(element, int) for element in result)
@@ -20,7 +20,7 @@ def test_basic(tree_with_interval: Tuple[Tree, Interval]) -> None:
 
 @given(strategies.trees)
 def test_base_intervals(tree: Tree) -> None:
-    assert all(index in tree.find_interval_indices(interval)
+    assert all(index in tree.find_subsets_indices(interval)
                for index, interval in enumerate(tree.intervals))
 
 
@@ -28,7 +28,7 @@ def test_base_intervals(tree: Tree) -> None:
 def test_properties(tree_with_interval: Tuple[Tree, Interval]) -> None:
     tree, interval = tree_with_interval
 
-    result = tree.find_interval_indices(interval)
+    result = tree.find_subsets_indices(interval)
 
     indices = range(len(tree.intervals))
     assert all(index in indices for index in result)
