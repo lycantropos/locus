@@ -187,8 +187,7 @@ class Tree:
 
     def find_subsets_indices(self, interval: Interval) -> List[int]:
         """
-        Searches for indices of intervals
-        that lie inside the given closed interval.
+        Searches for indices of intervals that lie inside the given interval.
 
         Time complexity:
             ``O(max_children * log size + hits_count)``
@@ -216,7 +215,7 @@ class Tree:
 
     def find_subsets(self, interval: Interval) -> List[Interval]:
         """
-        Searches for intervals that lie inside the given closed interval.
+        Searches for intervals that lie inside the given interval.
 
         Time complexity:
             ``O(max_children * log size + hits_count)``
@@ -248,8 +247,7 @@ class Tree:
 
     def find_subsets_items(self, interval: Interval) -> List[Item]:
         """
-        Searches for indices with intervals
-        that lie inside the given closed interval.
+        Searches for indices with intervals that lie inside the given interval.
 
         Time complexity:
             ``O(max_children * log size + hits_count)``
