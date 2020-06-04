@@ -204,8 +204,7 @@ class Tree:
         >>> intervals = [((-index, index), (0, index))
         ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
-        >>> (tree.find_subsets(((-1, 1), (0, 1)))
-        ...  == [((-1, 1), (0, 1))])
+        >>> tree.find_subsets(((-1, 1), (0, 1))) == [((-1, 1), (0, 1))]
         True
         >>> (tree.find_subsets(((-2, 2), (0, 2)))
         ...  == [((-1, 1), (0, 1)), ((-2, 2), (0, 2))])
