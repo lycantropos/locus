@@ -101,9 +101,9 @@ Usage
 [10, 11]
 >>> r_tree.n_nearest_intervals(2, (0, 0))
 [((0, 10), (-10, 0)), ((1, 11), (-9, 1))]
->>> r_tree.find_interval_indices(((0, 10), (-10, 10)))
+>>> r_tree.find_subsets_indices(((0, 10), (-10, 10)))
 [10]
->>> r_tree.find_interval_intervals(((0, 10), (-10, 10)))
+>>> r_tree.find_subsets(((0, 10), (-10, 10)))
 [((0, 10), (-10, 0))]
 
 ```
