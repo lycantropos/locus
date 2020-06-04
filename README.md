@@ -105,6 +105,10 @@ Usage
 [10]
 >>> r_tree.find_subsets(((0, 10), (-10, 10)))
 [((0, 10), (-10, 0))]
+>>> r_tree.find_supersets_indices(((0, 10), (-10, 0)))
+[10]
+>>> r_tree.find_supersets(((0, 10), (-10, 0)))
+[((0, 10), (-10, 0))]
 
 ```
 
