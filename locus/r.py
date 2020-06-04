@@ -276,6 +276,37 @@ class Tree:
         """
         return list(self._find_subsets_items(interval))
 
+    def find_supersets(self, interval: Interval) -> List[Interval]:
+        """
+        Searches for intervals that contain the given interval.
+
+        Time complexity:
+            ``O(max_children * log size + hits_count)``
+        Memory complexity:
+            ``O(max_children * log size + hits_count)``
+
+        where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``,
+        ``hits_count`` --- number of found intervals.
+
+        :param interval: input interval.
+        :returns: intervals that contain the input interval.
+
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
+        >>> tree = Tree(intervals)
+        >>> tree.find_supersets(((-10, 10), (0, 10))) == [((-10, 10), (0, 10))]
+        True
+        >>> (tree.find_supersets(((-9, 9), (0, 9)))
+        ...  == [((-9, 9), (0, 9)), ((-10, 10), (0, 10))])
+        True
+        >>> (tree.find_supersets(((-8, 8), (0, 8)))
+        ...  == [((-8, 8), (0, 8)), ((-9, 9), (0, 9)), ((-10, 10), (0, 10))])
+        True
+        """
+        return [interval
+                for _, interval in self._find_supersets_items(interval)]
+
     def find_supersets_indices(self, interval: Interval) -> List[int]:
         """
         Searches for indices of intervals that contain the given interval.
