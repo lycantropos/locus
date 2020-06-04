@@ -185,34 +185,6 @@ class Tree:
         """
         return self._max_children
 
-    def find_subsets_indices(self, interval: Interval) -> List[int]:
-        """
-        Searches for indices of intervals that lie inside the given interval.
-
-        Time complexity:
-            ``O(max_children * log size + hits_count)``
-        Memory complexity:
-            ``O(max_children * log size + hits_count)``
-
-        where ``size = len(self.intervals)``,
-        ``max_children = self.max_children``,
-        ``hits_count`` --- number of found indices.
-
-        :param interval: input interval.
-        :returns: indices of intervals that lie inside the input interval.
-
-        >>> intervals = [((-index, index), (0, index))
-        ...              for index in range(1, 11)]
-        >>> tree = Tree(intervals)
-        >>> tree.find_subsets_indices(((-1, 1), (0, 1))) == [0]
-        True
-        >>> tree.find_subsets_indices(((-2, 2), (0, 2))) == [0, 1]
-        True
-        >>> tree.find_subsets_indices(((-3, 3), (0, 3))) == [0, 1, 2]
-        True
-        """
-        return [index for index, _ in self._find_subsets_items(interval)]
-
     def find_subsets(self, interval: Interval) -> List[Interval]:
         """
         Searches for intervals that lie inside the given interval.
@@ -244,6 +216,34 @@ class Tree:
         """
         return [interval
                 for _, interval in self._find_subsets_items(interval)]
+
+    def find_subsets_indices(self, interval: Interval) -> List[int]:
+        """
+        Searches for indices of intervals that lie inside the given interval.
+
+        Time complexity:
+            ``O(max_children * log size + hits_count)``
+        Memory complexity:
+            ``O(max_children * log size + hits_count)``
+
+        where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``,
+        ``hits_count`` --- number of found indices.
+
+        :param interval: input interval.
+        :returns: indices of intervals that lie inside the input interval.
+
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
+        >>> tree = Tree(intervals)
+        >>> tree.find_subsets_indices(((-1, 1), (0, 1))) == [0]
+        True
+        >>> tree.find_subsets_indices(((-2, 2), (0, 2))) == [0, 1]
+        True
+        >>> tree.find_subsets_indices(((-3, 3), (0, 3))) == [0, 1, 2]
+        True
+        """
+        return [index for index, _ in self._find_subsets_items(interval)]
 
     def find_subsets_items(self, interval: Interval) -> List[Item]:
         """
