@@ -277,10 +277,47 @@ class Tree:
         """
         return list(self._find_subsets_items(interval))
 
+    def find_supersets_items(self, interval: Interval) -> List[Item]:
+        """
+        Searches for indices with intervals
+        that contain the given interval.
+
+        Time complexity:
+            ``O(max_children * log size + hits_count)``
+        Memory complexity:
+            ``O(max_children * log size + hits_count)``
+
+        where ``size = len(self.intervals)``,
+        ``max_children = self.max_children``,
+        ``hits_count`` --- number of found indices with intervals.
+
+        :param interval: input interval.
+        :returns: indices with intervals that contain the input interval.
+
+        >>> intervals = [((-index, index), (0, index))
+        ...              for index in range(1, 11)]
+        >>> tree = Tree(intervals)
+        >>> (tree.find_supersets_items(((-10, 10), (0, 10)))
+        ...  == [(9, ((-10, 10), (0, 10)))])
+        True
+        >>> (tree.find_supersets_items(((-9, 9), (0, 9)))
+        ...  == [(8, ((-9, 9), (0, 9))), (9, ((-10, 10), (0, 10)))])
+        True
+        >>> (tree.find_supersets_items(((-8, 8), (0, 8)))
+        ...  == [(7, ((-8, 8), (0, 8))), (8, ((-9, 9), (0, 9))),
+        ...      (9, ((-10, 10), (0, 10)))])
+        True
+        """
+        return list(self._find_supersets_items(interval))
+
     def _find_subsets_items(self, interval: Interval) -> Iterator[Item]:
         yield from (enumerate(self._intervals)
                     if _interval.is_subset_of(self._root.interval, interval)
-                    else _find_node_interval_items(self._root, interval))
+                    else _find_node_interval_subsets_items(self._root,
+                                                           interval))
+
+    def _find_supersets_items(self, interval: Interval) -> Iterator[Item]:
+        yield from _find_node_interval_supersets_items(self._root, interval)
 
     def n_nearest_indices(self, n: int, point: Point) -> Sequence[int]:
         """
@@ -544,11 +581,21 @@ def _node_to_leaves(node: Node) -> Iterator[Node]:
             yield from _node_to_leaves(child)
 
 
-def _find_node_interval_items(node: Node,
-                              interval: Interval) -> Iterator[Item]:
+def _find_node_interval_subsets_items(node: Node,
+                                      interval: Interval) -> Iterator[Item]:
     if _interval.is_subset_of(node.interval, interval):
         for node_leaf in _node_to_leaves(node):
             yield node_leaf.item
     elif not node.is_leaf and _interval.overlap(interval, node.interval):
         for child in node.children:
-            yield from _find_node_interval_items(child, interval)
+            yield from _find_node_interval_subsets_items(child, interval)
+
+
+def _find_node_interval_supersets_items(node: Node,
+                                        interval: Interval) -> Iterator[Item]:
+    if _interval.is_subset_of(interval, node.interval):
+        if node.is_leaf:
+            yield node.item
+        else:
+            for child in node.children:
+                yield from _find_node_interval_supersets_items(child, interval)
