@@ -595,19 +595,21 @@ def _create_root(intervals: Sequence[Interval],
         # only one node, skip sorting and just fill the root box
         return node_cls(len(nodes), interval, nodes)
     else:
-        (x_min, x_max), (y_min, y_max) = interval
+        (tree_min_x, tree_max_x), (tree_min_y, tree_max_y) = interval
 
         def node_key(node: Node,
-                     double_tree_delta_x: Coordinate = 2 * (x_max - x_min),
-                     double_tree_delta_y: Coordinate = 2 * (y_max - y_min),
-                     double_tree_x_min: Coordinate = 2 * x_min,
-                     double_tree_y_min: Coordinate = 2 * y_min) -> int:
-            (x_min, x_max), (y_min, y_max) = node.interval
+                     double_tree_delta_x: Coordinate
+                     = 2 * (tree_max_x - tree_min_x),
+                     double_tree_delta_y: Coordinate
+                     = 2 * (tree_max_y - tree_min_y),
+                     double_tree_min_x: Coordinate = 2 * tree_min_x,
+                     double_tree_min_y: Coordinate = 2 * tree_min_y) -> int:
+            (min_x, max_x), (min_y, max_y) = node.interval
             return _hilbert.index(floor(_hilbert.MAX_COORDINATE
-                                        * (x_min + x_max - double_tree_x_min)
+                                        * (min_x + max_x - double_tree_min_x)
                                         / double_tree_delta_x),
                                   floor(_hilbert.MAX_COORDINATE
-                                        * (y_min + y_max - double_tree_y_min)
+                                        * (min_y + max_y - double_tree_min_y)
                                         / double_tree_delta_y))
 
         nodes = sorted(nodes,
