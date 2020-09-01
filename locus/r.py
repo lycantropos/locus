@@ -649,8 +649,8 @@ def _node_to_leaves(node: Node) -> Iterator[Node]:
 def _find_node_interval_subsets_items(node: Node,
                                       interval: Interval) -> Iterator[Item]:
     if _interval.is_subset_of(node.interval, interval):
-        for node_leaf in _node_to_leaves(node):
-            yield node_leaf.item
+        for leaf in _node_to_leaves(node):
+            yield leaf.item
     elif not node.is_leaf and _interval.overlaps(interval, node.interval):
         for child in node.children:
             yield from _find_node_interval_subsets_items(child, interval)
