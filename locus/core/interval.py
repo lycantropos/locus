@@ -29,7 +29,7 @@ def _distance_to_linear_interval(coordinate: Coordinate,
                   else 0))
 
 
-def overlap(left: Interval, right: Interval) -> bool:
+def overlaps(left: Interval, right: Interval) -> bool:
     (left_x_min, left_x_max), (left_y_min, left_y_max) = left
     (right_x_min, right_x_max), (right_y_min, right_y_max) = right
     return (right_x_min < left_x_max and left_x_min < right_x_max
