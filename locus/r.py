@@ -1,4 +1,6 @@
 from functools import reduce
+from heapq import (heappop,
+                   heappush)
 from math import floor
 from typing import (Iterator,
                     List,
@@ -7,7 +9,6 @@ from typing import (Iterator,
                     Tuple,
                     Type)
 
-from prioq.base import PriorityQueue
 from reprit.base import generate_repr
 
 from .core import (hilbert as _hilbert,
@@ -477,15 +478,17 @@ class Tree:
                     else enumerate(self._intervals))
 
     def _n_nearest_items(self, n: int, point: Point) -> Iterator[Item]:
-        queue = PriorityQueue((0, 0, self._root))
+        queue = [(0, 0, self._root)]
         while n and queue:
-            node = queue.pop()[2]
+            _, _, node = heappop(queue)
             for child in node.children:
-                queue.push((child.distance_to_point(point),
-                            -child.index - 1 if child.is_leaf else child.index,
-                            child))
-            while n and queue and queue.peek()[1] < 0:
-                yield queue.pop()[2].item
+                heappush(queue,
+                         (child.distance_to_point(point),
+                          -child.index - 1 if child.is_leaf else child.index,
+                          child))
+            while n and queue and queue[0][1] < 0:
+                _, _, node = heappop(queue)
+                yield node.item
                 n -= 1
 
     def nearest_index(self, point: Point) -> int:
@@ -568,15 +571,17 @@ class Tree:
         >>> tree.nearest_item((10, 10)) == (9, ((-10, 10), (0, 10)))
         True
         """
-        queue = PriorityQueue((0, 0, self._root))
+        queue = [(0, 0, self._root)]
         while queue:
-            node = queue.pop()[2]
+            _, _, node = heappop(queue)
             for child in node.children:
-                queue.push((child.distance_to_point(point),
-                            -child.index - 1 if child.is_leaf else child.index,
-                            child))
-            if queue and queue.peek()[1] < 0:
-                return queue.pop()[2].item
+                heappush(queue,
+                         (child.distance_to_point(point),
+                          -child.index - 1 if child.is_leaf else child.index,
+                          child))
+            if queue and queue[0][1] < 0:
+                _, _, node = heappop(queue)
+                return node.item
 
 
 def _create_root(intervals: Sequence[Interval],
