@@ -2,7 +2,6 @@ import sys
 from decimal import Decimal
 from fractions import Fraction
 from functools import partial
-from typing import Optional
 
 from hypothesis import strategies
 
@@ -16,8 +15,8 @@ from tests.utils import (Strategy,
                          to_homogeneous_tuples)
 
 
-def to_floats(min_value: Optional[Coordinate] = None,
-              max_value: Optional[Coordinate] = None,
+def to_floats(min_value: Coordinate,
+              max_value: Coordinate,
               *,
               allow_nan: bool = False,
               allow_infinity: bool = False) -> Strategy:
