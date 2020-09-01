@@ -1,4 +1,4 @@
-from math import sqrt
+from math import hypot
 
 from locus.hints import (Coordinate,
                          Interval,
@@ -14,9 +14,9 @@ def contains_point(interval: Interval, point: Point) -> bool:
 def planar_distance_to_point(interval: Interval, point: Point) -> Coordinate:
     x, y = point
     (min_x, max_x), (min_y, max_y) = interval
-    dx = _distance_to_linear_interval(x, min_x, max_x)
-    dy = _distance_to_linear_interval(y, min_y, max_y)
-    return sqrt(dx * dx + dy * dy)
+    return hypot(_distance_to_linear_interval(x, min_x, max_x),
+                 _distance_to_linear_interval(y, min_y, max_y))
+
 
 
 def _distance_to_linear_interval(coordinate: Coordinate,
