@@ -587,11 +587,11 @@ class Tree:
 def _create_root(intervals: Sequence[Interval],
                  max_children: int,
                  node_cls: Type[Node] = Node) -> Node:
-    intervals_count = len(intervals)
     nodes = [node_cls(index, interval, None)
              for index, interval in enumerate(intervals)]
     root_interval = reduce(_interval.merge, intervals)
-    if intervals_count <= max_children:
+    leaves_count = len(nodes)
+    if leaves_count <= max_children:
         # only one node, skip sorting and just fill the root box
         return node_cls(len(nodes), root_interval, nodes)
     else:
@@ -614,7 +614,7 @@ def _create_root(intervals: Sequence[Interval],
 
         nodes = sorted(nodes,
                        key=node_key)
-        nodes_count = step = len(intervals)
+        nodes_count = step = leaves_count
         levels_limits = [nodes_count]
         while True:
             step = ceil_division(step, max_children)
