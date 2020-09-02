@@ -105,7 +105,6 @@ class Tree:
     Reference:
         https://en.wikipedia.org/wiki/Hilbert_R-tree#Packed_Hilbert_R-trees
     """
-
     __slots__ = '_intervals', '_max_children', '_root'
 
     def __init__(self,
