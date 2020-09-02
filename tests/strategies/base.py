@@ -78,8 +78,7 @@ points_strategies = strategies.builds(coordinates_to_points,
 
 def coordinates_to_intervals(coordinates: Strategy[Coordinate],
                              *,
-                             dimension: int
-                             ) -> Strategy[Interval]:
+                             dimension: int) -> Strategy[Interval]:
     return to_homogeneous_tuples(strategies.lists(coordinates,
                                                   min_size=2,
                                                   max_size=2,
