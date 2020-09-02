@@ -18,7 +18,6 @@ def planar_distance_to_point(interval: Interval, point: Point) -> Coordinate:
                  _distance_to_linear_interval(y, min_y, max_y))
 
 
-
 def _distance_to_linear_interval(coordinate: Coordinate,
                                  min_coordinate: Coordinate,
                                  max_coordinate: Coordinate) -> Coordinate:
