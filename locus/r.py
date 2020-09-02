@@ -590,27 +590,27 @@ def _create_root(intervals: Sequence[Interval],
     intervals_count = len(intervals)
     nodes = [node_cls(index, interval, None)
              for index, interval in enumerate(intervals)]
-    interval = reduce(_interval.merge, intervals)
+    root_interval = reduce(_interval.merge, intervals)
     if intervals_count <= max_children:
         # only one node, skip sorting and just fill the root box
-        return node_cls(len(nodes), interval, nodes)
+        return node_cls(len(nodes), root_interval, nodes)
     else:
-        (tree_min_x, tree_max_x), (tree_min_y, tree_max_y) = interval
+        (root_min_x, root_max_x), (root_min_y, root_max_y) = root_interval
 
         def node_key(node: Node,
-                     double_tree_delta_x: Coordinate
-                     = 2 * (tree_max_x - tree_min_x),
-                     double_tree_delta_y: Coordinate
-                     = 2 * (tree_max_y - tree_min_y),
-                     double_tree_min_x: Coordinate = 2 * tree_min_x,
-                     double_tree_min_y: Coordinate = 2 * tree_min_y) -> int:
+                     double_root_delta_x: Coordinate
+                     = 2 * (root_max_x - root_min_x),
+                     double_root_delta_y: Coordinate
+                     = 2 * (root_max_y - root_min_y),
+                     double_root_min_x: Coordinate = 2 * root_min_x,
+                     double_root_min_y: Coordinate = 2 * root_min_y) -> int:
             (min_x, max_x), (min_y, max_y) = node.interval
             return _hilbert.index(floor(_hilbert.MAX_COORDINATE
-                                        * (min_x + max_x - double_tree_min_x)
-                                        / double_tree_delta_x),
+                                        * (min_x + max_x - double_root_min_x)
+                                        / double_root_delta_x),
                                   floor(_hilbert.MAX_COORDINATE
-                                        * (min_y + max_y - double_tree_min_y)
-                                        / double_tree_delta_y))
+                                        * (min_y + max_y - double_root_min_y)
+                                        / double_root_delta_y))
 
         nodes = sorted(nodes,
                        key=node_key)
