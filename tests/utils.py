@@ -1,4 +1,6 @@
 from itertools import groupby
+from math import (ceil,
+                  log)
 from typing import (Any,
                     Iterable,
                     Sequence,
@@ -8,8 +10,6 @@ from typing import (Any,
 
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
-from math import (ceil,
-                  log)
 
 from locus import (kd,
                    r)
@@ -135,6 +135,7 @@ def is_r_item(value: Any) -> bool:
     return (isinstance(value, tuple)
             and len(value) == 2
             and isinstance(value[0], int)
+            and value[0] >= 0
             and is_interval(value[1]))
 
 
@@ -151,7 +152,7 @@ def is_interval(value: Any) -> bool:
             and len(value) > 0
             and all(isinstance(sub_element, tuple)
                     and len(sub_element) == 2
-                    and all_equal(map(type, sub_element)) == 1
+                    and all_equal(map(type, sub_element))
                     and list(sub_element) == sorted(sub_element)
                     for sub_element in value))
 
