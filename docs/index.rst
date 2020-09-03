@@ -22,3 +22,10 @@ r module
 .. automodule:: locus.r
     :members:
     :special-members:
+
+segmental module
+================
+
+.. automodule:: locus.segmental
+    :members:
+    :special-members:
