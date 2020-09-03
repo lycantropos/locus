@@ -18,10 +18,20 @@ def distance_to_interval(segment: Segment, interval: Interval) -> Coordinate:
             or _interval.contains_point(interval, end)):
         return 0
     (min_x, max_x), (min_y, max_y) = interval
-    if min_x == max_x:
-        return distance_to(((min_x, min_y), (min_x, max_y)), segment)
-    elif min_y == max_y:
-        return distance_to(((min_x, min_y), (max_x, min_y)), segment)
+    return (distance_to(((min_x, min_y), (min_x, max_y)), segment)
+            if min_x == max_x
+            else (distance_to(((min_x, min_y), (max_x, min_y)), segment)
+                  if min_y == max_y
+                  else _distance_to_non_degenerate_interval(segment, max_x,
+                                                            max_y, min_x,
+                                                            min_y)))
+
+
+def _distance_to_non_degenerate_interval(segment: Segment,
+                                         max_x: Coordinate,
+                                         max_y: Coordinate,
+                                         min_x: Coordinate,
+                                         min_y: Coordinate) -> Coordinate:
     bottom_left = min_x, min_y
     bottom_right = max_x, min_y
     bottom_side_distance = squared_distance_to(segment,
