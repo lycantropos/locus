@@ -540,9 +540,9 @@ class Tree:
             for child in node.children:
                 heappush(queue,
                          (child.distance_to_point(point),
-                          -child.index - 1 if child.is_leaf else child.index,
+                          child.index if child.is_leaf else -child.index - 1,
                           child))
-            if queue and queue[0][1] < 0:
+            if queue and queue[0][1] >= 0:
                 _, _, node = heappop(queue)
                 return node.item
 
