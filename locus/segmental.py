@@ -591,9 +591,9 @@ class Tree:
             for child in node.children:
                 heappush(queue,
                          (child.distance_to_point(point),
-                          -child.index - 1 if child.is_leaf else child.index,
+                          child.index if child.is_leaf else -child.index - 1,
                           child))
-            while n and queue and queue[0][1] < 0:
+            while n and queue and queue[0][1] >= 0:
                 _, _, node = heappop(queue)
                 yield node.item
                 n -= 1
