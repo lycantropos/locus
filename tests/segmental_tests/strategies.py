@@ -81,7 +81,8 @@ def coordinates_to_trees_with_points_and_sizes(
                                        ) -> Strategy[Tuple[Tree, Point, int]]:
         segments_list, point = segments_list_with_point
         return strategies.tuples(
-                strategies.builds(partial(Tree, segments_list),
+                strategies.builds(Tree,
+                                  strategies.just(segments_list),
                                   max_children=max_children_counts),
                 strategies.just(point),
                 strategies.integers(1, len(segments_list)))
@@ -110,7 +111,8 @@ def coordinates_to_trees_with_segments_and_sizes(
     ) -> Strategy[Tuple[Tree, Segment, int]]:
         segments_list, segment = segments_list_with_segment
         return strategies.tuples(
-                strategies.builds(partial(Tree, segments_list),
+                strategies.builds(Tree,
+                                  strategies.just(segments_list),
                                   max_children=max_children_counts),
                 strategies.just(segment),
                 strategies.integers(1, len(segments_list)))
