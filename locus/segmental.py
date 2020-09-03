@@ -25,7 +25,7 @@ Item = Tuple[int, Segment]
 
 class Node:
     """
-    Represents node of *R*-tree.
+    Represents node of segmental *R*-tree.
 
     Can be subclassed for custom metrics definition.
     """
