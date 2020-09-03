@@ -139,6 +139,14 @@ def is_r_item(value: Any) -> bool:
             and is_interval(value[1]))
 
 
+def is_segmental_item(value: Any) -> bool:
+    return (isinstance(value, tuple)
+            and len(value) == 2
+            and isinstance(value[0], int)
+            and value[0] >= 0
+            and is_segment(value[1]))
+
+
 def is_point(value: Any) -> bool:
     return (isinstance(value, tuple)
             and len(value) > 0
@@ -155,6 +163,16 @@ def is_interval(value: Any) -> bool:
                     and all_equal(map(type, sub_element))
                     and list(sub_element) == sorted(sub_element)
                     for sub_element in value))
+
+
+def is_segment(value: Any) -> bool:
+    return (isinstance(value, tuple)
+            and len(value) == 2
+            and all(isinstance(sub_element, tuple)
+                    and len(sub_element) == 2
+                    and all_equal(map(type, sub_element))
+                    for sub_element in value)
+            and not all_equal(value))
 
 
 def all_equal(iterable: Iterable[Domain]) -> bool:

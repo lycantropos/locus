@@ -7,7 +7,8 @@ from hypothesis import strategies
 
 from locus.hints import (Coordinate,
                          Interval,
-                         Point)
+                         Point,
+                         Segment)
 from tests.bounds import (MAX_AXES_COUNT,
                           MAX_COORDINATE,
                           MIN_COORDINATE)
@@ -74,6 +75,17 @@ def coordinates_to_points(coordinates: Strategy[Coordinate],
 points_strategies = strategies.builds(coordinates_to_points,
                                       coordinates_strategies,
                                       dimension=axes)
+
+
+def coordinates_to_segments(coordinates: Strategy[Coordinate],
+                            *,
+                            dimension: int) -> Strategy[Segment]:
+    return (strategies.lists(coordinates_to_points(coordinates,
+                                                   dimension=dimension),
+                             min_size=2,
+                             max_size=2,
+                             unique=True)
+            .map(tuple))
 
 
 def coordinates_to_intervals(coordinates: Strategy[Coordinate],
