@@ -9,120 +9,65 @@ from typing import (Iterator,
                     Tuple,
                     Type)
 
+from ground.coordinates import (to_divider as _to_divider,
+                                to_square_rooter as _to_square_rooter)
+from ground.functions import to_dot_producer as _to_dot_producer
+from ground.geometries import to_point_cls as _to_point_cls
+from ground.hints import (Coordinate,
+                          Point,
+                          Segment)
+from ground.linear import to_segments_relater as _to_segments_relater
 from reprit.base import generate_repr
 
 from .core import (hilbert as _hilbert,
                    interval as _interval,
                    segment as _segment)
 from .core.utils import ceil_division
-from .hints import (Coordinate,
-                    Interval,
-                    Point,
-                    Segment)
+from .hints import Interval
+
+try:
+    from typing import Protocol
+except ImportError:
+    from typing_extensions import Protocol
 
 Item = Tuple[int, Segment]
 
 
-class Node:
+class Node(Protocol):
     """
-    Represents node of segmental *R*-tree.
+    Interface of segmental *R*-tree node.
 
-    Can be subclassed for custom metrics definition.
+    Can be implemented for custom metrics definition.
     """
 
-    __slots__ = 'index', 'interval', 'segment', 'children'
+    def __new__(cls,
+                index: int,
+                interval: Interval,
+                segment: Optional[Segment],
+                children: Optional[Sequence['Node']]) -> 'Node':
+        """Creates node."""
 
-    def __init__(self,
-                 index: int,
-                 interval: Interval,
-                 segment: Optional[Segment],
-                 children: Optional[Sequence['Node']]) -> None:
-        """
-        Initializes node.
+    @property
+    def children(self) -> Sequence['Node']:
+        """Returns children of the node."""
 
-        Time complexity:
-            ``O(1)``
-        Memory complexity:
-            ``O(1)``
-
-        >>> node = Node(5, ((-10, 10), (0, 20)), ((-10, 20), (10, 0)), None)
-        """
-        self.index = index
-        self.interval = interval
-        self.segment = segment
-        self.children = children
-
-    __repr__ = generate_repr(__init__)
+    @property
+    def index(self) -> int:
+        """Returns index of the node."""
 
     @property
     def is_leaf(self) -> bool:
-        """
-        Checks whether the node is a leaf.
-
-        Time complexity:
-            ``O(1)``
-        Memory complexity:
-            ``O(1)``
-
-        >>> node = Node(5, ((-10, 10), (0, 20)), ((-10, 20), (10, 0)), None)
-        >>> node.is_leaf
-        True
-        """
-        return self.children is None
+        """Checks whether the node is a leaf."""
 
     @property
     def item(self) -> Item:
-        """
-        Returns underlying index with segment.
+        """Returns underlying index with segment."""
 
-        Time complexity:
-            ``O(1)``
-        Memory complexity:
-            ``O(1)``
+    def distance_to_point(self, point: Point) -> Coordinate:
+        """Calculates distance to given point."""
 
-        >>> node = Node(5, ((-10, 10), (0, 20)), ((-10, 20), (10, 0)), None)
-        >>> node.item == (5, ((-10, 20), (10, 0)))
-        True
-        """
-        return self.index, self.segment
-
-    def distance_to_point(self, point: Point,
-                          *,
-                          _minus_inf: Coordinate = -inf) -> Coordinate:
-        """
-        Calculates distance to given point.
-
-        Time complexity:
-            ``O(1)``
-        Memory complexity:
-            ``O(1)``
-
-        >>> node = Node(5, ((-10, 10), (0, 20)), ((-10, 20), (10, 0)), None)
-        >>> node.distance_to_point((20, 0)) == 10
-        True
-        """
-        return (_segment.distance_to_point(self.segment, point) or _minus_inf
-                if self.is_leaf
-                else _interval.planar_distance_to_point(self.interval, point))
-
-    def distance_to_segment(self, segment: Segment,
-                            *,
-                            _minus_inf: Coordinate = -inf) -> Coordinate:
-        """
-        Calculates distance to given segment.
-
-        Time complexity:
-            ``O(1)``
-        Memory complexity:
-            ``O(1)``
-
-        >>> node = Node(5, ((-10, 10), (0, 20)), ((-10, 20), (10, 0)), None)
-        >>> node.distance_to_segment(((20, 0), (20, 10))) == 10
-        True
-        """
-        return (_segment.distance_to(self.segment, segment) or _minus_inf
-                if self.is_leaf
-                else _segment.distance_to_interval(segment, self.interval))
+    def distance_to_segment(self, segment: Segment) -> Coordinate:
+        """Calculates distance to given segment."""
 
 
 class Tree:
@@ -138,7 +83,7 @@ class Tree:
                  segments: Sequence[Segment],
                  *,
                  max_children: int = 16,
-                 node_cls: Type[Node] = Node) -> None:
+                 node_cls: Optional[Type[Node]] = None) -> None:
         """
         Initializes tree from segments.
 
@@ -155,7 +100,10 @@ class Tree:
         """
         self._segments = segments
         self._max_children = max_children
-        self._root = _create_root(segments, max_children, node_cls)
+        self._root = _create_root(segments, max_children,
+                                  _to_default_node_cls()
+                                  if node_cls is None
+                                  else node_cls)
 
     __repr__ = generate_repr(__init__)
 
@@ -185,11 +133,6 @@ class Tree:
             ``O(1)``
         Memory complexity:
             ``O(1)``
-
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
-        >>> tree = Tree(segments)
-        >>> tree.node_cls is Node
-        True
         """
         return type(self._root)
 
@@ -230,11 +173,15 @@ class Tree:
         :returns:
             indices of segments in the tree the nearest to the input segment.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> tree.n_nearest_indices(2, ((0, 0), (10, 0))) == [0, 1]
+        >>> (tree.n_nearest_indices(2, Segment(Point(0, 0), Point(10, 0)))
+        ...  == [0, 1])
         True
-        >>> (tree.n_nearest_indices(10, ((0, 0), (10, 0)))
+        >>> (tree.n_nearest_indices(10, Segment(Point(0, 0), Point(10, 0)))
         ...  == range(len(segments)))
         True
         """
@@ -263,12 +210,16 @@ class Tree:
         :returns:
             indices with segments in the tree the nearest to the input segment.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> (tree.n_nearest_items(2, ((0, 0), (10, 0)))
-        ...  == [(0, ((0, 1), (1, 1))), (1, ((0, 2), (2, 2)))])
+        >>> (tree.n_nearest_items(2, Segment(Point(0, 0), Point(10, 0)))
+        ...  == [(0, Segment(Point(0, 1), Point(1, 1))),
+        ...      (1, Segment(Point(0, 2), Point(2, 2)))])
         True
-        >>> (tree.n_nearest_items(10, ((0, 0), (10, 0)))
+        >>> (tree.n_nearest_items(10, Segment(Point(0, 0), Point(10, 0)))
         ...  == list(enumerate(segments)))
         True
         """
@@ -295,12 +246,17 @@ class Tree:
         :param segment: input segment.
         :returns: segments in the tree the nearest to the input segment.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> (tree.n_nearest_segments(2, ((0, 0), (10, 0)))
-        ...  == [((0, 1), (1, 1)), ((0, 2), (2, 2))])
+        >>> (tree.n_nearest_segments(2, Segment(Point(0, 0), Point(10, 0)))
+        ...  == [Segment(Point(0, 1), Point(1, 1)),
+        ...      Segment(Point(0, 2), Point(2, 2))])
         True
-        >>> tree.n_nearest_segments(10, ((0, 0), (10, 0))) == segments
+        >>> (tree.n_nearest_segments(10, Segment(Point(0, 0), Point(10, 0)))
+        ...  == segments)
         True
         """
         return ([segment for _, segment in self._n_nearest_items(n, segment)]
@@ -328,11 +284,15 @@ class Tree:
         :returns:
             indices of segments in the tree the nearest to the input point.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> tree.n_nearest_to_point_indices(2, (0, 0)) == [0, 1]
+        >>> tree.n_nearest_to_point_indices(2, Point(0, 0)) == [0, 1]
         True
-        >>> tree.n_nearest_to_point_indices(10, (0, 0)) == range(len(segments))
+        >>> (tree.n_nearest_to_point_indices(10, Point(0, 0))
+        ...  == range(len(segments)))
         True
         """
         return ([index
@@ -361,12 +321,16 @@ class Tree:
         :returns:
             indices with segments in the tree the nearest to the input point.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> (tree.n_nearest_to_point_items(2, (0, 0))
-        ...  == [(0, ((0, 1), (1, 1))), (1, ((0, 2), (2, 2)))])
+        >>> (tree.n_nearest_to_point_items(2, Point(0, 0))
+        ...  == [(0, Segment(Point(0, 1), Point(1, 1))),
+        ...      (1, Segment(Point(0, 2), Point(2, 2)))])
         True
-        >>> (tree.n_nearest_to_point_items(10, (0, 0))
+        >>> (tree.n_nearest_to_point_items(10, Point(0, 0))
         ...  == list(enumerate(segments)))
         True
         """
@@ -393,12 +357,16 @@ class Tree:
         :param point: input point.
         :returns: segments in the tree the nearest to the input point.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> (tree.n_nearest_to_point_segments(2, (0, 0))
-        ...  == [((0, 1), (1, 1)), ((0, 2), (2, 2))])
+        >>> (tree.n_nearest_to_point_segments(2, Point(0, 0))
+        ...  == [Segment(Point(0, 1), Point(1, 1)),
+        ...      Segment(Point(0, 2), Point(2, 2))])
         True
-        >>> tree.n_nearest_to_point_segments(10, (0, 0)) == segments
+        >>> tree.n_nearest_to_point_segments(10, Point(0, 0)) == segments
         True
         """
         return ([segment
@@ -423,9 +391,12 @@ class Tree:
         :returns:
             index of segment in the tree the nearest to the input segment.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> tree.nearest_index(((0, 0), (10, 0))) == 0
+        >>> tree.nearest_index(Segment(Point(0, 0), Point(10, 0))) == 0
         True
         """
         result, _ = self.nearest_item(segment)
@@ -448,9 +419,13 @@ class Tree:
         :returns:
             index with segment in the tree the nearest to the input segment.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> tree.nearest_item(((0, 0), (10, 0))) == (0, ((0, 1), (1, 1)))
+        >>> (tree.nearest_item(Segment(Point(0, 0), Point(10, 0)))
+        ...  == (0, Segment(Point(0, 1), Point(1, 1))))
         True
         """
         queue = [(0, 0, self._root)]
@@ -480,9 +455,13 @@ class Tree:
         :param segment: input segment.
         :returns: segment in the tree the nearest to the input segment.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> tree.nearest_segment(((0, 0), (10, 0))) == ((0, 1), (1, 1))
+        >>> (tree.nearest_segment(Segment(Point(0, 0), Point(10, 0)))
+        ...  == Segment(Point(0, 1), Point(1, 1)))
         True
         """
         _, result = self.nearest_item(segment)
@@ -504,9 +483,12 @@ class Tree:
         :param point: input point.
         :returns: index of segment in the tree the nearest to the input point.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> tree.nearest_to_point_index((0, 0)) == 0
+        >>> tree.nearest_to_point_index(Point(0, 0)) == 0
         True
         """
         result, _ = self.nearest_to_point_item(point)
@@ -529,9 +511,13 @@ class Tree:
         :returns:
             index with segment in the tree the nearest to the input point.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> tree.nearest_to_point_item((0, 0)) == (0, ((0, 1), (1, 1)))
+        >>> (tree.nearest_to_point_item(Point(0, 0))
+        ...  == (0, Segment(Point(0, 1), Point(1, 1))))
         True
         """
         queue = [(0, 0, self._root)]
@@ -561,9 +547,13 @@ class Tree:
         :param point: input point.
         :returns: segment in the tree the nearest to the input point.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.geometries import to_point_cls, to_segment_cls
+        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
-        >>> tree.nearest_to_point_segment((0, 0)) == ((0, 1), (1, 1))
+        >>> (tree.nearest_to_point_segment(Point(0, 0))
+        ...  == Segment(Point(0, 1), Point(1, 1)))
         True
         """
         _, result = self.nearest_to_point_item(point)
@@ -601,7 +591,7 @@ class Tree:
 
 def _create_root(segments: Sequence[Segment],
                  max_children: int,
-                 node_cls: Type[Node] = Node) -> Node:
+                 node_cls: Type[Node]) -> Node:
     intervals = [((start_x, end_x)
                   if start_x < end_x
                   else (end_x, start_x),
@@ -658,3 +648,60 @@ def _create_root(segments: Sequence[Segment],
                                       children))
                 start = stop
         return nodes[-1]
+
+
+def _to_default_node_cls() -> Type[Node]:
+    class Node:
+        __slots__ = 'index', 'interval', 'segment', 'children'
+
+        def __init__(self,
+                     index: int,
+                     interval: Interval,
+                     segment: Optional[Segment],
+                     children: Optional[Sequence['Node']]) -> None:
+            self.index = index
+            self.interval = interval
+            self.segment = segment
+            self.children = children
+
+        __repr__ = generate_repr(__init__)
+
+        _divider = staticmethod(_to_divider())
+        _dot_producer = staticmethod(_to_dot_producer())
+        _point_cls = staticmethod(_to_point_cls())
+        _segments_relater = staticmethod(_to_segments_relater())
+        _square_rooter = staticmethod(_to_square_rooter())
+
+        @property
+        def is_leaf(self) -> bool:
+            return self.children is None
+
+        @property
+        def item(self) -> Item:
+            return self.index, self.segment
+
+        def distance_to_point(self, point: Point,
+                              *,
+                              _minus_inf: Coordinate = -inf) -> Coordinate:
+            return (_segment.distance_to_point(
+                    self._divider, self._dot_producer, self._square_rooter,
+                    self.segment, point) or _minus_inf
+                    if self.is_leaf
+                    else _interval.planar_distance_to_point(self.interval,
+                                                            point))
+
+        def distance_to_segment(self, segment: Segment,
+                                *,
+                                _minus_inf: Coordinate = -inf) -> Coordinate:
+            return (_segment.distance_to(
+                    self._divider, self._dot_producer, self._segments_relater,
+                    self._square_rooter, self.segment.start,
+                    self.segment.end,
+                    segment.start, segment.end) or _minus_inf
+                    if self.is_leaf
+                    else _segment.distance_to_interval(
+                    self._divider, self._dot_producer, self._point_cls,
+                    self._segments_relater, self._square_rooter, segment,
+                    self.interval))
+
+    return Node

@@ -1,21 +1,20 @@
 from math import hypot
 
-from locus.hints import (Coordinate,
-                         Interval,
-                         Point)
+from ground.hints import (Coordinate,
+                          Point)
+
+from locus.hints import Interval
 
 
 def contains_point(interval: Interval, point: Point) -> bool:
-    return all(min_coordinate <= point_coordinate <= max_coordinate
-               for point_coordinate, (min_coordinate,
-                                      max_coordinate) in zip(point, interval))
+    (x_min, x_max), (y_min, y_max) = interval
+    return x_min <= point.x <= x_max and y_min <= point.y <= y_max
 
 
 def planar_distance_to_point(interval: Interval, point: Point) -> Coordinate:
-    x, y = point
-    (min_x, max_x), (min_y, max_y) = interval
-    return hypot(_distance_to_linear_interval(x, min_x, max_x),
-                 _distance_to_linear_interval(y, min_y, max_y))
+    (x_min, x_max), (y_min, y_max) = interval
+    return hypot(_distance_to_linear_interval(point.x, x_min, x_max),
+                 _distance_to_linear_interval(point.y, y_min, y_max))
 
 
 def _distance_to_linear_interval(coordinate: Coordinate,

@@ -9,14 +9,14 @@ from typing import (Iterator,
                     Tuple,
                     Type)
 
+from ground.hints import (Coordinate,
+                          Point)
 from reprit.base import generate_repr
 
 from .core import (hilbert as _hilbert,
                    interval as _interval)
 from .core.utils import ceil_division
-from .hints import (Coordinate,
-                    Interval,
-                    Point)
+from .hints import Interval
 
 Item = Tuple[int, Interval]
 
@@ -91,8 +91,10 @@ class Node:
         Memory complexity:
             ``O(1)``
 
+        >>> from ground.geometries import to_point_cls
+        >>> Point = to_point_cls()
         >>> node = Node(5, ((-10, 10), (0, 20)), None)
-        >>> node.distance_to_point((20, 0)) == 10
+        >>> node.distance_to_point(Point(20, 0)) == 10
         True
         """
         return _interval.planar_distance_to_point(self.interval, point)
@@ -399,12 +401,14 @@ class Tree:
         :returns:
             indices of intervals in the tree the nearest to the input point.
 
+        >>> from ground.geometries import to_point_cls
+        >>> Point = to_point_cls()
         >>> intervals = [((-index, index), (0, index))
         ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
-        >>> tree.n_nearest_indices(2, (0, 0)) == [9, 8]
+        >>> tree.n_nearest_indices(2, Point(0, 0)) == [9, 8]
         True
-        >>> (tree.n_nearest_indices(len(intervals), (0, 0))
+        >>> (tree.n_nearest_indices(len(intervals), Point(0, 0))
         ...  == range(len(intervals)))
         True
         """
@@ -430,13 +434,15 @@ class Tree:
         :param point: input point.
         :returns: intervals in the tree the nearest to the input point.
 
+        >>> from ground.geometries import to_point_cls
+        >>> Point = to_point_cls()
         >>> intervals = [((-index, index), (0, index))
         ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
-        >>> (tree.n_nearest_intervals(2, (0, 0))
+        >>> (tree.n_nearest_intervals(2, Point(0, 0))
         ...  == [((-10, 10), (0, 10)), ((-9, 9), (0, 9))])
         True
-        >>> tree.n_nearest_intervals(len(intervals), (0, 0)) == intervals
+        >>> tree.n_nearest_intervals(len(intervals), Point(0, 0)) == intervals
         True
         """
         return ([interval for _, interval in self._n_nearest_items(n, point)]
@@ -464,13 +470,15 @@ class Tree:
         :returns:
             indices with intervals in the tree the nearest to the input point.
 
+        >>> from ground.geometries import to_point_cls
+        >>> Point = to_point_cls()
         >>> intervals = [((-index, index), (0, index))
         ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
-        >>> (tree.n_nearest_items(2, (0, 0))
+        >>> (tree.n_nearest_items(2, Point(0, 0))
         ...  == [(9, ((-10, 10), (0, 10))), (8, ((-9, 9), (0, 9)))])
         True
-        >>> (tree.n_nearest_items(len(intervals), (0, 0))
+        >>> (tree.n_nearest_items(len(intervals), Point(0, 0))
         ...  == list(enumerate(intervals)))
         True
         """
@@ -508,10 +516,12 @@ class Tree:
         :param point: input point.
         :returns: index of interval in the tree the nearest to the input point.
 
+        >>> from ground.geometries import to_point_cls
+        >>> Point = to_point_cls()
         >>> intervals = [((-index, index), (0, index))
         ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
-        >>> tree.nearest_index((0, 0)) == 9
+        >>> tree.nearest_index(Point(0, 0)) == 9
         True
         """
         result, _ = self.nearest_item(point)
@@ -532,10 +542,12 @@ class Tree:
         :param point: input point.
         :returns: interval in the tree the nearest to the input point.
 
+        >>> from ground.geometries import to_point_cls
+        >>> Point = to_point_cls()
         >>> intervals = [((-index, index), (0, index))
         ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
-        >>> tree.nearest_interval((0, 0)) == ((-10, 10), (0, 10))
+        >>> tree.nearest_interval(Point(0, 0)) == ((-10, 10), (0, 10))
         True
         """
         _, result = self.nearest_item(point)
@@ -558,18 +570,20 @@ class Tree:
         :returns:
             index with interval in the tree the nearest to the input point.
 
+        >>> from ground.geometries import to_point_cls
+        >>> Point = to_point_cls()
         >>> intervals = [((-index, index), (0, index))
         ...              for index in range(1, 11)]
         >>> tree = Tree(intervals)
-        >>> tree.nearest_item((0, 0)) == (9, ((-10, 10), (0, 10)))
+        >>> tree.nearest_item(Point(0, 0)) == (9, ((-10, 10), (0, 10)))
         True
-        >>> tree.nearest_item((-10, 0)) == (9, ((-10, 10), (0, 10)))
+        >>> tree.nearest_item(Point(-10, 0)) == (9, ((-10, 10), (0, 10)))
         True
-        >>> tree.nearest_item((-10, 10)) == (9, ((-10, 10), (0, 10)))
+        >>> tree.nearest_item(Point(-10, 10)) == (9, ((-10, 10), (0, 10)))
         True
-        >>> tree.nearest_item((10, 0)) == (9, ((-10, 10), (0, 10)))
+        >>> tree.nearest_item(Point(10, 0)) == (9, ((-10, 10), (0, 10)))
         True
-        >>> tree.nearest_item((10, 10)) == (9, ((-10, 10), (0, 10)))
+        >>> tree.nearest_item(Point(10, 10)) == (9, ((-10, 10), (0, 10)))
         True
         """
         queue = [(0, 0, self._root)]
