@@ -7,13 +7,14 @@ from ground.hints import Coordinate
 from hypothesis import strategies
 
 from locus.hints import Interval
-from tests.bounds import (MAX_COORDINATE,
-                          MIN_COORDINATE)
 from tests.utils import (Point,
                          Segment,
                          Strategy,
                          pack,
                          to_pairs)
+
+MAX_COORDINATE = 10 ** 15
+MIN_COORDINATE = -MAX_COORDINATE
 
 
 def to_floats(min_value: Coordinate,
