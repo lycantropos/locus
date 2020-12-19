@@ -644,8 +644,7 @@ def _create_root(segments: Sequence[Segment],
                                       reduce(_interval.merge,
                                              [child.interval
                                               for child in children]),
-                                      None,
-                                      children))
+                                      None, children))
                 start = stop
         return nodes[-1]
 
