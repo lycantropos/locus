@@ -654,8 +654,6 @@ def _create_root(intervals: Sequence[Interval],
 def _node_to_leaves(node: Node) -> Iterator[Node]:
     if node.is_leaf:
         yield node
-    elif node.children[0].is_leaf:
-        yield from node.children
     else:
         for child in node.children:
             yield from _node_to_leaves(child)
