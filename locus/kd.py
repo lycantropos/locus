@@ -598,7 +598,7 @@ class Tree:
         """
         return list(self._find_interval_items(interval))
 
-    def _find_interval_items(self, interval: Interval) -> List[Item]:
+    def _find_interval_items(self, interval: Interval) -> Iterator[Item]:
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
