@@ -11,7 +11,7 @@ def contains_point(interval: Interval, point: Point) -> bool:
     return x_min <= point.x <= x_max and y_min <= point.y <= y_max
 
 
-def planar_distance_to_point(interval: Interval, point: Point) -> Coordinate:
+def distance_to_point(interval: Interval, point: Point) -> Coordinate:
     (x_min, x_max), (y_min, y_max) = interval
     return hypot(_distance_to_linear_interval(point.x, x_min, x_max),
                  _distance_to_linear_interval(point.y, y_min, y_max))

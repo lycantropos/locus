@@ -687,8 +687,7 @@ def _to_default_node_cls() -> Type[Node]:
                     self._divider, self._dot_producer, self._square_rooter,
                     self.segment, point) or _minus_inf
                     if self.is_leaf
-                    else _interval.planar_distance_to_point(self.interval,
-                                                            point))
+                    else _interval.distance_to_point(self.interval, point))
 
         def distance_to_segment(self, segment: Segment,
                                 *,

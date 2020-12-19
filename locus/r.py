@@ -97,7 +97,7 @@ class Node:
         >>> node.distance_to_point(Point(20, 0)) == 10
         True
         """
-        return _interval.planar_distance_to_point(self.interval, point)
+        return _interval.distance_to_point(self.interval, point)
 
 
 class Tree:
