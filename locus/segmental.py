@@ -695,8 +695,7 @@ def _to_default_node_cls() -> Type[Node]:
             return (_segment.distance_to(
                     self._divider, self._dot_producer, self._segments_relater,
                     self._square_rooter, self.segment.start,
-                    self.segment.end,
-                    segment.start, segment.end) or _minus_inf
+                    self.segment.end, segment.start, segment.end) or _minus_inf
                     if self.is_leaf
                     else _segment.distance_to_interval(
                     self._divider, self._dot_producer, self._point_cls,
