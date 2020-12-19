@@ -69,45 +69,47 @@ Install:
 Usage
 -----
 ```python
+>>> from ground.geometries import to_point_cls, to_segment_cls
+>>> Point, Segment = to_point_cls(), to_segment_cls()
 >>> from locus import kd
->>> points = list(zip(range(-10, 11), range(0, 20)))
+>>> points = list(map(Point, range(-10, 11), range(0, 20)))
 >>> kd_tree = kd.Tree(points)
->>> kd_tree.nearest_index((0, 0))
-5
->>> kd_tree.nearest_point((0, 0))
-(-5, 5)
->>> kd_tree.n_nearest_indices(2, (0, 0))
-[6, 5]
->>> kd_tree.n_nearest_points(2, (0, 0))
-[(-4, 6), (-5, 5)]
->>> kd_tree.find_ball_indices((0, 3), 5)
-[6, 7]
->>> kd_tree.find_ball_points((0, 3), 5)
-[(-4, 6), (-3, 7)]
->>> kd_tree.find_interval_indices(((-1, 1), (0, 10)))
-[9, 10]
->>> kd_tree.find_interval_points(((-1, 1), (0, 10)))
-[(-1, 9), (0, 10)]
+>>> kd_tree.nearest_index(Point(0, 0)) == 5
+True
+>>> kd_tree.nearest_point(Point(0, 0)) == Point(-5, 5)
+True
+>>> kd_tree.n_nearest_indices(2, Point(0, 0)) == [6, 5]
+True
+>>> kd_tree.n_nearest_points(2, Point(0, 0)) == [Point(-4, 6), Point(-5, 5)]
+True
+>>> kd_tree.find_ball_indices(Point(0, 3), 5) == [6, 7]
+True
+>>> kd_tree.find_ball_points(Point(0, 3), 5) == [Point(-4, 6), Point(-3, 7)]
+True
+>>> kd_tree.find_interval_indices(((-1, 1), (0, 10))) == [9, 10]
+True
+>>> kd_tree.find_interval_points(((-1, 1), (0, 10))) == [Point(-1, 9), Point(0, 10)]
+True
 >>> from locus import r
 >>> intervals = list(zip(zip(range(-10, 11), range(0, 20)), 
 ...                      zip(range(-20, 0), range(-10, 11))))
 >>> r_tree = r.Tree(intervals)
->>> r_tree.nearest_index((0, 0))
-10
->>> r_tree.nearest_interval((0, 0))
+>>> r_tree.nearest_index(Point(0, 0)) == 10
+True
+>>> r_tree.nearest_interval(Point(0, 0))
 ((0, 10), (-10, 0))
->>> r_tree.n_nearest_indices(2, (0, 0))
-[10, 11]
->>> r_tree.n_nearest_intervals(2, (0, 0))
-[((0, 10), (-10, 0)), ((1, 11), (-9, 1))]
->>> r_tree.find_subsets_indices(((0, 10), (-10, 10)))
-[10]
->>> r_tree.find_subsets(((0, 10), (-10, 10)))
-[((0, 10), (-10, 0))]
->>> r_tree.find_supersets_indices(((0, 10), (-10, 0)))
-[10]
->>> r_tree.find_supersets(((0, 10), (-10, 0)))
-[((0, 10), (-10, 0))]
+>>> r_tree.n_nearest_indices(2, Point(0, 0)) == [10, 11]
+True
+>>> r_tree.n_nearest_intervals(2, Point(0, 0)) == [((0, 10), (-10, 0)), ((1, 11), (-9, 1))]
+True
+>>> r_tree.find_subsets_indices(((0, 10), (-10, 10))) == [10]
+True
+>>> r_tree.find_subsets(((0, 10), (-10, 10))) == [((0, 10), (-10, 0))]
+True
+>>> r_tree.find_supersets_indices(((0, 10), (-10, 0))) == [10]
+True
+>>> r_tree.find_supersets(((0, 10), (-10, 0))) == [((0, 10), (-10, 0))]
+True
 
 ```
 
