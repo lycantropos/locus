@@ -1,7 +1,6 @@
 locus
 =====
 
-[![](https://travis-ci.com/lycantropos/locus.svg?branch=master)](https://travis-ci.com/lycantropos/locus "Travis CI")
 [![](https://dev.azure.com/lycantropos/locus/_apis/build/status/lycantropos.locus?branchName=master)](https://dev.azure.com/lycantropos/locus/_build/latest?definitionId=25&branchName=master "Azure Pipelines")
 [![](https://readthedocs.org/projects/locus/badge/?version=latest)](https://locus.readthedocs.io/en/latest "Documentation")
 [![](https://codecov.io/gh/lycantropos/locus/branch/master/graph/badge.svg)](https://codecov.io/gh/lycantropos/locus "Codecov")
