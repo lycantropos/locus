@@ -1,8 +1,8 @@
 from typing import List
 
+from ground.hints import Point
 from hypothesis import given
 
-from locus.hints import Point
 from locus.kd import Tree
 from tests.utils import (is_kd_tree_balanced,
                          is_kd_tree_valid,

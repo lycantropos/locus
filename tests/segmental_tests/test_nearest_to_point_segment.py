@@ -1,13 +1,13 @@
 from typing import Tuple
 
+from ground.hints import (Coordinate,
+                          Point,
+                          Segment)
 from hypothesis import given
 
-from locus.core.segment import distance_to_point
-from locus.hints import (Coordinate,
-                         Point,
-                         Segment)
 from locus.segmental import Tree
-from tests.utils import is_segment
+from tests.utils import (is_segment,
+                         to_segment_point_distance)
 from . import strategies
 
 
@@ -27,7 +27,7 @@ def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
     result = tree.nearest_to_point_segment(point)
 
     def to_point_distance(segment: Segment) -> Coordinate:
-        return distance_to_point(segment, point)
+        return to_segment_point_distance(segment, point)
 
     assert result in tree.segments
     assert (min(map(to_point_distance, tree.segments))

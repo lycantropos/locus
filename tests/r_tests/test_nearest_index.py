@@ -1,10 +1,10 @@
 from typing import Tuple
 
+from ground.hints import (Coordinate,
+                          Point)
 from hypothesis import given
 
-from locus.core.interval import planar_distance_to_point
-from locus.hints import (Coordinate,
-                         Point)
+from locus.core.interval import distance_to_point
 from locus.r import Tree
 from . import strategies
 
@@ -25,7 +25,7 @@ def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
     result = tree.nearest_index(point)
 
     def to_point_distance(index: int) -> Coordinate:
-        return planar_distance_to_point(tree.intervals[index], point)
+        return distance_to_point(tree.intervals[index], point)
 
     indices = range(len(tree.intervals))
     assert result in indices

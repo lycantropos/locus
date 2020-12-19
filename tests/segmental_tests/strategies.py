@@ -3,12 +3,12 @@ from typing import (List,
                     Optional,
                     Tuple)
 
+from ground.hints import (Coordinate,
+                          Point,
+                          Segment)
 from hypothesis import strategies
 
 from locus.core.hilbert import MAX_COORDINATE
-from locus.hints import (Coordinate,
-                         Point,
-                         Segment)
 from locus.segmental import Tree
 from tests.strategies import (coordinates_strategies,
                               coordinates_to_points,
@@ -19,9 +19,7 @@ MIN_SEGMENTS_SIZE = 2
 max_children_counts = (strategies.sampled_from([2 ** power
                                                 for power in range(1, 10)])
                        | strategies.integers(2, MAX_COORDINATE))
-segments_strategies = (coordinates_strategies
-                       .map(partial(coordinates_to_segments,
-                                    dimension=2)))
+segments_strategies = coordinates_strategies.map(coordinates_to_segments)
 segments_lists = (segments_strategies
                   .flatmap(partial(strategies.lists,
                                    min_size=MIN_SEGMENTS_SIZE)))
@@ -35,8 +33,7 @@ def coordinates_to_trees_with_segments(coordinates: Strategy[Coordinate],
                                        min_size: int = MIN_SEGMENTS_SIZE,
                                        max_size: Optional[int] = None
                                        ) -> Strategy[Tuple[Tree, Segment]]:
-    segments = coordinates_to_segments(coordinates,
-                                       dimension=2)
+    segments = coordinates_to_segments(coordinates)
     return strategies.tuples(
             strategies.builds(Tree,
                               strategies.lists(segments,
@@ -58,13 +55,11 @@ def coordinates_to_trees_with_points(coordinates: Strategy[Coordinate],
     return (strategies.tuples(
             strategies.builds(Tree,
                               strategies.lists(
-                                      coordinates_to_segments(coordinates,
-                                                              dimension=2),
+                                      coordinates_to_segments(coordinates),
                                       min_size=min_size,
                                       max_size=max_size),
                               max_children=max_children_counts),
-            coordinates_to_points(coordinates,
-                                  dimension=2)))
+            coordinates_to_points(coordinates)))
 
 
 trees_with_points = (coordinates_strategies
@@ -88,12 +83,10 @@ def coordinates_to_trees_with_points_and_sizes(
                 strategies.integers(1, len(segments_list)))
 
     return (strategies.tuples(
-            strategies.lists(coordinates_to_segments(coordinates,
-                                                     dimension=2),
+            strategies.lists(coordinates_to_segments(coordinates),
                              min_size=min_size,
                              max_size=max_size),
-            coordinates_to_points(coordinates,
-                                  dimension=2))
+            coordinates_to_points(coordinates))
             .flatmap(to_trees_with_points_and_sizes))
 
 
@@ -117,7 +110,7 @@ def coordinates_to_trees_with_segments_and_sizes(
                 strategies.just(segment),
                 strategies.integers(1, len(segments_list)))
 
-    segments = coordinates_to_segments(coordinates, dimension=2)
+    segments = coordinates_to_segments(coordinates)
     return (strategies.tuples(strategies.lists(segments,
                                                min_size=min_size,
                                                max_size=max_size),

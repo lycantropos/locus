@@ -1,14 +1,14 @@
 from heapq import nsmallest
 from typing import Tuple
 
+from ground.hints import (Coordinate,
+                          Point)
 from hypothesis import given
 
-from locus.core.utils import planar_distance
-from locus.hints import (Coordinate,
-                         Point)
 from locus.kd import (Item,
                       Tree)
-from tests.utils import is_kd_item
+from tests.utils import (is_kd_item,
+                         to_points_distance)
 from . import strategies
 
 
@@ -29,7 +29,7 @@ def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
     result = tree.n_nearest_items(n, point)
 
     def to_point_distance(item: Item) -> Coordinate:
-        return planar_distance(item[1], point)
+        return to_points_distance(item[1], point)
 
     items = list(enumerate(tree.points))
     assert 0 < len(result) <= n

@@ -1,11 +1,11 @@
 from typing import Tuple
 
+from ground.hints import (Coordinate,
+                          Segment)
 from hypothesis import given
 
-from locus.core.segment import distance_to
-from locus.hints import (Coordinate,
-                         Segment)
 from locus.segmental import Tree
+from tests.utils import to_segments_distance
 from . import strategies
 
 
@@ -25,7 +25,7 @@ def test_properties(tree_with_segment: Tuple[Tree, Segment]) -> None:
     result = tree.nearest_index(segment)
 
     def to_segment_distance(index: int) -> Coordinate:
-        return distance_to(tree.segments[index], segment)
+        return to_segments_distance(tree.segments[index], segment)
 
     indices = range(len(tree.segments))
     assert result in indices

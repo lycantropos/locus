@@ -2,13 +2,13 @@ from functools import partial
 from heapq import nsmallest
 from typing import Tuple
 
+from ground.hints import Point
 from hypothesis import given
 
-from locus.core.utils import planar_distance
-from locus.hints import Point
 from locus.kd import Tree
 from tests.utils import (all_equal,
-                         is_point)
+                         is_point,
+                         to_points_distance)
 from . import strategies
 
 
@@ -28,7 +28,7 @@ def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
 
     result = tree.n_nearest_points(n, point)
 
-    to_point_distance = partial(planar_distance, point)
+    to_point_distance = partial(to_points_distance, point)
     assert 0 < len(result) <= n
     assert all_equal(map(len, result))
     assert all(point in tree.points for point in result)

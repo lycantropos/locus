@@ -1,11 +1,11 @@
 from typing import Tuple
 
+from ground.hints import (Coordinate,
+                          Point)
 from hypothesis import given
 
-from locus.core.utils import planar_distance
-from locus.hints import (Coordinate,
-                         Point)
 from locus.kd import Tree
+from tests.utils import to_points_distance
 from . import strategies
 
 
@@ -35,7 +35,7 @@ def test_properties(tree_with_ball: Tuple[Tree, Point, Coordinate]) -> None:
     result = tree.find_ball_indices(center, radius)
 
     def to_center_distance(index: int) -> Coordinate:
-        return planar_distance(tree.points[index], center)
+        return to_points_distance(tree.points[index], center)
 
     indices = range(len(tree.points))
     assert sum(center == point for point in tree.points) <= len(result)

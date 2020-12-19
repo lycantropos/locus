@@ -1,38 +1,54 @@
+from functools import partial
 from itertools import groupby
 from math import (ceil,
                   log)
 from typing import (Any,
+                    Callable,
                     Iterable,
                     Sequence,
                     Tuple,
                     TypeVar,
                     Union)
 
+from ground.coordinates import (to_divider,
+                                to_square_rooter)
+from ground.functions import to_dot_producer
+from ground.geometries import (to_point_cls,
+                               to_segment_cls)
+from ground.hints import Coordinate
+from ground.linear import to_segments_relater
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
 from locus import (kd,
                    r)
 from locus.core.interval import is_subset_of
-from locus.hints import (Coordinate,
-                         Point)
+from locus.core.segment import (distance_to,
+                                distance_to_point)
+from locus.core.utils import points_distance
 
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
 Strategy = SearchStrategy
+Point = to_point_cls()
+Segment = to_segment_cls()
 
 
 def equivalence(left_statement: bool, right_statement: bool) -> bool:
     return left_statement is right_statement
 
 
-def to_homogeneous_tuples(elements: Strategy[Domain],
-                          *,
-                          size: int) -> Strategy[Tuple[Domain, ...]]:
-    return (strategies.lists(elements,
-                             min_size=size,
-                             max_size=size)
-            .map(tuple))
+def pack(function: Callable[..., Range]
+         ) -> Callable[[Iterable[Domain]], Range]:
+    return partial(call, function)
+
+
+def call(function: Callable[..., Range], args: Iterable[Domain]) -> Range:
+    return function(*args)
+
+
+def to_pairs(elements: Strategy[Domain]) -> Strategy[Tuple[Domain, Domain]]:
+    return strategies.tuples(elements, elements)
 
 
 def is_kd_tree_balanced(tree: kd.Tree) -> bool:
@@ -83,12 +99,12 @@ def is_r_node_balanced(node: r.Node) -> bool:
 
 
 def is_kd_node_valid(points: Sequence[Point], node: kd.Node) -> bool:
-    hyperplane = points[node.index][node.axis]
+    hyperplane = node.projector(points[node.index])
     if (node.left is not kd.NIL
-            and hyperplane < points[node.left.index][node.axis]):
+            and hyperplane < node.projector(points[node.left.index])):
         return False
     if (node.right is not kd.NIL
-            and hyperplane > points[node.right.index][node.axis]):
+            and node.projector(points[node.right.index]) < hyperplane):
         return False
     return all(is_kd_node_valid(points, child)
                for child in to_kd_node_children(node))
@@ -148,11 +164,7 @@ def is_segmental_item(value: Any) -> bool:
 
 
 def is_point(value: Any) -> bool:
-    return (isinstance(value, tuple)
-            and len(value) > 0
-            and all_equal(map(type, value))
-            and all(isinstance(sub_element, Coordinate)
-                    for sub_element in value))
+    return isinstance(value, Point)
 
 
 def is_interval(value: Any) -> bool:
@@ -213,3 +225,17 @@ def rot(size: int, x: int, y: int, rx: int, ry: int) -> Tuple[int, int]:
             x, y = size - 1 - x, size - 1 - y
         x, y = y, x
     return x, y
+
+
+divider = to_divider()
+dot_producer = to_dot_producer()
+square_rooter = to_square_rooter()
+to_points_distance = partial(points_distance, square_rooter)
+to_segment_point_distance = partial(distance_to_point, divider, dot_producer,
+                                    square_rooter)
+
+
+def to_segments_distance(first: Segment, second: Segment) -> Coordinate:
+    return distance_to(divider, dot_producer, to_segments_relater(),
+                       square_rooter, first.start, first.end, second.start,
+                       second.end)

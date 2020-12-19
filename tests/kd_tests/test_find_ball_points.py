@@ -1,14 +1,14 @@
 from functools import partial
 from typing import Tuple
 
+from ground.hints import (Coordinate,
+                          Point)
 from hypothesis import given
 
-from locus.core.utils import planar_distance
-from locus.hints import (Coordinate,
-                         Point)
 from locus.kd import Tree
 from tests.utils import (all_equal,
-                         is_point)
+                         is_point,
+                         to_points_distance)
 from . import strategies
 
 
@@ -37,7 +37,7 @@ def test_properties(tree_with_ball: Tuple[Tree, Point, Coordinate]) -> None:
 
     result = tree.find_ball_points(center, radius)
 
-    to_center_distance = partial(planar_distance, center)
+    to_center_distance = partial(to_points_distance, center)
     assert sum(center == point for point in tree.points) <= len(result)
     assert all_equal(map(len, result))
     assert all(point in tree.points for point in result)

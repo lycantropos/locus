@@ -1,14 +1,14 @@
 from heapq import nsmallest
 from typing import Tuple
 
+from ground.hints import (Coordinate,
+                          Point)
 from hypothesis import given
 
-from locus.core.segment import distance_to_point
-from locus.hints import (Coordinate,
-                         Point)
 from locus.segmental import (Item,
                              Tree)
-from tests.utils import is_segmental_item
+from tests.utils import (is_segmental_item,
+                         to_segment_point_distance)
 from . import strategies
 
 
@@ -29,7 +29,7 @@ def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
     result = tree.n_nearest_to_point_items(n, point)
 
     def to_point_distance(item: Item) -> Coordinate:
-        return distance_to_point(item[1], point)
+        return to_segment_point_distance(item[1], point)
 
     items = list(enumerate(tree.segments))
     assert 0 < len(result) <= n

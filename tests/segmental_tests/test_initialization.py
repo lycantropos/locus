@@ -1,8 +1,8 @@
 from typing import List
 
+from ground.hints import Segment
 from hypothesis import given
 
-from locus.hints import Segment
 from locus.segmental import Tree
 from tests.utils import (is_r_tree_balanced,
                          is_r_tree_valid,

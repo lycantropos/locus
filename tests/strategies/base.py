@@ -3,17 +3,17 @@ from decimal import Decimal
 from fractions import Fraction
 from functools import partial
 
+from ground.hints import Coordinate
 from hypothesis import strategies
 
-from locus.hints import (Coordinate,
-                         Interval,
-                         Point,
-                         Segment)
-from tests.bounds import (MAX_AXES_COUNT,
-                          MAX_COORDINATE,
+from locus.hints import Interval
+from tests.bounds import (MAX_COORDINATE,
                           MIN_COORDINATE)
-from tests.utils import (Strategy,
-                         to_homogeneous_tuples)
+from tests.utils import (Point,
+                         Segment,
+                         Strategy,
+                         pack,
+                         to_pairs)
 
 
 def to_floats(min_value: Coordinate,
@@ -62,39 +62,30 @@ coordinates_strategies_factories = {
 coordinates_strategies = strategies.sampled_from(
         [factory(MIN_COORDINATE, MAX_COORDINATE)
          for factory in coordinates_strategies_factories.values()])
-axes = strategies.integers(1, MAX_AXES_COUNT)
 
 
-def coordinates_to_points(coordinates: Strategy[Coordinate],
-                          *,
-                          dimension: int) -> Strategy[Point]:
-    return to_homogeneous_tuples(coordinates,
-                                 size=dimension)
+def coordinates_to_points(coordinates: Strategy[Coordinate]
+                          ) -> Strategy[Point]:
+    return strategies.builds(Point, coordinates, coordinates)
 
 
-points_strategies = strategies.builds(coordinates_to_points,
-                                      coordinates_strategies,
-                                      dimension=axes)
+points_strategies = coordinates_strategies.map(coordinates_to_points)
 
 
-def coordinates_to_segments(coordinates: Strategy[Coordinate],
-                            *,
-                            dimension: int) -> Strategy[Segment]:
-    return (strategies.lists(coordinates_to_points(coordinates,
-                                                   dimension=dimension),
+def coordinates_to_segments(coordinates: Strategy[Coordinate]
+                            ) -> Strategy[Segment]:
+    return (strategies.lists(coordinates_to_points(coordinates),
                              min_size=2,
                              max_size=2,
                              unique=True)
-            .map(tuple))
+            .map(pack(Segment)))
 
 
-def coordinates_to_intervals(coordinates: Strategy[Coordinate],
-                             *,
-                             dimension: int) -> Strategy[Interval]:
-    return to_homogeneous_tuples(strategies.lists(coordinates,
-                                                  min_size=2,
-                                                  max_size=2,
-                                                  unique=True)
-                                 .map(sorted)
-                                 .map(tuple),
-                                 size=dimension)
+def coordinates_to_intervals(coordinates: Strategy[Coordinate]
+                             ) -> Strategy[Interval]:
+    return to_pairs(strategies.lists(coordinates,
+                                     min_size=2,
+                                     max_size=2,
+                                     unique=True)
+                    .map(sorted)
+                    .map(tuple))

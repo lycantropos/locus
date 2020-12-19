@@ -3,18 +3,17 @@ from typing import (List,
                     Optional,
                     Tuple)
 
+from ground.hints import Coordinate
 from hypothesis import strategies
 
-from locus.hints import (Coordinate,
-                         Interval,
-                         Point)
+from locus.hints import Interval
 from locus.kd import Tree
-from tests.strategies import (axes,
-                              coordinates_strategies,
+from tests.strategies import (coordinates_strategies,
                               coordinates_to_intervals,
                               coordinates_to_points,
                               points_strategies)
-from tests.utils import (Strategy,
+from tests.utils import (Point,
+                         Strategy,
                          identity)
 
 non_empty_points_lists = points_strategies.flatmap(partial(strategies.lists,
@@ -60,13 +59,11 @@ trees_with_points_and_sizes = (points_strategies
 
 def coordinates_to_trees_with_balls(coordinates: Strategy[Coordinate],
                                     *,
-                                    dimension: int,
                                     min_tree_size: int = 1,
                                     max_tree_size: Optional[int] = None
                                     ) -> Strategy[Tuple[Tree, Point,
                                                         Coordinate]]:
-    points = coordinates_to_points(coordinates,
-                                   dimension=dimension)
+    points = coordinates_to_points(coordinates)
     return strategies.tuples(points_to_trees(points,
                                              min_size=min_tree_size,
                                              max_size=max_tree_size),
@@ -74,37 +71,30 @@ def coordinates_to_trees_with_balls(coordinates: Strategy[Coordinate],
 
 
 trees_with_balls = (strategies.builds(coordinates_to_trees_with_balls,
-                                      coordinates_strategies,
-                                      dimension=axes)
+                                      coordinates_strategies)
                     .flatmap(identity))
 
 
 def coordinates_to_trees_with_intervals(coordinates: Strategy[Coordinate],
                                         *,
-                                        dimension: int,
                                         min_tree_size: int = 1,
                                         max_tree_size: Optional[int] = None
                                         ) -> Strategy[Tuple[Tree, Interval]]:
     return strategies.tuples(coordinates_to_trees(coordinates,
-                                                  dimension=dimension,
                                                   min_tree_size=min_tree_size,
                                                   max_tree_size=max_tree_size),
-                             coordinates_to_intervals(coordinates,
-                                                      dimension=dimension))
+                             coordinates_to_intervals(coordinates))
 
 
 def coordinates_to_trees(coordinates: Strategy[Coordinate],
                          *,
-                         dimension: int,
                          min_tree_size: int = 1,
                          max_tree_size: Optional[int] = None):
-    return points_to_trees(coordinates_to_points(coordinates,
-                                                 dimension=dimension),
+    return points_to_trees(coordinates_to_points(coordinates),
                            min_size=min_tree_size,
                            max_size=max_tree_size)
 
 
 trees_with_intervals = (strategies.builds(coordinates_to_trees_with_intervals,
-                                          coordinates_strategies,
-                                          dimension=axes)
+                                          coordinates_strategies)
                         .flatmap(identity))
