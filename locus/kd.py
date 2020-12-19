@@ -244,7 +244,7 @@ class Tree:
                 else list(enumerate(self._points)))
 
     def _n_nearest_items(self, n: int, point: Point) -> List[Item]:
-        candidates = []
+        candidates = []  # type: List[Tuple[Coordinate, Item]]
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
