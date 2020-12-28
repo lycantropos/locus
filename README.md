@@ -46,8 +46,9 @@ python setup.py install
 Usage
 -----
 ```python
->>> from ground.geometries import to_point_cls, to_segment_cls
->>> Point, Segment = to_point_cls(), to_segment_cls()
+>>> from ground.base import get_context
+>>> context = get_context()
+>>> Box, Point, Segment = context.box_cls, context.point_cls, context.segment_cls
 >>> from locus import kd
 >>> points = list(map(Point, range(-10, 11), range(0, 20)))
 >>> kd_tree = kd.Tree(points)
@@ -59,33 +60,28 @@ True
 True
 >>> kd_tree.n_nearest_points(2, Point(0, 0)) == [Point(-4, 6), Point(-5, 5)]
 True
->>> kd_tree.find_ball_indices(Point(0, 3), 5) == [6, 7]
+>>> kd_tree.find_box_indices(Box(-1, 1, 0, 10)) == [9, 10]
 True
->>> kd_tree.find_ball_points(Point(0, 3), 5) == [Point(-4, 6), Point(-3, 7)]
-True
->>> kd_tree.find_interval_indices(((-1, 1), (0, 10))) == [9, 10]
-True
->>> kd_tree.find_interval_points(((-1, 1), (0, 10))) == [Point(-1, 9), Point(0, 10)]
+>>> kd_tree.find_box_points(Box(-1, 1, 0, 10)) == [Point(-1, 9), Point(0, 10)]
 True
 >>> from locus import r
->>> intervals = list(zip(zip(range(-10, 11), range(0, 20)), 
-...                      zip(range(-20, 0), range(-10, 11))))
->>> r_tree = r.Tree(intervals)
+>>> boxes = list(map(Box, range(-10, 11), range(0, 20), range(-20, 0), range(-10, 11)))
+>>> r_tree = r.Tree(boxes)
 >>> r_tree.nearest_index(Point(0, 0)) == 10
 True
->>> r_tree.nearest_interval(Point(0, 0))
-((0, 10), (-10, 0))
+>>> r_tree.nearest_box(Point(0, 0)) == Box(0, 10, -10, 0)
+True
 >>> r_tree.n_nearest_indices(2, Point(0, 0)) == [10, 11]
 True
->>> r_tree.n_nearest_intervals(2, Point(0, 0)) == [((0, 10), (-10, 0)), ((1, 11), (-9, 1))]
+>>> r_tree.n_nearest_boxes(2, Point(0, 0)) == [Box(0, 10, -10, 0), Box(1, 11, -9, 1)]
 True
->>> r_tree.find_subsets_indices(((0, 10), (-10, 10))) == [10]
+>>> r_tree.find_subsets_indices(Box(0, 10, -10, 10)) == [10]
 True
->>> r_tree.find_subsets(((0, 10), (-10, 10))) == [((0, 10), (-10, 0))]
+>>> r_tree.find_subsets(Box(0, 10, -10, 10)) == [Box(0, 10, -10, 0)]
 True
->>> r_tree.find_supersets_indices(((0, 10), (-10, 0))) == [10]
+>>> r_tree.find_supersets_indices(Box(0, 10, -10, 0)) == [10]
 True
->>> r_tree.find_supersets(((0, 10), (-10, 0))) == [((0, 10), (-10, 0))]
+>>> r_tree.find_supersets(Box(0, 10, -10, 0)) == [Box(0, 10, -10, 0)]
 True
 
 ```
