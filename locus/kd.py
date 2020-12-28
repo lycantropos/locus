@@ -1,8 +1,7 @@
 from heapq import (heappush,
                    heapreplace)
 from operator import attrgetter
-from typing import (Callable,
-                    Iterator,
+from typing import (Iterator,
                     List,
                     Optional,
                     Sequence,
@@ -10,14 +9,13 @@ from typing import (Callable,
                     Type,
                     Union)
 
-from ground.coordinates import to_square_rooter as _to_square_rooter
-from ground.hints import (Coordinate,
+from ground.hints import (Box,
+                          Coordinate,
                           Point)
 from reprit.base import generate_repr
 
-from .core import interval as _interval
+from .core import box as _box
 from .core.utils import points_distance as _points_distance
-from .hints import Interval
 
 try:
     from typing import Protocol
@@ -30,50 +28,42 @@ NIL = None
 _PROJECTORS = attrgetter('x'), attrgetter('y')
 
 
-class Node(Protocol):
+class Node:
     """
-    Interface of *kd*-tree node.
-
-    Can be implemented for custom metrics definition.
+    Represents node of *kd*-tree.
     """
 
-    def __new__(cls,
-                index: int,
-                point: Point,
-                is_y_axis: bool,
-                left: Union['Node', NIL],
-                right: Union['Node', NIL]) -> 'Node':
-        """Creates node."""
+    __slots__ = 'index', 'point', 'is_y_axis', 'projector', 'left', 'right'
 
-    @property
-    def is_y_axis(self) -> bool:
-        """Checks if the node corresponds to the y-axis."""
+    def __init__(self,
+                 index: int,
+                 point: Point,
+                 is_y_axis: bool,
+                 left: Union['Node', NIL],
+                 right: Union['Node', NIL]) -> None:
+        self.index, self.point = index, point
+        self.is_y_axis, self.projector = is_y_axis, _PROJECTORS[is_y_axis]
+        self.left, self.right = left, right
+
+    __repr__ = generate_repr(__init__)
 
     @property
     def item(self) -> Item:
         """Returns item of the node."""
+        return self.index, self.point
 
     @property
-    def left(self) -> Union['Node', NIL]:
-        """Returns left child of the node."""
-
-    @property
-    def point(self) -> Point:
-        """Returns point of the node."""
-
-    @property
-    def projector(self) -> Callable[[Point], Coordinate]:
-        """Returns projector of the node."""
-
-    @property
-    def right(self) -> Union['Node', NIL]:
-        """Returns right child of the node."""
+    def projection(self) -> Coordinate:
+        """Returns projection of the node point onto the corresponding axis."""
+        return self.projector(self.point)
 
     def distance_to_point(self, point: Point) -> Coordinate:
         """Calculates distance to given point."""
+        return _points_distance(self.point, point)
 
     def distance_to_coordinate(self, coordinate: Coordinate) -> Coordinate:
         """Calculates distance to given coordinate."""
+        return (self.projection - coordinate) ** 2
 
 
 class Tree:
@@ -99,15 +89,14 @@ class Tree:
 
         where ``dimension = len(points[0])``, ``size = len(points)``.
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
         """
         self._points = points
-        self._root = _create_node(_to_default_node_cls()
-                                  if node_cls is None
-                                  else node_cls,
+        self._root = _create_node(Node if node_cls is None else node_cls,
                                   range(len(points)), points, False)
 
     __repr__ = generate_repr(__init__)
@@ -134,8 +123,9 @@ class Tree:
         Memory complexity:
             ``O(1)``
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
         >>> tree.points == points
@@ -162,8 +152,9 @@ class Tree:
         :param point: input point.
         :returns: indices of points in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
         >>> tree.n_nearest_indices(2, Point(0, 0)) == [2, 3]
@@ -194,8 +185,9 @@ class Tree:
         :param point: input point.
         :returns: points in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
         >>> (tree.n_nearest_points(2, Point(0, 0))
@@ -228,8 +220,9 @@ class Tree:
         :returns:
             indices with points in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
         >>> (tree.n_nearest_items(2, Point(0, 0))
@@ -256,7 +249,7 @@ class Tree:
             elif distance_to_point < -candidates[0][0]:
                 heapreplace(candidates, candidate)
             coordinate = node.projector(point)
-            point_is_on_the_left = coordinate < node.projector(node.point)
+            point_is_on_the_left = coordinate < node.projection
             if point_is_on_the_left:
                 if node.left is not NIL:
                     push(node.left)
@@ -290,8 +283,9 @@ class Tree:
         :param point: input point.
         :returns: index of a point in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
         >>> tree.nearest_index(Point(0, 0)) == 2
@@ -319,8 +313,9 @@ class Tree:
         :param point: input point.
         :returns: point in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
         >>> tree.nearest_point(Point(0, 0)) == Point(-3, 2)
@@ -349,8 +344,9 @@ class Tree:
         :param point: input point.
         :returns: index with point in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
         >>> tree.nearest_item(Point(0, 0)) == (2, Point(-3, 2))
@@ -367,9 +363,8 @@ class Tree:
             distance_to_point = node.distance_to_point(point)
             if distance_to_point < min_distance:
                 result, min_distance = node.item, distance_to_point
-            coordinate, node_coordinate = (node.projector(point),
-                                           node.projector(node.point))
-            point_is_on_the_left = coordinate < node_coordinate
+            coordinate = node.projector(point)
+            point_is_on_the_left = coordinate < node.projection
             if point_is_on_the_left:
                 if node.left is not NIL:
                     push(node.left)
@@ -383,11 +378,9 @@ class Tree:
                     push(node.left)
         return result
 
-    def find_ball_indices(self, center: Point, radius: Coordinate
-                          ) -> List[int]:
+    def find_box_indices(self, box: Box) -> List[int]:
         """
-        Searches for indices of points in the tree
-        that lie inside the closed ball with given center and radius.
+        Searches for indices of points that lie inside the given box.
 
         Time complexity:
             ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
@@ -400,28 +393,26 @@ class Tree:
         Reference:
             https://en.wikipedia.org/wiki/K-d_tree#Range_search
 
-        :param center: center of the ball.
-        :param radius: radius of the ball.
-        :returns: indices of points in the tree that lie inside the ball.
+        :param box: box to search in.
+        :returns: indices of points that lie inside the box.
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Box, Point = context.box_cls, context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.find_ball_indices(Point(0, 0), 0) == []
+        >>> tree.find_box_indices(Box(-3, 3, 0, 1)) == []
         True
-        >>> tree.find_ball_indices(Point(0, 0), 2) == []
+        >>> tree.find_box_indices(Box(-3, 3, 0, 2)) == [2]
         True
-        >>> tree.find_ball_indices(Point(0, 0), 4) == [2, 3]
+        >>> tree.find_box_indices(Box(-3, 3, 0, 3)) == [2, 3]
         True
         """
-        return [index for index, _ in self._find_ball_items(center, radius)]
+        return [index for index, _ in self._find_box_items(box)]
 
-    def find_ball_points(self, center: Point, radius: Coordinate
-                         ) -> List[Point]:
+    def find_box_points(self, box: Box) -> List[Point]:
         """
-        Searches for points in the tree
-        that lie inside the closed ball with given center and radius.
+        Searches for points that lie inside the given box.
 
         Time complexity:
             ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
@@ -434,28 +425,28 @@ class Tree:
         Reference:
             https://en.wikipedia.org/wiki/K-d_tree#Range_search
 
-        :param center: center of the ball.
-        :param radius: radius of the ball.
-        :returns: points in the tree that lie inside the ball.
+        :param box: box to search in.
+        :returns: points that lie inside the box.
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Box, Point = context.box_cls, context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.find_ball_points(Point(0, 0), 0) == []
+        >>> tree.find_box_points(Box(-3, 3, 0, 1)) == []
         True
-        >>> tree.find_ball_points(Point(0, 0), 2) == []
+        >>> tree.find_box_points(Box(-3, 3, 0, 2)) == [Point(-3, 2)]
         True
-        >>> (tree.find_ball_points(Point(0, 0), 4)
+        >>> (tree.find_box_points(Box(-3, 3, 0, 3))
         ...  == [Point(-3, 2), Point(-2, 3)])
         True
         """
-        return [point for _, point in self._find_ball_items(center, radius)]
+        return [point for _, point in self._find_box_items(box)]
 
-    def find_ball_items(self, center: Point, radius: Coordinate) -> List[Item]:
+    def find_box_items(self, box: Box) -> List[Item]:
         """
         Searches for indices with points in the tree
-        that lie inside the closed ball with given center and radius.
+        that lie inside the given box.
 
         Time complexity:
             ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
@@ -468,144 +459,34 @@ class Tree:
         Reference:
             https://en.wikipedia.org/wiki/K-d_tree#Range_search
 
-        :param center: center of the ball.
-        :param radius: radius of the ball.
-        :returns: indices with points in the tree that lie inside the ball.
+        :param box: box to search in.
+        :returns: indices with points in the tree that lie inside the box.
 
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Box, Point = context.box_cls, context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> tree.find_ball_items(Point(0, 0), 0) == []
+        >>> tree.find_box_items(Box(-3, 3, 0, 1)) == []
         True
-        >>> tree.find_ball_items(Point(0, 0), 2) == []
+        >>> tree.find_box_items(Box(-3, 3, 0, 2)) == [(2, Point(-3, 2))]
         True
-        >>> (tree.find_ball_items(Point(0, 0), 4)
+        >>> (tree.find_box_items(Box(-3, 3, 0, 3))
         ...  == [(2, Point(-3, 2)), (3, Point(-2, 3))])
         True
         """
-        return list(self._find_ball_items(center, radius))
+        return list(self._find_box_items(box))
 
-    def _find_ball_items(self, center: Point, radius: Coordinate
-                         ) -> Iterator[Item]:
+    def _find_box_items(self, box: Box) -> Iterator[Item]:
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
             node = pop()  # type: Node
-            if node.distance_to_point(center) <= radius:
+            if _box.contains_point(box, node.point):
                 yield node.item
-            hyperplane_delta = (node.projector(center)
-                                - node.projector(node.point))
-            if node.left is not NIL and hyperplane_delta <= radius:
-                push(node.left)
-            if node.right is not NIL and -radius <= hyperplane_delta:
-                push(node.right)
-
-    def find_interval_indices(self, interval: Interval) -> List[int]:
-        """
-        Searches for indices of points that lie inside the closed interval.
-
-        Time complexity:
-            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
-        Memory complexity:
-            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
-
-        where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
-        ``hits_count`` --- number of found indices.
-
-        Reference:
-            https://en.wikipedia.org/wiki/K-d_tree#Range_search
-
-        :param interval: interval to search in.
-        :returns: indices of points that lie inside the interval.
-
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
-        >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
-        >>> tree.find_interval_indices(((-3, 3), (0, 1))) == []
-        True
-        >>> tree.find_interval_indices(((-3, 3), (0, 2))) == [2]
-        True
-        >>> tree.find_interval_indices(((-3, 3), (0, 3))) == [2, 3]
-        True
-        """
-        return [index for index, _ in self._find_interval_items(interval)]
-
-    def find_interval_points(self, interval: Interval) -> List[Point]:
-        """
-        Searches for points that lie inside the closed interval.
-
-        Time complexity:
-            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
-        Memory complexity:
-            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
-
-        where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
-        ``hits_count`` --- number of found points.
-
-        Reference:
-            https://en.wikipedia.org/wiki/K-d_tree#Range_search
-
-        :param interval: interval to search in.
-        :returns: points that lie inside the interval.
-
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
-        >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
-        >>> tree.find_interval_points(((-3, 3), (0, 1))) == []
-        True
-        >>> tree.find_interval_points(((-3, 3), (0, 2))) == [Point(-3, 2)]
-        True
-        >>> (tree.find_interval_points(((-3, 3), (0, 3)))
-        ...  == [Point(-3, 2), Point(-2, 3)])
-        True
-        """
-        return [point for _, point in self._find_interval_items(interval)]
-
-    def find_interval_items(self, interval: Interval) -> List[Item]:
-        """
-        Searches for indices with points in the tree
-        that lie inside the closed interval.
-
-        Time complexity:
-            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
-        Memory complexity:
-            ``O(dimension * size ** (1 - 1 / dimension) + hits_count)``
-
-        where ``dimension = len(self.points[0])``, ``size = len(self.points)``,
-        ``hits_count`` --- number of found indices with points.
-
-        Reference:
-            https://en.wikipedia.org/wiki/K-d_tree#Range_search
-
-        :param interval: interval to search in.
-        :returns:
-            indices with points in the tree that lie inside the interval.
-
-        >>> from ground.geometries import to_point_cls
-        >>> Point = to_point_cls()
-        >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
-        >>> tree.find_interval_items(((-3, 3), (0, 1))) == []
-        True
-        >>> tree.find_interval_items(((-3, 3), (0, 2))) == [(2, Point(-3, 2))]
-        True
-        >>> (tree.find_interval_items(((-3, 3), (0, 3)))
-        ...  == [(2, Point(-3, 2)), (3, Point(-2, 3))])
-        True
-        """
-        return list(self._find_interval_items(interval))
-
-    def _find_interval_items(self, interval: Interval) -> Iterator[Item]:
-        queue = [self._root]
-        push, pop = queue.append, queue.pop
-        while queue:
-            node = pop()  # type: Node
-            if _interval.contains_point(interval, node.point):
-                yield node.item
-            min_coordinate, max_coordinate = interval[node.is_y_axis]
+            min_coordinate, max_coordinate = ((box.min_y, box.max_y)
+                                              if node.is_y_axis
+                                              else (box.min_x, box.max_x))
             coordinate = node.projector(node.point)
             if node.left is not NIL and min_coordinate <= coordinate:
                 push(node.left)
@@ -630,34 +511,3 @@ def _create_node(cls: Type[Node],
                             next_is_y_axis),
                _create_node(cls, indices[middle_index + 1:], points,
                             next_is_y_axis))
-
-
-def _to_default_node_cls() -> Type[Node]:
-    class Node:
-        __slots__ = 'index', 'point', 'is_y_axis', 'projector', 'left', 'right'
-
-        def __init__(self,
-                     index: int,
-                     point: Point,
-                     is_y_axis: bool,
-                     left: Union['Node', NIL],
-                     right: Union['Node', NIL]) -> None:
-            self.index, self.point = index, point
-            self.is_y_axis, self.projector = is_y_axis, _PROJECTORS[is_y_axis]
-            self.left, self.right = left, right
-
-        __repr__ = generate_repr(__init__)
-
-        _square_rooter = staticmethod(_to_square_rooter())
-
-        @property
-        def item(self) -> Item:
-            return self.index, self.point
-
-        def distance_to_point(self, point: Point) -> Coordinate:
-            return _points_distance(self._square_rooter, self.point, point)
-
-        def distance_to_coordinate(self, coordinate: Coordinate) -> Coordinate:
-            return abs(self.projector(self.point) - coordinate)
-
-    return Node

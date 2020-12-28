@@ -9,21 +9,18 @@ from typing import (Iterator,
                     Tuple,
                     Type)
 
-from ground.coordinates import (to_divider as _to_divider,
-                                to_square_rooter as _to_square_rooter)
-from ground.functions import to_dot_producer as _to_dot_producer
-from ground.geometries import to_point_cls as _to_point_cls
-from ground.hints import (Coordinate,
+from ground.base import (Context as _Context,
+                         get_context as _get_context)
+from ground.hints import (Box,
+                          Coordinate,
                           Point,
                           Segment)
-from ground.linear import to_segments_relater as _to_segments_relater
 from reprit.base import generate_repr
 
-from .core import (hilbert as _hilbert,
-                   interval as _interval,
+from .core import (box as _box,
+                   hilbert as _hilbert,
                    segment as _segment)
 from .core.utils import ceil_division
-from .hints import Interval
 
 try:
     from typing import Protocol
@@ -42,10 +39,14 @@ class Node(Protocol):
 
     def __new__(cls,
                 index: int,
-                interval: Interval,
+                box: Box,
                 segment: Optional[Segment],
                 children: Optional[Sequence['Node']]) -> 'Node':
         """Creates node."""
+
+    @property
+    def box(self) -> Box:
+        """Returns box of the node."""
 
     @property
     def children(self) -> Sequence['Node']:
@@ -100,10 +101,12 @@ class Tree:
         """
         self._segments = segments
         self._max_children = max_children
+        context = _get_context()
         self._root = _create_root(segments, max_children,
-                                  _to_default_node_cls()
+                                  _to_default_node_cls(context)
                                   if node_cls is None
-                                  else node_cls)
+                                  else node_cls,
+                                  context)
 
     __repr__ = generate_repr(__init__)
 
@@ -591,38 +594,40 @@ class Tree:
 
 def _create_root(segments: Sequence[Segment],
                  max_children: int,
-                 node_cls: Type[Node]) -> Node:
-    intervals = [((start_x, end_x)
-                  if start_x < end_x
-                  else (end_x, start_x),
-                  (start_y, end_y)
-                  if start_y < end_y
-                  else (end_y, start_y))
-                 for (start_x, start_y), (end_x, end_y) in segments]
-    nodes = [node_cls(index, interval, segment, None)
-             for index, (interval, segment) in enumerate(zip(intervals,
-                                                             segments))]
-    root_interval = reduce(_interval.merge, intervals)
+                 node_cls: Type[Node],
+                 context: _Context) -> Node:
+    box_cls, merge_boxes = context.box_cls, context.merged_box
+    boxes = [box_cls(*((segment.start.x, segment.end.x)
+                       if segment.start.x < segment.end.x
+                       else (segment.end.x, segment.start.x)),
+                     *((segment.start.y, segment.end.y)
+                       if segment.start.y < segment.end.y
+                       else (segment.end.y, segment.start.y)))
+             for segment in segments]
+    nodes = [node_cls(index, box, segment, None)
+             for index, (box, segment) in enumerate(zip(boxes, segments))]
+    root_box = reduce(merge_boxes, boxes)
     leaves_count = len(nodes)
     if leaves_count <= max_children:
         # only one node, skip sorting and just fill the root box
-        return node_cls(len(nodes), root_interval, None, nodes)
+        return node_cls(len(nodes), root_box, None, nodes)
     else:
-        (root_min_x, root_max_x), (root_min_y, root_max_y) = root_interval
-
         def node_key(node: Node,
                      double_root_delta_x: Coordinate
-                     = 2 * (root_max_x - root_min_x) or 1,
+                     = 2 * (root_box.max_x - root_box.min_x) or 1,
                      double_root_delta_y: Coordinate
-                     = 2 * (root_max_y - root_min_y) or 1,
-                     double_root_min_x: Coordinate = 2 * root_min_x,
-                     double_root_min_y: Coordinate = 2 * root_min_y) -> int:
-            (min_x, max_x), (min_y, max_y) = node.interval
+                     = 2 * (root_box.max_y - root_box.min_y) or 1,
+                     double_root_min_x: Coordinate = 2 * root_box.min_x,
+                     double_root_min_y: Coordinate = 2 * root_box.min_y
+                     ) -> int:
+            box = node.box
             return _hilbert.index(floor(_hilbert.MAX_COORDINATE
-                                        * (min_x + max_x - double_root_min_x)
+                                        * (box.min_x + box.max_x
+                                           - double_root_min_x)
                                         / double_root_delta_x),
                                   floor(_hilbert.MAX_COORDINATE
-                                        * (min_y + max_y - double_root_min_y)
+                                        * (box.min_y + box.max_y
+                                           - double_root_min_y)
                                         / double_root_delta_y))
 
         nodes = sorted(nodes,
@@ -641,35 +646,31 @@ def _create_root(segments: Sequence[Segment],
                 stop = min(start + max_children, level_limit)
                 children = nodes[start:stop]
                 nodes.append(node_cls(len(nodes),
-                                      reduce(_interval.merge,
-                                             [child.interval
+                                      reduce(merge_boxes,
+                                             [child.box
                                               for child in children]),
                                       None, children))
                 start = stop
         return nodes[-1]
 
 
-def _to_default_node_cls() -> Type[Node]:
+def _to_default_node_cls(context: _Context) -> Type[Node]:
     class Node:
-        __slots__ = 'index', 'interval', 'segment', 'children'
+        __slots__ = 'index', 'box', 'segment', 'children'
 
         def __init__(self,
                      index: int,
-                     interval: Interval,
+                     box: Box,
                      segment: Optional[Segment],
                      children: Optional[Sequence['Node']]) -> None:
-            self.index = index
-            self.interval = interval
-            self.segment = segment
-            self.children = children
+            self.index, self.box, self.segment, self.children = (
+                index, box, segment, children)
 
         __repr__ = generate_repr(__init__)
 
-        _divider = staticmethod(_to_divider())
-        _dot_producer = staticmethod(_to_dot_producer())
-        _point_cls = staticmethod(_to_point_cls())
-        _segments_relater = staticmethod(_to_segments_relater())
-        _square_rooter = staticmethod(_to_square_rooter())
+        _dot_product = staticmethod(context.dot_product)
+        _point_cls = staticmethod(context.point_cls)
+        _segments_relationship = staticmethod(context.segments_relationship)
 
         @property
         def is_leaf(self) -> bool:
@@ -682,23 +683,25 @@ def _to_default_node_cls() -> Type[Node]:
         def distance_to_point(self, point: Point,
                               *,
                               _minus_inf: Coordinate = -inf) -> Coordinate:
-            return (_segment.distance_to_point(
-                    self._divider, self._dot_producer, self._square_rooter,
-                    self.segment, point) or _minus_inf
+            return (_segment.distance_to_point(self._dot_product,
+                                               self.segment.start,
+                                               self.segment.end, point)
+                    or _minus_inf
                     if self.is_leaf
-                    else _interval.distance_to_point(self.interval, point))
+                    else _box.distance_to_point(self.box, point))
 
         def distance_to_segment(self, segment: Segment,
                                 *,
                                 _minus_inf: Coordinate = -inf) -> Coordinate:
-            return (_segment.distance_to(
-                    self._divider, self._dot_producer, self._segments_relater,
-                    self._square_rooter, self.segment.start,
-                    self.segment.end, segment.start, segment.end) or _minus_inf
+            return (_segment.distance_to(self._dot_product,
+                                         self._segments_relationship,
+                                         self.segment.start, self.segment.end,
+                                         segment.start, segment.end)
+                    or _minus_inf
                     if self.is_leaf
-                    else _segment.distance_to_interval(
-                    self._divider, self._dot_producer, self._point_cls,
-                    self._segments_relater, self._square_rooter, segment,
-                    self.interval))
+                    else _segment.distance_to_box(self._dot_product,
+                                                  self._point_cls,
+                                                  self._segments_relationship,
+                                                  segment, self.box))
 
     return Node
