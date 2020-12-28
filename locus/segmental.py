@@ -96,7 +96,11 @@ class Tree:
 
         where ``size = len(segments)``.
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
         """
         self._segments = segments
@@ -120,7 +124,11 @@ class Tree:
         Memory complexity:
             ``O(1)``
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
         >>> tree.segments == segments
         True
@@ -149,7 +157,11 @@ class Tree:
         Memory complexity:
             ``O(1)``
 
-        >>> segments = [((0, index), (index, index)) for index in range(1, 11)]
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
         >>> tree.max_children == 16
         True
@@ -176,8 +188,9 @@ class Tree:
         :returns:
             indices of segments in the tree the nearest to the input segment.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -213,8 +226,9 @@ class Tree:
         :returns:
             indices with segments in the tree the nearest to the input segment.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -249,8 +263,9 @@ class Tree:
         :param segment: input segment.
         :returns: segments in the tree the nearest to the input segment.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -287,8 +302,9 @@ class Tree:
         :returns:
             indices of segments in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -324,8 +340,9 @@ class Tree:
         :returns:
             indices with segments in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -360,8 +377,9 @@ class Tree:
         :param point: input point.
         :returns: segments in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -394,8 +412,9 @@ class Tree:
         :returns:
             index of segment in the tree the nearest to the input segment.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -422,8 +441,9 @@ class Tree:
         :returns:
             index with segment in the tree the nearest to the input segment.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -458,8 +478,9 @@ class Tree:
         :param segment: input segment.
         :returns: segment in the tree the nearest to the input segment.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -486,8 +507,9 @@ class Tree:
         :param point: input point.
         :returns: index of segment in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -514,8 +536,9 @@ class Tree:
         :returns:
             index with segment in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
@@ -550,8 +573,9 @@ class Tree:
         :param point: input point.
         :returns: segment in the tree the nearest to the input point.
 
-        >>> from ground.geometries import to_point_cls, to_segment_cls
-        >>> Point, Segment = to_point_cls(), to_segment_cls()
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
         >>> segments = [Segment(Point(0, index), Point(index, index))
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
