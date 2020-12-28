@@ -3,59 +3,59 @@ from typing import (List,
                     Optional,
                     Tuple)
 
-from ground.hints import Coordinate
+from ground.hints import (Box,
+                          Coordinate)
 from hypothesis import strategies
 
 from locus.core.hilbert import MAX_COORDINATE
-from locus.hints import Interval
 from locus.r import Tree
 from tests.strategies import (coordinates_strategies,
-                              coordinates_to_intervals,
+                              coordinates_to_boxes,
                               coordinates_to_points)
 from tests.utils import (Point,
                          Strategy)
 
-MIN_INTERVALS_SIZE = 2
+MIN_BOXES_SIZE = 2
 max_children_counts = (strategies.sampled_from([2 ** power
                                                 for power in range(1, 10)])
                        | strategies.integers(2, MAX_COORDINATE))
-intervals_strategies = coordinates_strategies.map(coordinates_to_intervals)
-intervals_lists = (intervals_strategies
-                   .flatmap(partial(strategies.lists,
-                                    min_size=MIN_INTERVALS_SIZE)))
+boxes_strategies = coordinates_strategies.map(coordinates_to_boxes)
+boxes_lists = (boxes_strategies
+               .flatmap(partial(strategies.lists,
+                                min_size=MIN_BOXES_SIZE)))
 trees = strategies.builds(Tree,
-                          intervals_lists,
+                          boxes_lists,
                           max_children=max_children_counts)
 
 
-def coordinates_to_trees_with_intervals(coordinates: Strategy[Coordinate],
-                                        *,
-                                        min_size: int = MIN_INTERVALS_SIZE,
-                                        max_size: Optional[int] = None
-                                        ) -> Strategy[Tuple[Tree, Interval]]:
-    intervals = coordinates_to_intervals(coordinates)
+def coordinates_to_trees_with_boxes(coordinates: Strategy[Coordinate],
+                                    *,
+                                    min_size: int = MIN_BOXES_SIZE,
+                                    max_size: Optional[int] = None
+                                    ) -> Strategy[Tuple[Tree, Box]]:
+    boxes = coordinates_to_boxes(coordinates)
     return strategies.tuples(
             strategies.builds(Tree,
-                              strategies.lists(intervals,
+                              strategies.lists(boxes,
                                                min_size=min_size,
                                                max_size=max_size),
                               max_children=max_children_counts),
-            intervals)
+            boxes)
 
 
-trees_with_intervals = (coordinates_strategies
-                        .flatmap(coordinates_to_trees_with_intervals))
+trees_with_boxes = (coordinates_strategies
+                    .flatmap(coordinates_to_trees_with_boxes))
 
 
 def coordinates_to_trees_with_points(coordinates: Strategy[Coordinate],
                                      *,
-                                     min_size: int = MIN_INTERVALS_SIZE,
+                                     min_size: int = MIN_BOXES_SIZE,
                                      max_size: Optional[int] = None
                                      ) -> Strategy[Tuple[Tree, Point]]:
-    intervals = coordinates_to_intervals(coordinates)
+    boxes = coordinates_to_boxes(coordinates)
     return (strategies.tuples(
             strategies.builds(Tree,
-                              strategies.lists(intervals,
+                              strategies.lists(boxes,
                                                min_size=min_size,
                                                max_size=max_size),
                               max_children=max_children_counts),
@@ -69,21 +69,21 @@ trees_with_points = (coordinates_strategies
 def coordinates_to_trees_with_points_and_sizes(
         coordinates: Strategy[Coordinate],
         *,
-        min_size: int = MIN_INTERVALS_SIZE,
+        min_size: int = MIN_BOXES_SIZE,
         max_size: Optional[int] = None) -> Strategy[Tuple[Tree, Point, int]]:
-    def to_trees_with_points_and_sizes(intervals_with_point
-                                       : Tuple[List[Interval], Point]
+    def to_trees_with_points_and_sizes(boxes_with_point
+                                       : Tuple[List[Box], Point]
                                        ) -> Strategy[Tuple[Tree, Point, int]]:
-        intervals, point = intervals_with_point
+        boxes, point = boxes_with_point
         return strategies.tuples(
                 strategies.builds(Tree,
-                                  strategies.just(intervals),
+                                  strategies.just(boxes),
                                   max_children=max_children_counts),
                 strategies.just(point),
-                strategies.integers(1, len(intervals)))
+                strategies.integers(1, len(boxes)))
 
     return (strategies.tuples(
-            strategies.lists(coordinates_to_intervals(coordinates),
+            strategies.lists(coordinates_to_boxes(coordinates),
                              min_size=min_size,
                              max_size=max_size),
             coordinates_to_points(coordinates))

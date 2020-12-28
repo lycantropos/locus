@@ -3,8 +3,8 @@ from typing import Tuple
 from ground.hints import Box
 from hypothesis import given
 
-from locus.core.box import is_subset_of
-from locus.r import Tree
+from locus.core.box import contains_point
+from locus.kd import Tree
 from . import strategies
 
 
@@ -12,28 +12,22 @@ from . import strategies
 def test_basic(tree_with_box: Tuple[Tree, Box]) -> None:
     tree, box = tree_with_box
 
-    result = tree.find_supersets_indices(box)
+    result = tree.find_box_indices(box)
 
     assert isinstance(result, list)
     assert all(isinstance(element, int) for element in result)
-
-
-@given(strategies.trees)
-def test_base_boxes(tree: Tree) -> None:
-    assert all(index in tree.find_supersets_indices(box)
-               for index, box in enumerate(tree.boxes))
 
 
 @given(strategies.trees_with_boxes)
 def test_properties(tree_with_box: Tuple[Tree, Box]) -> None:
     tree, box = tree_with_box
 
-    result = tree.find_supersets_indices(box)
+    result = tree.find_box_indices(box)
 
-    indices = range(len(tree.boxes))
+    indices = range(len(tree.points))
     assert all(index in indices for index in result)
-    assert all(is_subset_of(box, tree.boxes[index])
+    assert all(contains_point(box, tree.points[index])
                for index in result)
     assert all(index in result
                for index in indices
-               if is_subset_of(box, tree.boxes[index]))
+               if contains_point(box, tree.points[index]))

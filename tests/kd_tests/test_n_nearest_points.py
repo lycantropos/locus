@@ -6,8 +6,7 @@ from ground.hints import Point
 from hypothesis import given
 
 from locus.kd import Tree
-from tests.utils import (all_equal,
-                         is_point,
+from tests.utils import (is_point,
                          to_points_distance)
 from . import strategies
 
@@ -30,7 +29,6 @@ def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
 
     to_point_distance = partial(to_points_distance, point)
     assert 0 < len(result) <= n
-    assert all_equal(map(len, result))
     assert all(point in tree.points for point in result)
     assert (set(nsmallest(n, map(to_point_distance, tree.points)))
             == set(map(to_point_distance, result)))

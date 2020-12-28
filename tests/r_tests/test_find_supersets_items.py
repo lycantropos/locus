@@ -1,40 +1,40 @@
 from typing import Tuple
 
+from ground.hints import Box
 from hypothesis import given
 
-from locus.core.interval import is_subset_of
-from locus.hints import Interval
+from locus.core.box import is_subset_of
 from locus.r import Tree
 from tests.utils import is_r_item
 from . import strategies
 
 
-@given(strategies.trees_with_intervals)
-def test_basic(tree_with_interval: Tuple[Tree, Interval]) -> None:
-    tree, interval = tree_with_interval
+@given(strategies.trees_with_boxes)
+def test_basic(tree_with_box: Tuple[Tree, Box]) -> None:
+    tree, box = tree_with_box
 
-    result = tree.find_supersets_items(interval)
+    result = tree.find_supersets_items(box)
 
     assert isinstance(result, list)
     assert all(is_r_item(element) for element in result)
 
 
 @given(strategies.trees)
-def test_base_intervals(tree: Tree) -> None:
-    assert all((index, interval) in tree.find_supersets_items(interval)
-               for index, interval in enumerate(tree.intervals))
+def test_base_boxes(tree: Tree) -> None:
+    assert all((index, box) in tree.find_supersets_items(box)
+               for index, box in enumerate(tree.boxes))
 
 
-@given(strategies.trees_with_intervals)
-def test_properties(tree_with_interval: Tuple[Tree, Interval]) -> None:
-    tree, interval = tree_with_interval
+@given(strategies.trees_with_boxes)
+def test_properties(tree_with_box: Tuple[Tree, Box]) -> None:
+    tree, box = tree_with_box
 
-    result = tree.find_supersets_items(interval)
+    result = tree.find_supersets_items(box)
 
-    items = list(enumerate(tree.intervals))
+    items = list(enumerate(tree.boxes))
     assert all(item in items for item in result)
-    assert all(is_subset_of(interval, result_interval)
-               for _, result_interval in result)
+    assert all(is_subset_of(box, result_box)
+               for _, result_box in result)
     assert all(item in result
                for item in items
-               if is_subset_of(interval, item[1]))
+               if is_subset_of(box, item[1]))

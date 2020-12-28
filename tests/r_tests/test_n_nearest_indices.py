@@ -5,7 +5,7 @@ from ground.hints import (Coordinate,
                           Point)
 from hypothesis import given
 
-from locus.core.interval import distance_to_point
+from locus.core.box import distance_to_point
 from locus.r import Tree
 from . import strategies
 
@@ -27,9 +27,9 @@ def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
     result = tree.n_nearest_indices(n, point)
 
     def to_point_distance(index: int) -> Coordinate:
-        return distance_to_point(tree.intervals[index], point)
+        return distance_to_point(tree.boxes[index], point)
 
-    indices = range(len(tree.intervals))
+    indices = range(len(tree.boxes))
     assert 0 < len(result) <= n
     assert all(index in indices for index in result)
     assert (set(nsmallest(n, map(to_point_distance, indices)))

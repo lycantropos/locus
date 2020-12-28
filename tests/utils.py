@@ -10,19 +10,14 @@ from typing import (Any,
                     TypeVar,
                     Union)
 
-from ground.coordinates import (to_divider,
-                                to_square_rooter)
-from ground.functions import to_dot_producer
-from ground.geometries import (to_point_cls,
-                               to_segment_cls)
+from ground.base import get_context
 from ground.hints import Coordinate
-from ground.linear import to_segments_relater
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
 from locus import (kd,
                    r)
-from locus.core.interval import is_subset_of
+from locus.core.box import is_subset_of
 from locus.core.segment import (distance_to,
                                 distance_to_point)
 from locus.core.utils import points_distance
@@ -30,8 +25,10 @@ from locus.core.utils import points_distance
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
 Strategy = SearchStrategy
-Point = to_point_cls()
-Segment = to_segment_cls()
+_context = get_context()
+Box = _context.box_cls
+Point = _context.point_cls
+Segment = _context.segment_cls
 
 
 def equivalence(left_statement: bool, right_statement: bool) -> bool:
@@ -114,7 +111,7 @@ def is_r_node_valid(node: r.Node) -> bool:
     if node.is_leaf:
         return True
     else:
-        return (all(is_subset_of(child.interval, node.interval)
+        return (all(is_subset_of(child.box, node.box)
                     for child in node.children)
                 and all(is_r_node_valid(child) for child in node.children))
 
@@ -152,7 +149,7 @@ def is_r_item(value: Any) -> bool:
             and len(value) == 2
             and isinstance(value[0], int)
             and value[0] >= 0
-            and is_interval(value[1]))
+            and is_box(value[1]))
 
 
 def is_segmental_item(value: Any) -> bool:
@@ -163,28 +160,9 @@ def is_segmental_item(value: Any) -> bool:
             and is_segment(value[1]))
 
 
-def is_point(value: Any) -> bool:
-    return isinstance(value, Point)
-
-
-def is_interval(value: Any) -> bool:
-    return (isinstance(value, tuple)
-            and len(value) > 0
-            and all(isinstance(sub_element, tuple)
-                    and len(sub_element) == 2
-                    and all_equal(map(type, sub_element))
-                    and list(sub_element) == sorted(sub_element)
-                    for sub_element in value))
-
-
-def is_segment(value: Any) -> bool:
-    return (isinstance(value, tuple)
-            and len(value) == 2
-            and all(isinstance(sub_element, tuple)
-                    and len(sub_element) == 2
-                    and all_equal(map(type, sub_element))
-                    for sub_element in value)
-            and not all_equal(value))
+is_box = Box.__instancecheck__
+is_point = Point.__instancecheck__
+is_segment = Segment.__instancecheck__
 
 
 def all_equal(iterable: Iterable[Domain]) -> bool:
@@ -227,15 +205,14 @@ def rot(size: int, x: int, y: int, rx: int, ry: int) -> Tuple[int, int]:
     return x, y
 
 
-divider = to_divider()
-dot_producer = to_dot_producer()
-square_rooter = to_square_rooter()
-to_points_distance = partial(points_distance, square_rooter)
-to_segment_point_distance = partial(distance_to_point, divider, dot_producer,
-                                    square_rooter)
+to_points_distance = points_distance
+
+
+def to_segment_point_distance(segment: Segment, point: Point) -> Coordinate:
+    return distance_to_point(_context.dot_product, segment.start, segment.end,
+                             point)
 
 
 def to_segments_distance(first: Segment, second: Segment) -> Coordinate:
-    return distance_to(divider, dot_producer, to_segments_relater(),
-                       square_rooter, first.start, first.end, second.start,
-                       second.end)
+    return distance_to(_context.dot_product, _context.segments_relationship,
+                       first.start, first.end, second.start, second.end)

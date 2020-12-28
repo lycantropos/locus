@@ -3,13 +3,13 @@ from typing import (List,
                     Optional,
                     Tuple)
 
-from ground.hints import Coordinate
+from ground.hints import (Box,
+                          Coordinate)
 from hypothesis import strategies
 
-from locus.hints import Interval
 from locus.kd import Tree
 from tests.strategies import (coordinates_strategies,
-                              coordinates_to_intervals,
+                              coordinates_to_boxes,
                               coordinates_to_points,
                               points_strategies)
 from tests.utils import (Point,
@@ -75,15 +75,15 @@ trees_with_balls = (strategies.builds(coordinates_to_trees_with_balls,
                     .flatmap(identity))
 
 
-def coordinates_to_trees_with_intervals(coordinates: Strategy[Coordinate],
-                                        *,
-                                        min_tree_size: int = 1,
-                                        max_tree_size: Optional[int] = None
-                                        ) -> Strategy[Tuple[Tree, Interval]]:
+def coordinates_to_trees_with_boxes(coordinates: Strategy[Coordinate],
+                                    *,
+                                    min_tree_size: int = 1,
+                                    max_tree_size: Optional[int] = None
+                                    ) -> Strategy[Tuple[Tree, Box]]:
     return strategies.tuples(coordinates_to_trees(coordinates,
                                                   min_tree_size=min_tree_size,
                                                   max_tree_size=max_tree_size),
-                             coordinates_to_intervals(coordinates))
+                             coordinates_to_boxes(coordinates))
 
 
 def coordinates_to_trees(coordinates: Strategy[Coordinate],
@@ -95,6 +95,6 @@ def coordinates_to_trees(coordinates: Strategy[Coordinate],
                            max_size=max_tree_size)
 
 
-trees_with_intervals = (strategies.builds(coordinates_to_trees_with_intervals,
-                                          coordinates_strategies)
-                        .flatmap(identity))
+trees_with_boxes = (strategies.builds(coordinates_to_trees_with_boxes,
+                                      coordinates_strategies)
+                    .flatmap(identity))

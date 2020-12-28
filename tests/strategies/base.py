@@ -2,12 +2,13 @@ import sys
 from decimal import Decimal
 from fractions import Fraction
 from functools import partial
+from operator import add
 
 from ground.hints import Coordinate
 from hypothesis import strategies
 
-from locus.hints import Interval
-from tests.utils import (Point,
+from tests.utils import (Box,
+                         Point,
                          Segment,
                          Strategy,
                          pack,
@@ -82,11 +83,12 @@ def coordinates_to_segments(coordinates: Strategy[Coordinate]
             .map(pack(Segment)))
 
 
-def coordinates_to_intervals(coordinates: Strategy[Coordinate]
-                             ) -> Strategy[Interval]:
-    return to_pairs(strategies.lists(coordinates,
-                                     min_size=2,
-                                     max_size=2,
-                                     unique=True)
-                    .map(sorted)
-                    .map(tuple))
+def coordinates_to_boxes(coordinates: Strategy[Coordinate]
+                             ) -> Strategy[Box]:
+    return (to_pairs(strategies.lists(coordinates,
+                                      min_size=2,
+                                      max_size=2,
+                                      unique=True)
+                     .map(sorted))
+            .map(pack(add))
+            .map(pack(Box)))
