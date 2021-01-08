@@ -214,5 +214,5 @@ def to_segment_point_distance(segment: Segment, point: Point) -> Coordinate:
 
 
 def to_segments_distance(first: Segment, second: Segment) -> Coordinate:
-    return distance_to(_context.dot_product, _context.segments_relationship,
+    return distance_to(_context.dot_product, _context.segments_relation,
                        first.start, first.end, second.start, second.end)
