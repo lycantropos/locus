@@ -694,7 +694,7 @@ def _to_default_node_cls(context: _Context) -> Type[Node]:
 
         _dot_product = staticmethod(context.dot_product)
         _point_cls = staticmethod(context.point_cls)
-        _segments_relationship = staticmethod(context.segments_relationship)
+        _segments_relation = staticmethod(context.segments_relation)
 
         @property
         def is_leaf(self) -> bool:
@@ -718,14 +718,14 @@ def _to_default_node_cls(context: _Context) -> Type[Node]:
                                 *,
                                 _minus_inf: Coordinate = -inf) -> Coordinate:
             return (_segment.distance_to(self._dot_product,
-                                         self._segments_relationship,
+                                         self._segments_relation,
                                          self.segment.start, self.segment.end,
                                          segment.start, segment.end)
                     or _minus_inf
                     if self.is_leaf
                     else _segment.distance_to_box(self._dot_product,
                                                   self._point_cls,
-                                                  self._segments_relationship,
+                                                  self._segments_relation,
                                                   segment, self.box))
 
     return Node

@@ -3,7 +3,7 @@ from typing import (Callable,
                     Type,
                     TypeVar)
 
-from ground.base import SegmentsRelationship
+from ground.base import Relation
 from ground.hints import (Box,
                           Coordinate,
                           Point,
@@ -16,8 +16,7 @@ QuaternaryPointFunction = Callable[[Point, Point, Point, Point], Range]
 
 
 def distance_to(dot_product: QuaternaryPointFunction[Coordinate],
-                segments_relationship
-                : QuaternaryPointFunction[SegmentsRelationship],
+                segments_relater: QuaternaryPointFunction[Relation],
                 first_start: Point,
                 first_end: Point,
                 second_start: Point,
@@ -30,16 +29,16 @@ def distance_to(dot_product: QuaternaryPointFunction[Coordinate],
                                   first_start),
                 distance_to_point(dot_product, second_start, second_end,
                                   first_end))
-            if (segments_relationship(first_start, first_end, second_start,
-                                      second_end)
-                is SegmentsRelationship.NONE)
+            if (segments_relater(first_start, first_end, second_start,
+                                 second_end)
+                is Relation.DISJOINT)
             else 0)
 
 
 def distance_to_box(dot_product: QuaternaryPointFunction[Coordinate],
                     point_cls: Type[Point],
                     segments_relationship
-                    : QuaternaryPointFunction[SegmentsRelationship],
+                    : QuaternaryPointFunction[Relation],
                     segment: Segment,
                     box: Box) -> Coordinate:
     start, end = segment.start, segment.end
@@ -74,28 +73,28 @@ def distance_to_point(dot_product: QuaternaryPointFunction[Coordinate],
 def _distance_to_non_degenerate_box(
         dot_product: QuaternaryPointFunction[Coordinate],
         point_cls: Type[Point],
-        segments_relationship: QuaternaryPointFunction[SegmentsRelationship],
+        segments_relater: QuaternaryPointFunction[Relation],
         start: Point,
         end: Point,
         box: Box) -> Coordinate:
     bottom_left = point_cls(box.min_x, box.min_y)
     bottom_right = point_cls(box.max_x, box.min_y)
-    bottom_side_distance = distance_to(dot_product, segments_relationship,
-                                       start, end, bottom_left, bottom_right)
+    bottom_side_distance = distance_to(dot_product, segments_relater, start,
+                                       end, bottom_left, bottom_right)
     if not bottom_side_distance:
         return bottom_side_distance
     top_right = point_cls(box.max_x, box.max_y)
-    right_side_distance = distance_to(dot_product, segments_relationship,
-                                      start, end, bottom_right, top_right)
+    right_side_distance = distance_to(dot_product, segments_relater, start,
+                                      end, bottom_right, top_right)
     if not right_side_distance:
         return right_side_distance
     top_left = point_cls(box.min_x, box.max_y)
-    top_side_distance = distance_to(dot_product, segments_relationship, start,
-                                    end, top_left, top_right)
+    top_side_distance = distance_to(dot_product, segments_relater, start, end,
+                                    top_left, top_right)
     if not top_side_distance:
         return top_side_distance
-    left_side_distance = distance_to(dot_product, segments_relationship, start,
-                                     end, bottom_left, top_left)
+    left_side_distance = distance_to(dot_product, segments_relater, start, end,
+                                     bottom_left, top_left)
     return (min(bottom_side_distance, right_side_distance, left_side_distance,
                 top_side_distance)
             if left_side_distance
