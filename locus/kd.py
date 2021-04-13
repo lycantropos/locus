@@ -1,7 +1,8 @@
 from heapq import (heappush,
                    heapreplace)
 from operator import attrgetter
-from typing import (Iterator,
+from typing import (Callable,
+                    Iterator,
                     List,
                     Optional,
                     Sequence,
@@ -9,13 +10,14 @@ from typing import (Iterator,
                     Type,
                     Union)
 
+from ground.base import (Context as _Context,
+                         get_context as _get_context)
 from ground.hints import (Box,
                           Coordinate,
                           Point)
 from reprit.base import generate_repr
 
 from .core import box as _box
-from .core.utils import points_distance as _points_distance
 
 try:
     from typing import Protocol
@@ -33,17 +35,21 @@ class Node:
     Represents node of *kd*-tree.
     """
 
-    __slots__ = 'index', 'point', 'is_y_axis', 'projector', 'left', 'right'
+    __slots__ = ('index', 'is_y_axis', 'left', 'point', 'points_distance',
+                 'projector', 'right')
 
     def __init__(self,
                  index: int,
                  point: Point,
                  is_y_axis: bool,
                  left: Union['Node', NIL],
-                 right: Union['Node', NIL]) -> None:
+                 right: Union['Node', NIL],
+                 points_distance: Callable[[Point, Point], Coordinate]
+                 ) -> None:
         self.index, self.point = index, point
         self.is_y_axis, self.projector = is_y_axis, _PROJECTORS[is_y_axis]
         self.left, self.right = left, right
+        self.points_distance = points_distance
 
     __repr__ = generate_repr(__init__)
 
@@ -59,7 +65,7 @@ class Node:
 
     def distance_to_point(self, point: Point) -> Coordinate:
         """Calculates distance to given point."""
-        return _points_distance(self.point, point)
+        return self.points_distance(self.point, point)
 
     def distance_to_coordinate(self, coordinate: Coordinate) -> Coordinate:
         """Calculates distance to given coordinate."""
@@ -74,11 +80,13 @@ class Tree:
         https://en.wikipedia.org/wiki/K-d_tree
     """
 
-    __slots__ = '_points', '_root'
+    __slots__ = '_context', '_points', '_root'
 
-    def __init__(self, points: Sequence[Point],
+    def __init__(self,
+                 points: Sequence[Point],
                  *,
-                 node_cls: Optional[Type[Node]] = None) -> None:
+                 node_cls: Type[Node] = Node,
+                 context: Optional[_Context] = None) -> None:
         """
         Initializes tree from points.
 
@@ -95,11 +103,26 @@ class Tree:
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
         """
-        self._points = points
-        self._root = _create_node(Node if node_cls is None else node_cls,
-                                  range(len(points)), points, False)
+        if context is None:
+            context = _get_context()
+        self._context = context
+        self._points, self._root = (
+            points, _create_node(node_cls, range(len(points)), points, False,
+                                 context.points_squared_distance))
 
     __repr__ = generate_repr(__init__)
+
+    @property
+    def context(self) -> _Context:
+        """
+        Returns context of the tree.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+        """
+        return self._context
 
     @property
     def node_cls(self) -> Type[Node]:
@@ -497,7 +520,9 @@ class Tree:
 def _create_node(cls: Type[Node],
                  indices: Sequence[int],
                  points: Sequence[Point],
-                 is_y_axis: bool) -> Union[Node, NIL]:
+                 is_y_axis: bool,
+                 points_distance: Callable[[Point, Point], Coordinate]
+                 ) -> Union[Node, NIL]:
     if not indices:
         return NIL
     indices = sorted(indices,
@@ -508,6 +533,7 @@ def _create_node(cls: Type[Node],
     next_is_y_axis = not is_y_axis
     return cls(pivot_index, points[pivot_index], is_y_axis,
                _create_node(cls, indices[:middle_index], points,
-                            next_is_y_axis),
+                            next_is_y_axis, points_distance),
                _create_node(cls, indices[middle_index + 1:], points,
-                            next_is_y_axis))
+                            next_is_y_axis, points_distance),
+               points_distance)
