@@ -7,8 +7,7 @@ from typing import (Callable,
                     List,
                     Optional,
                     Sequence,
-                    Tuple,
-                    Type)
+                    Tuple)
 
 from ground.base import (Context as _Context,
                          get_context as _get_context)
@@ -27,8 +26,6 @@ Item = Tuple[int, Box]
 class Node:
     """
     Represents node of *R*-tree.
-
-    Can be subclassed for custom metrics definition.
     """
 
     __slots__ = 'box', 'children', 'index', 'metric'
@@ -38,8 +35,8 @@ class Node:
                  box: Box,
                  children: Optional[Sequence['Node']],
                  metric: Callable[[Box, Point], Coordinate]) -> None:
-        self.box, self.children, self.index, self.metric = (
-            box, children, index, metric)
+        self.box, self.children, self.index, self.metric = (box, children,
+                                                            index, metric)
 
     __repr__ = _generate_repr(__init__)
 
@@ -71,7 +68,6 @@ class Tree:
                  boxes: Sequence[Box],
                  *,
                  max_children: int = 16,
-                 node_cls: Type[Node] = Node,
                  context: Optional[_Context] = None) -> None:
         """
         Initializes tree from boxes.
@@ -94,7 +90,7 @@ class Tree:
         self._context = context
         self._boxes, self._max_children, self._root = (
             boxes, max_children,
-            _create_root(boxes, max_children, context.merged_box, node_cls,
+            _create_root(boxes, max_children, context.merged_box,
                          context.box_point_squared_distance))
 
     __repr__ = _generate_repr(__init__)
@@ -130,26 +126,6 @@ class Tree:
             ``O(1)``
         """
         return self._context
-
-    @property
-    def node_cls(self) -> Type[Node]:
-        """
-        Returns type of the nodes.
-
-        Time complexity:
-            ``O(1)``
-        Memory complexity:
-            ``O(1)``
-
-        >>> from ground.base import get_context
-        >>> context = get_context()
-        >>> Box = context.box_cls
-        >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
-        >>> tree.node_cls is Node
-        True
-        """
-        return type(self._root)
 
     @property
     def max_children(self) -> int:
@@ -595,15 +571,14 @@ class Tree:
 def _create_root(boxes: Sequence[Box],
                  max_children: int,
                  boxes_merger: Callable[[Box, Box], Box],
-                 node_cls: Type[Node],
                  metric: Callable[[Box, Point], Coordinate]) -> Node:
-    nodes = [node_cls(index, box, None, metric)
+    nodes = [Node(index, box, None, metric)
              for index, box in enumerate(boxes)]
     root_box = reduce(boxes_merger, boxes)
     leaves_count = len(nodes)
     if leaves_count <= max_children:
         # only one node, skip sorting and just fill the root box
-        return node_cls(len(nodes), root_box, nodes, metric)
+        return Node(len(nodes), root_box, nodes, metric)
     else:
         def node_key(node: Node,
                      double_root_delta_x: Coordinate
@@ -638,11 +613,10 @@ def _create_root(boxes: Sequence[Box],
             while start < level_limit:
                 stop = min(start + max_children, level_limit)
                 children = nodes[start:stop]
-                nodes.append(node_cls(len(nodes),
-                                      reduce(boxes_merger,
-                                             [child.box
-                                              for child in children]),
-                                      children, metric))
+                nodes.append(Node(len(nodes),
+                                  reduce(boxes_merger,
+                                         [child.box for child in children]),
+                                  children, metric))
                 start = stop
         return nodes[-1]
 
