@@ -1,26 +1,10 @@
 from ground.hints import (Box,
-                          Coordinate,
                           Point)
 
 
 def contains_point(box: Box, point: Point) -> bool:
     return (box.min_x <= point.x <= box.max_x
             and box.min_y <= point.y <= box.max_y)
-
-
-def distance_to_point(box: Box, point: Point) -> Coordinate:
-    return (_distance_to_linear_interval(point.x, box.min_x, box.max_x) ** 2
-            + _distance_to_linear_interval(point.y, box.min_y, box.max_y) ** 2)
-
-
-def _distance_to_linear_interval(coordinate: Coordinate,
-                                 min_coordinate: Coordinate,
-                                 max_coordinate: Coordinate) -> Coordinate:
-    return (min_coordinate - coordinate
-            if coordinate < min_coordinate
-            else (coordinate - max_coordinate
-                  if coordinate > max_coordinate
-                  else 0))
 
 
 def overlaps(left: Box, right: Box) -> bool:
