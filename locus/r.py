@@ -63,7 +63,7 @@ class Tree:
     Reference:
         https://en.wikipedia.org/wiki/Hilbert_R-tree#Packed_Hilbert_R-trees
     """
-    __slots__ = '_boxes', '_max_children', '_root'
+    __slots__ = '_boxes', '_context', '_max_children', '_root'
 
     def __init__(self,
                  boxes: Sequence[Box],
@@ -87,12 +87,12 @@ class Tree:
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
         >>> tree = Tree(boxes)
         """
+        if context is None:
+            context = _get_context()
+        self._context = context
         self._boxes, self._max_children, self._root = (
             boxes, max_children, _create_root(boxes, max_children,
-                                              (_get_context()
-                                               if context is None
-                                               else context).merged_box,
-                                              node_cls))
+                                              context.merged_box, node_cls))
 
     __repr__ = _generate_repr(__init__)
 
@@ -115,6 +115,18 @@ class Tree:
         True
         """
         return self._boxes
+
+    @property
+    def context(self) -> _Context:
+        """
+        Returns context of the tree.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+        """
+        return self._context
 
     @property
     def node_cls(self) -> Type[Node]:
