@@ -7,8 +7,7 @@ from typing import (Callable as _Callable,
                     Iterator as _Iterator,
                     Optional as _Optional,
                     Sequence as _Sequence,
-                    Tuple as _Tuple,
-                    Type as _Type)
+                    Tuple as _Tuple)
 
 from ground.base import (Context as _Context,
                          get_context as _get_context)
