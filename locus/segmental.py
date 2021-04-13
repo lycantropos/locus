@@ -1,32 +1,27 @@
-from functools import reduce
-from heapq import (heappop,
-                   heappush)
-from math import (floor,
-                  inf)
-from typing import (Callable,
-                    Iterator,
-                    Optional,
-                    Sequence,
-                    Tuple,
-                    Type)
+from functools import reduce as _reduce
+from heapq import (heappop as _heappop,
+                   heappush as _heappush)
+from math import (floor as _floor,
+                  inf as _inf)
+from typing import (Callable as _Callable,
+                    Iterator as _Iterator,
+                    Optional as _Optional,
+                    Sequence as _Sequence,
+                    Tuple as _Tuple,
+                    Type as _Type)
 
 from ground.base import (Context as _Context,
                          get_context as _get_context)
-from ground.hints import (Box,
-                          Coordinate,
-                          Point,
-                          Segment)
-from reprit.base import generate_repr
+from ground.hints import (Box as _Box,
+                          Coordinate as _Coordinate,
+                          Point as _Point,
+                          Segment as _Segment)
+from reprit.base import generate_repr as _generate_repr
 
 from .core import hilbert as _hilbert
-from .core.utils import ceil_division
+from .core.utils import ceil_division as _ceil_division
 
-try:
-    from typing import Protocol
-except ImportError:
-    from typing_extensions import Protocol
-
-Item = Tuple[int, Segment]
+Item = _Tuple[int, _Segment]
 
 
 class Node:
@@ -37,16 +32,16 @@ class Node:
 
     def __init__(self,
                  index: int,
-                 box: Box,
-                 segment: Optional[Segment],
-                 children: Optional[Sequence['Node']],
-                 box_point_metric: Callable[[Box, Point], Coordinate],
+                 box: _Box,
+                 segment: _Optional[_Segment],
+                 children: _Optional[_Sequence['Node']],
+                 box_point_metric: _Callable[[_Box, _Point], _Coordinate],
                  box_segment_metric
-                 : Callable[[Box, Point, Point], Coordinate],
+                 : _Callable[[_Box, _Point, _Point], _Coordinate],
                  segment_point_metric
-                 : Callable[[Point, Point, Point], Coordinate],
+                 : _Callable[[_Point, _Point, _Point], _Coordinate],
                  segments_metric
-                 : Callable[[Point, Point, Point, Point], Coordinate]
+                 : _Callable[[_Point, _Point, _Point, _Point], _Coordinate]
                  ) -> None:
         self.index, self.box, self.segment, self.children = (
             index, box, segment, children)
@@ -55,7 +50,7 @@ class Node:
         self.segment_point_metric, self.segments_metric = (
             segment_point_metric, segments_metric)
 
-    __repr__ = generate_repr(__init__)
+    __repr__ = _generate_repr(__init__)
 
     @property
     def is_leaf(self) -> bool:
@@ -66,9 +61,9 @@ class Node:
         return self.index, self.segment
 
     def distance_to_point(self,
-                          point: Point,
+                          point: _Point,
                           *,
-                          _minus_inf: Coordinate = -inf) -> Coordinate:
+                          _minus_inf: _Coordinate = -_inf) -> _Coordinate:
         return (self.segment_point_metric(self.segment.start,
                                           self.segment.end, point)
                 or _minus_inf
@@ -76,9 +71,9 @@ class Node:
                 else self.box_point_metric(self.box, point))
 
     def distance_to_segment(self,
-                            segment: Segment,
+                            segment: _Segment,
                             *,
-                            _minus_inf: Coordinate = -inf) -> Coordinate:
+                            _minus_inf: _Coordinate = -_inf) -> _Coordinate:
         return (self.segments_metric(self.segment.start, self.segment.end,
                                      segment.start, segment.end)
                 or _minus_inf
@@ -97,10 +92,10 @@ class Tree:
     __slots__ = '_context', '_max_children', '_root', '_segments'
 
     def __init__(self,
-                 segments: Sequence[Segment],
+                 segments: _Sequence[_Segment],
                  *,
                  max_children: int = 16,
-                 context: Optional[_Context] = None) -> None:
+                 context: _Optional[_Context] = None) -> None:
         """
         Initializes tree from segments.
 
@@ -140,7 +135,7 @@ class Tree:
                          context.segments_squared_distance),
             segments)
 
-    __repr__ = generate_repr(__init__)
+    __repr__ = _generate_repr(__init__)
 
     @property
     def context(self) -> _Context:
@@ -155,7 +150,7 @@ class Tree:
         return self._context
 
     @property
-    def segments(self) -> Sequence[Segment]:
+    def segments(self) -> _Sequence[_Segment]:
         """
         Returns underlying segments.
 
@@ -176,7 +171,7 @@ class Tree:
         return self._segments
 
     @property
-    def node_cls(self) -> Type[Node]:
+    def node_cls(self) -> _Type[Node]:
         """
         Returns type of the nodes.
 
@@ -208,7 +203,7 @@ class Tree:
         """
         return self._max_children
 
-    def n_nearest_indices(self, n: int, segment: Segment) -> Sequence[int]:
+    def n_nearest_indices(self, n: int, segment: _Segment) -> _Sequence[int]:
         """
         Searches for indices of segments in the tree
         the nearest to the given segment.
@@ -245,7 +240,7 @@ class Tree:
                 if n < len(self._segments)
                 else range(len(self._segments)))
 
-    def n_nearest_items(self, n: int, segment: Segment) -> Sequence[Item]:
+    def n_nearest_items(self, n: int, segment: _Segment) -> _Sequence[Item]:
         """
         Searches for indices with segments in the tree
         the nearest to the given segment.
@@ -284,8 +279,8 @@ class Tree:
                     if n < len(self._segments)
                     else enumerate(self._segments))
 
-    def n_nearest_segments(self, n: int, segment: Segment
-                           ) -> Sequence[Segment]:
+    def n_nearest_segments(self, n: int, segment: _Segment
+                           ) -> _Sequence[_Segment]:
         """
         Searches for segments in the tree the nearest to the given segment.
 
@@ -321,8 +316,8 @@ class Tree:
                 if n < len(self._segments)
                 else self._segments)
 
-    def n_nearest_to_point_indices(self, n: int, point: Point
-                                   ) -> Sequence[int]:
+    def n_nearest_to_point_indices(self, n: int, point: _Point
+                                   ) -> _Sequence[int]:
         """
         Searches for indices of segments in the tree
         the nearest to the given point.
@@ -359,7 +354,8 @@ class Tree:
                 if n < len(self._segments)
                 else range(len(self._segments)))
 
-    def n_nearest_to_point_items(self, n: int, point: Point) -> Sequence[Item]:
+    def n_nearest_to_point_items(self, n: int, point: _Point) -> _Sequence[
+        Item]:
         """
         Searches for indices with segments in the tree
         the nearest to the given point.
@@ -398,8 +394,8 @@ class Tree:
                     if n < len(self._segments)
                     else enumerate(self._segments))
 
-    def n_nearest_to_point_segments(self, n: int, point: Point
-                                    ) -> Sequence[Segment]:
+    def n_nearest_to_point_segments(self, n: int, point: _Point
+                                    ) -> _Sequence[_Segment]:
         """
         Searches for segments in the tree the nearest to the given point.
 
@@ -435,7 +431,7 @@ class Tree:
                 if n < len(self._segments)
                 else self._segments)
 
-    def nearest_index(self, segment: Segment) -> int:
+    def nearest_index(self, segment: _Segment) -> int:
         """
         Searches for index of segment in the tree
         the nearest to the given segment.
@@ -464,7 +460,7 @@ class Tree:
         result, _ = self.nearest_item(segment)
         return result
 
-    def nearest_item(self, segment: Segment) -> Item:
+    def nearest_item(self, segment: _Segment) -> Item:
         """
         Searches for index with segment in the tree
         the nearest to the given segment.
@@ -493,17 +489,17 @@ class Tree:
         """
         queue = [(0, 0, self._root)]
         while queue:
-            _, _, node = heappop(queue)
+            _, _, node = _heappop(queue)
             for child in node.children:
-                heappush(queue,
-                         (child.distance_to_segment(segment),
-                          child.index if child.is_leaf else -child.index - 1,
-                          child))
+                _heappush(queue,
+                          (child.distance_to_segment(segment),
+                           child.index if child.is_leaf else -child.index - 1,
+                           child))
             if queue and queue[0][1] >= 0:
-                _, _, node = heappop(queue)
+                _, _, node = _heappop(queue)
                 return node.item
 
-    def nearest_segment(self, segment: Segment) -> Segment:
+    def nearest_segment(self, segment: _Segment) -> _Segment:
         """
         Searches for segment in the tree the nearest to the given segment.
 
@@ -531,7 +527,7 @@ class Tree:
         _, result = self.nearest_item(segment)
         return result
 
-    def nearest_to_point_index(self, point: Point) -> int:
+    def nearest_to_point_index(self, point: _Point) -> int:
         """
         Searches for index of segment in the tree
         the nearest to the given point.
@@ -559,7 +555,7 @@ class Tree:
         result, _ = self.nearest_to_point_item(point)
         return result
 
-    def nearest_to_point_item(self, point: Point) -> Item:
+    def nearest_to_point_item(self, point: _Point) -> Item:
         """
         Searches for index with segment in the tree
         the nearest to the given point.
@@ -588,17 +584,17 @@ class Tree:
         """
         queue = [(0, 0, self._root)]
         while queue:
-            _, _, node = heappop(queue)
+            _, _, node = _heappop(queue)
             for child in node.children:
-                heappush(queue,
-                         (child.distance_to_point(point),
-                          child.index if child.is_leaf else -child.index - 1,
-                          child))
+                _heappush(queue,
+                          (child.distance_to_point(point),
+                           child.index if child.is_leaf else -child.index - 1,
+                           child))
             if queue and queue[0][1] >= 0:
-                _, _, node = heappop(queue)
+                _, _, node = _heappop(queue)
                 return node.item
 
-    def nearest_to_point_segment(self, point: Point) -> Segment:
+    def nearest_to_point_segment(self, point: _Point) -> _Segment:
         """
         Searches for segment in the tree the nearest to the given point.
 
@@ -626,50 +622,52 @@ class Tree:
         _, result = self.nearest_to_point_item(point)
         return result
 
-    def _n_nearest_items(self, n: int, segment: Segment) -> Iterator[Item]:
+    def _n_nearest_items(self, n: int, segment: _Segment) -> _Iterator[Item]:
         queue = [(0, 0, self._root)]
         while n and queue:
-            _, _, node = heappop(queue)
+            _, _, node = _heappop(queue)
             for child in node.children:
-                heappush(queue,
-                         (child.distance_to_segment(segment),
-                          child.index if child.is_leaf else -child.index - 1,
-                          child))
+                _heappush(queue,
+                          (child.distance_to_segment(segment),
+                           child.index if child.is_leaf else -child.index - 1,
+                           child))
             while n and queue and queue[0][1] >= 0:
-                _, _, node = heappop(queue)
+                _, _, node = _heappop(queue)
                 yield node.item
                 n -= 1
 
-    def _n_nearest_to_point_items(self, n: int, point: Point
-                                  ) -> Iterator[Item]:
+    def _n_nearest_to_point_items(self, n: int, point: _Point
+                                  ) -> _Iterator[Item]:
         queue = [(0, 0, self._root)]
         while n and queue:
-            _, _, node = heappop(queue)
+            _, _, node = _heappop(queue)
             for child in node.children:
-                heappush(queue,
-                         (child.distance_to_point(point),
-                          child.index if child.is_leaf else -child.index - 1,
-                          child))
+                _heappush(queue,
+                          (child.distance_to_point(point),
+                           child.index if child.is_leaf else -child.index - 1,
+                           child))
             while n and queue and queue[0][1] >= 0:
-                _, _, node = heappop(queue)
+                _, _, node = _heappop(queue)
                 yield node.item
                 n -= 1
 
 
-def _create_root(segments: Sequence[Segment],
-                 boxes: Sequence[Box],
+def _create_root(segments: _Sequence[_Segment],
+                 boxes: _Sequence[_Box],
                  max_children: int,
-                 boxes_merger: Callable[[Box, Box], Box],
-                 box_point_metric: Callable[[Box, Point], Coordinate],
-                 box_segment_metric: Callable[[Box, Point, Point], Coordinate],
+                 boxes_merger: _Callable[[_Box, _Box], _Box],
+                 box_point_metric: _Callable[[_Box, _Point], _Coordinate],
+                 box_segment_metric: _Callable[
+                     [_Box, _Point, _Point], _Coordinate],
                  segment_point_metric
-                 : Callable[[Point, Point, Point], Coordinate],
+                 : _Callable[[_Point, _Point, _Point], _Coordinate],
                  segments_metric
-                 : Callable[[Point, Point, Point, Point], Coordinate]) -> Node:
+                 : _Callable[
+                     [_Point, _Point, _Point, _Point], _Coordinate]) -> Node:
     nodes = [Node(index, box, segment, None, box_point_metric,
                   box_segment_metric, segment_point_metric, segments_metric)
              for index, (box, segment) in enumerate(zip(boxes, segments))]
-    root_box = reduce(boxes_merger, boxes)
+    root_box = _reduce(boxes_merger, boxes)
     leaves_count = len(nodes)
     if leaves_count <= max_children:
         # only one node, skip sorting and just fill the root box
@@ -677,29 +675,29 @@ def _create_root(segments: Sequence[Segment],
                     box_segment_metric, segment_point_metric, segments_metric)
     else:
         def node_key(node: Node,
-                     double_root_delta_x: Coordinate
+                     double_root_delta_x: _Coordinate
                      = 2 * (root_box.max_x - root_box.min_x) or 1,
-                     double_root_delta_y: Coordinate
+                     double_root_delta_y: _Coordinate
                      = 2 * (root_box.max_y - root_box.min_y) or 1,
-                     double_root_min_x: Coordinate = 2 * root_box.min_x,
-                     double_root_min_y: Coordinate = 2 * root_box.min_y
+                     double_root_min_x: _Coordinate = 2 * root_box.min_x,
+                     double_root_min_y: _Coordinate = 2 * root_box.min_y
                      ) -> int:
             box = node.box
-            return _hilbert.index(floor(_hilbert.MAX_COORDINATE
-                                        * (box.min_x + box.max_x
-                                           - double_root_min_x)
-                                        / double_root_delta_x),
-                                  floor(_hilbert.MAX_COORDINATE
-                                        * (box.min_y + box.max_y
-                                           - double_root_min_y)
-                                        / double_root_delta_y))
+            return _hilbert.index(_floor(_hilbert.MAX_COORDINATE
+                                         * (box.min_x + box.max_x
+                                            - double_root_min_x)
+                                         / double_root_delta_x),
+                                  _floor(_hilbert.MAX_COORDINATE
+                                         * (box.min_y + box.max_y
+                                            - double_root_min_y)
+                                         / double_root_delta_y))
 
         nodes = sorted(nodes,
                        key=node_key)
         nodes_count = step = leaves_count
         levels_limits = [nodes_count]
         while True:
-            step = ceil_division(step, max_children)
+            step = _ceil_division(step, max_children)
             if step == 1:
                 break
             nodes_count += step
@@ -710,8 +708,8 @@ def _create_root(segments: Sequence[Segment],
                 stop = min(start + max_children, level_limit)
                 children = nodes[start:stop]
                 nodes.append(Node(len(nodes),
-                                  reduce(boxes_merger,
-                                         [child.box for child in children]),
+                                  _reduce(boxes_merger,
+                                          [child.box for child in children]),
                                   None, children, box_point_metric,
                                   box_segment_metric, segment_point_metric,
                                   segments_metric))
