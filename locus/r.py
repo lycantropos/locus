@@ -1,16 +1,17 @@
-from functools import (partial,
-                       reduce)
+from functools import reduce
 from heapq import (heappop,
                    heappush)
 from math import floor
-from typing import (Iterator,
+from typing import (Callable,
+                    Iterator,
                     List,
                     Optional,
                     Sequence,
                     Tuple,
                     Type)
 
-from ground.base import get_context as _get_context
+from ground.base import (Context as _Context,
+                         get_context as _get_context)
 from ground.hints import (Box,
                           Coordinate,
                           Point)
@@ -68,7 +69,8 @@ class Tree:
                  boxes: Sequence[Box],
                  *,
                  max_children: int = 16,
-                 node_cls: Type[Node] = Node) -> None:
+                 node_cls: Type[Node] = Node,
+                 context: Optional[_Context] = None) -> None:
         """
         Initializes tree from boxes.
 
@@ -85,10 +87,12 @@ class Tree:
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
         >>> tree = Tree(boxes)
         """
-        self._boxes = boxes
-        self._max_children = max_children
-        self._root = _create_root(boxes, max_children, _get_context().box_cls,
-                                  node_cls)
+        self._boxes, self._max_children, self._root = (
+            boxes, max_children, _create_root(boxes, max_children,
+                                              (_get_context()
+                                               if context is None
+                                               else context).merged_box,
+                                              node_cls))
 
     __repr__ = _generate_repr(__init__)
 
@@ -575,12 +579,11 @@ class Tree:
 
 def _create_root(boxes: Sequence[Box],
                  max_children: int,
-                 box_cls: Type[Box],
+                 boxes_merger: Callable[[Box, Box], Box],
                  node_cls: Type[Node] = Node) -> Node:
     nodes = [node_cls(index, box, None)
              for index, box in enumerate(boxes)]
-    merge_boxes = partial(_box.merge, box_cls)
-    root_box = reduce(merge_boxes, boxes)
+    root_box = reduce(boxes_merger, boxes)
     leaves_count = len(nodes)
     if leaves_count <= max_children:
         # only one node, skip sorting and just fill the root box
@@ -620,7 +623,7 @@ def _create_root(boxes: Sequence[Box],
                 stop = min(start + max_children, level_limit)
                 children = nodes[start:stop]
                 nodes.append(node_cls(len(nodes),
-                                      reduce(merge_boxes,
+                                      reduce(boxes_merger,
                                              [child.box
                                               for child in children]),
                                       children))
