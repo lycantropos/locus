@@ -36,9 +36,7 @@ class Node:
                  index: int,
                  box: Box,
                  children: Optional[Sequence['Node']]) -> None:
-        self.index = index
-        self.box = box
-        self.children = children
+        self.box, self.children, self.index = box, children, index
 
     __repr__ = _generate_repr(__init__)
 
