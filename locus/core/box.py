@@ -1,5 +1,3 @@
-from typing import Type
-
 from ground.hints import (Box,
                           Coordinate,
                           Point)
@@ -33,8 +31,3 @@ def overlaps(left: Box, right: Box) -> bool:
 def is_subset_of(test: Box, goal: Box) -> bool:
     return (goal.min_x <= test.min_x and test.max_x <= goal.max_x
             and goal.min_y <= test.min_y and test.max_y <= goal.max_y)
-
-
-def merge(box_cls: Type[Box], left: Box, right: Box) -> Box:
-    return box_cls(min(left.min_x, right.min_x), max(left.max_x, right.max_x),
-                   min(left.min_y, right.min_y), max(left.max_y, right.max_y))
