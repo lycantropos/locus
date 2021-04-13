@@ -20,7 +20,6 @@ from locus import (kd,
 from locus.core.box import is_subset_of
 from locus.core.segment import (distance_to,
                                 distance_to_point)
-from locus.core.utils import points_distance
 
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
@@ -205,7 +204,7 @@ def rot(size: int, x: int, y: int, rx: int, ry: int) -> Tuple[int, int]:
     return x, y
 
 
-to_points_distance = points_distance
+to_points_distance = _context.points_squared_distance
 
 
 def to_segment_point_distance(segment: Segment, point: Point) -> Coordinate:
