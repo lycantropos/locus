@@ -1,33 +1,28 @@
-from heapq import (heappush,
-                   heapreplace)
-from operator import attrgetter
-from typing import (Callable,
-                    Iterator,
-                    List,
-                    Optional,
-                    Sequence,
-                    Tuple,
-                    Type,
-                    Union)
+from heapq import (heappush as _heappush,
+                   heapreplace as _heapreplace)
+from operator import attrgetter as _attrgetter
+from typing import (Callable as _Callable,
+                    Iterator as _Iterator,
+                    List as _List,
+                    Optional as _Optional,
+                    Sequence as _Sequence,
+                    Tuple as _Tuple,
+                    Type as _Type,
+                    Union as _Union)
 
 from ground.base import (Context as _Context,
                          get_context as _get_context)
-from ground.hints import (Box,
-                          Coordinate,
-                          Point)
-from reprit.base import generate_repr
+from ground.hints import (Box as _Box,
+                          Coordinate as _Coordinate,
+                          Point as _Point)
+from reprit.base import generate_repr as _generate_repr
 
 from .core import box as _box
 
-try:
-    from typing import Protocol
-except ImportError:
-    from typing_extensions import Protocol
-
-Item = Tuple[int, Point]
+Item = _Tuple[int, _Point]
 NIL = None
 
-_PROJECTORS = attrgetter('x'), attrgetter('y')
+_PROJECTORS = _attrgetter('x'), _attrgetter('y')
 
 
 class Node:
@@ -37,17 +32,17 @@ class Node:
 
     def __init__(self,
                  index: int,
-                 point: Point,
+                 point: _Point,
                  is_y_axis: bool,
-                 left: Union['Node', NIL],
-                 right: Union['Node', NIL],
-                 metric: Callable[[Point, Point], Coordinate]) -> None:
+                 left: _Union['Node', NIL],
+                 right: _Union['Node', NIL],
+                 metric: _Callable[[_Point, _Point], _Coordinate]) -> None:
         self.index, self.point = index, point
         self.is_y_axis, self.projector = is_y_axis, _PROJECTORS[is_y_axis]
         self.left, self.right = left, right
         self.metric = metric
 
-    __repr__ = generate_repr(__init__)
+    __repr__ = _generate_repr(__init__)
 
     @property
     def item(self) -> Item:
@@ -55,15 +50,15 @@ class Node:
         return self.index, self.point
 
     @property
-    def projection(self) -> Coordinate:
+    def projection(self) -> _Coordinate:
         """Returns projection of the node point onto the corresponding axis."""
         return self.projector(self.point)
 
-    def distance_to_point(self, point: Point) -> Coordinate:
+    def distance_to_point(self, point: _Point) -> _Coordinate:
         """Calculates distance to given point."""
         return self.metric(self.point, point)
 
-    def distance_to_coordinate(self, coordinate: Coordinate) -> Coordinate:
+    def distance_to_coordinate(self, coordinate: _Coordinate) -> _Coordinate:
         """Calculates distance to given coordinate."""
         return (self.projection - coordinate) ** 2
 
@@ -79,10 +74,10 @@ class Tree:
     __slots__ = '_context', '_points', '_root'
 
     def __init__(self,
-                 points: Sequence[Point],
+                 points: _Sequence[_Point],
                  *,
-                 node_cls: Type[Node] = Node,
-                 context: Optional[_Context] = None) -> None:
+                 node_cls: _Type[Node] = Node,
+                 context: _Optional[_Context] = None) -> None:
         """
         Initializes tree from points.
 
@@ -106,7 +101,7 @@ class Tree:
             points, _create_node(node_cls, range(len(points)), points, False,
                                  context.points_squared_distance))
 
-    __repr__ = generate_repr(__init__)
+    __repr__ = _generate_repr(__init__)
 
     @property
     def context(self) -> _Context:
@@ -121,7 +116,7 @@ class Tree:
         return self._context
 
     @property
-    def node_cls(self) -> Type[Node]:
+    def node_cls(self) -> _Type[Node]:
         """
         Returns type of the nodes.
 
@@ -133,7 +128,7 @@ class Tree:
         return type(self._root)
 
     @property
-    def points(self) -> Sequence[Point]:
+    def points(self) -> _Sequence[_Point]:
         """
         Returns underlying points.
 
@@ -152,7 +147,7 @@ class Tree:
         """
         return self._points
 
-    def n_nearest_indices(self, n: int, point: Point) -> Sequence[int]:
+    def n_nearest_indices(self, n: int, point: _Point) -> _Sequence[int]:
         """
         Searches for indices of points in the tree
         that are the nearest to the given point.
@@ -186,7 +181,7 @@ class Tree:
                 if n < len(self._points)
                 else range(len(self._points)))
 
-    def n_nearest_points(self, n: int, point: Point) -> Sequence[Point]:
+    def n_nearest_points(self, n: int, point: _Point) -> _Sequence[_Point]:
         """
         Searches for points in the tree the nearest to the given point.
 
@@ -219,7 +214,7 @@ class Tree:
                 if n < len(self._points)
                 else self._points)
 
-    def n_nearest_items(self, n: int, point: Point) -> Sequence[Item]:
+    def n_nearest_items(self, n: int, point: _Point) -> _Sequence[Item]:
         """
         Searches for indices with points in the tree
         that are the nearest to the given point.
@@ -255,7 +250,7 @@ class Tree:
                 if n < len(self._points)
                 else list(enumerate(self._points)))
 
-    def _n_nearest_items(self, n: int, point: Point) -> List[Item]:
+    def _n_nearest_items(self, n: int, point: _Point) -> _List[Item]:
         candidates = []  # type: List[Tuple[Coordinate, Item]]
         queue = [self._root]
         push, pop = queue.append, queue.pop
@@ -264,9 +259,9 @@ class Tree:
             distance_to_point = node.distance_to_point(point)
             candidate = -distance_to_point, node.item
             if len(candidates) < n:
-                heappush(candidates, candidate)
+                _heappush(candidates, candidate)
             elif distance_to_point < -candidates[0][0]:
-                heapreplace(candidates, candidate)
+                _heapreplace(candidates, candidate)
             coordinate = node.projector(point)
             point_is_on_the_left = coordinate < node.projection
             if point_is_on_the_left:
@@ -284,7 +279,7 @@ class Tree:
                     push(node.left)
         return [item for _, item in candidates]
 
-    def nearest_index(self, point: Point) -> int:
+    def nearest_index(self, point: _Point) -> int:
         """
         Searches for index of a point in the tree
         that is the nearest to the given point.
@@ -315,7 +310,7 @@ class Tree:
         result, _ = self.nearest_item(point)
         return result
 
-    def nearest_point(self, point: Point) -> Point:
+    def nearest_point(self, point: _Point) -> _Point:
         """
         Searches for point in the tree that is the nearest to the given point.
 
@@ -345,7 +340,7 @@ class Tree:
         _, result = self.nearest_item(point)
         return result
 
-    def nearest_item(self, point: Point) -> Item:
+    def nearest_item(self, point: _Point) -> Item:
         """
         Searches for index with point in the tree
         that is the nearest to the given point.
@@ -397,7 +392,7 @@ class Tree:
                     push(node.left)
         return result
 
-    def find_box_indices(self, box: Box) -> List[int]:
+    def find_box_indices(self, box: _Box) -> _List[int]:
         """
         Searches for indices of points that lie inside the given box.
 
@@ -429,7 +424,7 @@ class Tree:
         """
         return [index for index, _ in self._find_box_items(box)]
 
-    def find_box_points(self, box: Box) -> List[Point]:
+    def find_box_points(self, box: _Box) -> _List[_Point]:
         """
         Searches for points that lie inside the given box.
 
@@ -462,7 +457,7 @@ class Tree:
         """
         return [point for _, point in self._find_box_items(box)]
 
-    def find_box_items(self, box: Box) -> List[Item]:
+    def find_box_items(self, box: _Box) -> _List[Item]:
         """
         Searches for indices with points in the tree
         that lie inside the given box.
@@ -496,7 +491,7 @@ class Tree:
         """
         return list(self._find_box_items(box))
 
-    def _find_box_items(self, box: Box) -> Iterator[Item]:
+    def _find_box_items(self, box: _Box) -> _Iterator[Item]:
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
@@ -513,12 +508,12 @@ class Tree:
                 push(node.right)
 
 
-def _create_node(cls: Type[Node],
-                 indices: Sequence[int],
-                 points: Sequence[Point],
+def _create_node(cls: _Type[Node],
+                 indices: _Sequence[int],
+                 points: _Sequence[_Point],
                  is_y_axis: bool,
-                 metric: Callable[[Point, Point], Coordinate]
-                 ) -> Union[Node, NIL]:
+                 metric: _Callable[[_Point, _Point], _Coordinate]
+                 ) -> _Union[Node, NIL]:
     if not indices:
         return NIL
     indices = sorted(indices,
