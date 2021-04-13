@@ -3,7 +3,8 @@ from heapq import (heappop,
                    heappush)
 from math import (floor,
                   inf)
-from typing import (Iterator,
+from typing import (Callable,
+                    Iterator,
                     Optional,
                     Sequence,
                     Tuple,
@@ -28,45 +29,62 @@ except ImportError:
 Item = Tuple[int, Segment]
 
 
-class Node(Protocol):
-    """
-    Interface of segmental *R*-tree node.
+class Node:
+    """Represents node of segmental *R*-tree."""
+    __slots__ = ('box', 'box_point_metric', 'box_segment_metric',
+                 'children', 'index', 'segment', 'segment_point_metric',
+                 'segments_metric')
 
-    Can be implemented for custom metrics definition.
-    """
+    def __init__(self,
+                 index: int,
+                 box: Box,
+                 segment: Optional[Segment],
+                 children: Optional[Sequence['Node']],
+                 box_point_metric: Callable[[Box, Point], Coordinate],
+                 box_segment_metric
+                 : Callable[[Box, Point, Point], Coordinate],
+                 segment_point_metric
+                 : Callable[[Point, Point, Point], Coordinate],
+                 segments_metric
+                 : Callable[[Point, Point, Point, Point], Coordinate]
+                 ) -> None:
+        self.index, self.box, self.segment, self.children = (
+            index, box, segment, children)
+        self.box_point_metric, self.box_segment_metric = (
+            box_point_metric, box_segment_metric)
+        self.segment_point_metric, self.segments_metric = (
+            segment_point_metric, segments_metric)
 
-    def __new__(cls,
-                index: int,
-                box: Box,
-                segment: Optional[Segment],
-                children: Optional[Sequence['Node']]) -> 'Node':
-        """Creates node."""
-
-    @property
-    def box(self) -> Box:
-        """Returns box of the node."""
-
-    @property
-    def children(self) -> Sequence['Node']:
-        """Returns children of the node."""
-
-    @property
-    def index(self) -> int:
-        """Returns index of the node."""
+    __repr__ = generate_repr(__init__)
 
     @property
     def is_leaf(self) -> bool:
-        """Checks whether the node is a leaf."""
+        return self.children is None
 
     @property
     def item(self) -> Item:
-        """Returns underlying index with segment."""
+        return self.index, self.segment
 
-    def distance_to_point(self, point: Point) -> Coordinate:
-        """Calculates distance to given point."""
+    def distance_to_point(self,
+                          point: Point,
+                          *,
+                          _minus_inf: Coordinate = -inf) -> Coordinate:
+        return (self.segment_point_metric(self.segment.start,
+                                          self.segment.end, point)
+                or _minus_inf
+                if self.is_leaf
+                else self.box_point_metric(self.box, point))
 
-    def distance_to_segment(self, segment: Segment) -> Coordinate:
-        """Calculates distance to given segment."""
+    def distance_to_segment(self,
+                            segment: Segment,
+                            *,
+                            _minus_inf: Coordinate = -inf) -> Coordinate:
+        return (self.segments_metric(self.segment.start, self.segment.end,
+                                     segment.start, segment.end)
+                or _minus_inf
+                if self.is_leaf
+                else self.box_segment_metric(self.box, segment.start,
+                                             segment.end))
 
 
 class Tree:
@@ -82,7 +100,6 @@ class Tree:
                  segments: Sequence[Segment],
                  *,
                  max_children: int = 16,
-                 node_cls: Optional[Type[Node]] = None,
                  context: Optional[_Context] = None) -> None:
         """
         Initializes tree from segments.
@@ -105,12 +122,22 @@ class Tree:
         if context is None:
             context = _get_context()
         self._context = context
+        box_cls = context.box_cls
         self._max_children, self._root, self._segments = (
-            max_children, _create_root(segments, max_children,
-                                       _to_default_node_cls(context)
-                                       if node_cls is None
-                                       else node_cls,
-                                       context),
+            max_children,
+            _create_root(segments,
+                         [box_cls(*((segment.start.x, segment.end.x)
+                                    if segment.start.x < segment.end.x
+                                    else (segment.end.x, segment.start.x)),
+                                  *((segment.start.y, segment.end.y)
+                                    if segment.start.y < segment.end.y
+                                    else (segment.end.y, segment.start.y)))
+                          for segment in segments], max_children,
+                         context.merged_box,
+                         context.box_point_squared_distance,
+                         context.box_segment_squared_distance,
+                         context.segment_point_squared_distance,
+                         context.segments_squared_distance),
             segments)
 
     __repr__ = generate_repr(__init__)
@@ -630,24 +657,24 @@ class Tree:
 
 
 def _create_root(segments: Sequence[Segment],
+                 boxes: Sequence[Box],
                  max_children: int,
-                 node_cls: Type[Node],
-                 context: _Context) -> Node:
-    box_cls, merge_boxes = context.box_cls, context.merged_box
-    boxes = [box_cls(*((segment.start.x, segment.end.x)
-                       if segment.start.x < segment.end.x
-                       else (segment.end.x, segment.start.x)),
-                     *((segment.start.y, segment.end.y)
-                       if segment.start.y < segment.end.y
-                       else (segment.end.y, segment.start.y)))
-             for segment in segments]
-    nodes = [node_cls(index, box, segment, None)
+                 boxes_merger: Callable[[Box, Box], Box],
+                 box_point_metric: Callable[[Box, Point], Coordinate],
+                 box_segment_metric: Callable[[Box, Point, Point], Coordinate],
+                 segment_point_metric
+                 : Callable[[Point, Point, Point], Coordinate],
+                 segments_metric
+                 : Callable[[Point, Point, Point, Point], Coordinate]) -> Node:
+    nodes = [Node(index, box, segment, None, box_point_metric,
+                  box_segment_metric, segment_point_metric, segments_metric)
              for index, (box, segment) in enumerate(zip(boxes, segments))]
-    root_box = reduce(merge_boxes, boxes)
+    root_box = reduce(boxes_merger, boxes)
     leaves_count = len(nodes)
     if leaves_count <= max_children:
         # only one node, skip sorting and just fill the root box
-        return node_cls(len(nodes), root_box, None, nodes)
+        return Node(len(nodes), root_box, None, nodes, box_point_metric,
+                    box_segment_metric, segment_point_metric, segments_metric)
     else:
         def node_key(node: Node,
                      double_root_delta_x: Coordinate
@@ -682,55 +709,11 @@ def _create_root(segments: Sequence[Segment],
             while start < level_limit:
                 stop = min(start + max_children, level_limit)
                 children = nodes[start:stop]
-                nodes.append(node_cls(len(nodes),
-                                      reduce(merge_boxes,
-                                             [child.box
-                                              for child in children]),
-                                      None, children))
+                nodes.append(Node(len(nodes),
+                                  reduce(boxes_merger,
+                                         [child.box for child in children]),
+                                  None, children, box_point_metric,
+                                  box_segment_metric, segment_point_metric,
+                                  segments_metric))
                 start = stop
         return nodes[-1]
-
-
-def _to_default_node_cls(context: _Context) -> Type[Node]:
-    class Node:
-        __slots__ = 'index', 'box', 'segment', 'children'
-
-        def __init__(self,
-                     index: int,
-                     box: Box,
-                     segment: Optional[Segment],
-                     children: Optional[Sequence['Node']]) -> None:
-            self.index, self.box, self.segment, self.children = (
-                index, box, segment, children)
-
-        __repr__ = generate_repr(__init__)
-
-        @property
-        def is_leaf(self) -> bool:
-            return self.children is None
-
-        @property
-        def item(self) -> Item:
-            return self.index, self.segment
-
-        def distance_to_point(self, point: Point,
-                              *,
-                              _minus_inf: Coordinate = -inf) -> Coordinate:
-            return (context.segment_point_squared_distance(
-                    self.segment.start, self.segment.end, point)
-                    or _minus_inf
-                    if self.is_leaf
-                    else context.box_point_squared_distance(self.box, point))
-
-        def distance_to_segment(self, segment: Segment,
-                                *,
-                                _minus_inf: Coordinate = -inf) -> Coordinate:
-            return (context.segments_squared_distance(
-                    self.segment.start, self.segment.end, segment.start,
-                    segment.end)
-                    or _minus_inf
-                    if self.is_leaf
-                    else context.box_segment_squared_distance(
-                    self.box, segment.start, segment.end))
-
-    return Node
