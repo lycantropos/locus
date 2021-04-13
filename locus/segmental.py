@@ -17,9 +17,7 @@ from ground.hints import (Box,
                           Segment)
 from reprit.base import generate_repr
 
-from .core import (box as _box,
-                   hilbert as _hilbert,
-                   segment as _segment)
+from .core import hilbert as _hilbert
 from .core.utils import ceil_division
 
 try:
@@ -78,13 +76,14 @@ class Tree:
     Reference:
         https://en.wikipedia.org/wiki/Hilbert_R-tree#Packed_Hilbert_R-trees
     """
-    __slots__ = '_segments', '_max_children', '_root'
+    __slots__ = '_context', '_max_children', '_root', '_segments'
 
     def __init__(self,
                  segments: Sequence[Segment],
                  *,
                  max_children: int = 16,
-                 node_cls: Optional[Type[Node]] = None) -> None:
+                 node_cls: Optional[Type[Node]] = None,
+                 context: Optional[_Context] = None) -> None:
         """
         Initializes tree from segments.
 
@@ -103,16 +102,30 @@ class Tree:
         ...             for index in range(1, 11)]
         >>> tree = Tree(segments)
         """
-        self._segments = segments
-        self._max_children = max_children
-        context = _get_context()
-        self._root = _create_root(segments, max_children,
-                                  _to_default_node_cls(context)
-                                  if node_cls is None
-                                  else node_cls,
-                                  context)
+        if context is None:
+            context = _get_context()
+        self._context = context
+        self._max_children, self._root, self._segments = (
+            max_children, _create_root(segments, max_children,
+                                       _to_default_node_cls(context)
+                                       if node_cls is None
+                                       else node_cls,
+                                       context),
+            segments)
 
     __repr__ = generate_repr(__init__)
+
+    @property
+    def context(self) -> _Context:
+        """
+        Returns context of the tree.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+        """
+        return self._context
 
     @property
     def segments(self) -> Sequence[Segment]:
@@ -692,10 +705,6 @@ def _to_default_node_cls(context: _Context) -> Type[Node]:
 
         __repr__ = generate_repr(__init__)
 
-        _dot_product = staticmethod(context.dot_product)
-        _point_cls = staticmethod(context.point_cls)
-        _segments_relation = staticmethod(context.segments_relation)
-
         @property
         def is_leaf(self) -> bool:
             return self.children is None
@@ -707,25 +716,21 @@ def _to_default_node_cls(context: _Context) -> Type[Node]:
         def distance_to_point(self, point: Point,
                               *,
                               _minus_inf: Coordinate = -inf) -> Coordinate:
-            return (_segment.distance_to_point(self._dot_product,
-                                               self.segment.start,
-                                               self.segment.end, point)
+            return (context.segment_point_squared_distance(
+                    self.segment.start, self.segment.end, point)
                     or _minus_inf
                     if self.is_leaf
-                    else _box.distance_to_point(self.box, point))
+                    else context.box_point_squared_distance(self.box, point))
 
         def distance_to_segment(self, segment: Segment,
                                 *,
                                 _minus_inf: Coordinate = -inf) -> Coordinate:
-            return (_segment.distance_to(self._dot_product,
-                                         self._segments_relation,
-                                         self.segment.start, self.segment.end,
-                                         segment.start, segment.end)
+            return (context.segments_squared_distance(
+                    self.segment.start, self.segment.end, segment.start,
+                    segment.end)
                     or _minus_inf
                     if self.is_leaf
-                    else _segment.distance_to_box(self._dot_product,
-                                                  self._point_cls,
-                                                  self._segments_relation,
-                                                  segment, self.box))
+                    else context.box_segment_squared_distance(
+                    self.box, segment.start, segment.end))
 
     return Node
