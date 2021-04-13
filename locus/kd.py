@@ -116,18 +116,6 @@ class Tree:
         return self._context
 
     @property
-    def node_cls(self) -> _Type[Node]:
-        """
-        Returns type of the nodes.
-
-        Time complexity:
-            ``O(1)``
-        Memory complexity:
-            ``O(1)``
-        """
-        return type(self._root)
-
-    @property
     def points(self) -> _Sequence[_Point]:
         """
         Returns underlying points.

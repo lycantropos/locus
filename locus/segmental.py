@@ -150,39 +150,6 @@ class Tree:
         return self._context
 
     @property
-    def segments(self) -> _Sequence[_Segment]:
-        """
-        Returns underlying segments.
-
-        Time complexity:
-            ``O(1)``
-        Memory complexity:
-            ``O(1)``
-
-        >>> from ground.base import get_context
-        >>> context = get_context()
-        >>> Point, Segment = context.point_cls, context.segment_cls
-        >>> segments = [Segment(Point(0, index), Point(index, index))
-        ...             for index in range(1, 11)]
-        >>> tree = Tree(segments)
-        >>> tree.segments == segments
-        True
-        """
-        return self._segments
-
-    @property
-    def node_cls(self) -> _Type[Node]:
-        """
-        Returns type of the nodes.
-
-        Time complexity:
-            ``O(1)``
-        Memory complexity:
-            ``O(1)``
-        """
-        return type(self._root)
-
-    @property
     def max_children(self) -> int:
         """
         Returns maximum number of children in each node.
@@ -202,6 +169,27 @@ class Tree:
         True
         """
         return self._max_children
+
+    @property
+    def segments(self) -> _Sequence[_Segment]:
+        """
+        Returns underlying segments.
+
+        Time complexity:
+            ``O(1)``
+        Memory complexity:
+            ``O(1)``
+
+        >>> from ground.base import get_context
+        >>> context = get_context()
+        >>> Point, Segment = context.point_cls, context.segment_cls
+        >>> segments = [Segment(Point(0, index), Point(index, index))
+        ...             for index in range(1, 11)]
+        >>> tree = Tree(segments)
+        >>> tree.segments == segments
+        True
+        """
+        return self._segments
 
     def n_nearest_indices(self, n: int, segment: _Segment) -> _Sequence[int]:
         """
