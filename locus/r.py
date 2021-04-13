@@ -31,13 +31,15 @@ class Node:
     Can be subclassed for custom metrics definition.
     """
 
-    __slots__ = 'index', 'box', 'children'
+    __slots__ = 'box', 'children', 'index', 'metric'
 
     def __init__(self,
                  index: int,
                  box: Box,
-                 children: Optional[Sequence['Node']]) -> None:
-        self.box, self.children, self.index = box, children, index
+                 children: Optional[Sequence['Node']],
+                 metric: Callable[[Box, Point], Coordinate]) -> None:
+        self.box, self.children, self.index, self.metric = (
+            box, children, index, metric)
 
     __repr__ = _generate_repr(__init__)
 
@@ -53,7 +55,7 @@ class Node:
 
     def distance_to_point(self, point: Point) -> Coordinate:
         """Calculates distance to given point."""
-        return _box.distance_to_point(self.box, point)
+        return self.metric(self.box, point)
 
 
 class Tree:
@@ -91,8 +93,9 @@ class Tree:
             context = _get_context()
         self._context = context
         self._boxes, self._max_children, self._root = (
-            boxes, max_children, _create_root(boxes, max_children,
-                                              context.merged_box, node_cls))
+            boxes, max_children,
+            _create_root(boxes, max_children, context.merged_box, node_cls,
+                         context.box_point_squared_distance))
 
     __repr__ = _generate_repr(__init__)
 
@@ -592,14 +595,15 @@ class Tree:
 def _create_root(boxes: Sequence[Box],
                  max_children: int,
                  boxes_merger: Callable[[Box, Box], Box],
-                 node_cls: Type[Node] = Node) -> Node:
-    nodes = [node_cls(index, box, None)
+                 node_cls: Type[Node],
+                 metric: Callable[[Box, Point], Coordinate]) -> Node:
+    nodes = [node_cls(index, box, None, metric)
              for index, box in enumerate(boxes)]
     root_box = reduce(boxes_merger, boxes)
     leaves_count = len(nodes)
     if leaves_count <= max_children:
         # only one node, skip sorting and just fill the root box
-        return node_cls(len(nodes), root_box, nodes)
+        return node_cls(len(nodes), root_box, nodes, metric)
     else:
         def node_key(node: Node,
                      double_root_delta_x: Coordinate
@@ -638,7 +642,7 @@ def _create_root(boxes: Sequence[Box],
                                       reduce(boxes_merger,
                                              [child.box
                                               for child in children]),
-                                      children))
+                                      children, metric))
                 start = stop
         return nodes[-1]
 
