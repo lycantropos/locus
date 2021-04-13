@@ -1,26 +1,26 @@
-from functools import reduce
-from heapq import (heappop,
-                   heappush)
-from math import floor
-from typing import (Callable,
-                    Iterator,
-                    List,
-                    Optional,
-                    Sequence,
-                    Tuple)
+from functools import reduce as _reduce
+from heapq import (heappop as _heappop,
+                   heappush as _heappush)
+from math import floor as _floor
+from typing import (Callable as _Callable,
+                    Iterator as _Iterator,
+                    List as _List,
+                    Optional as _Optional,
+                    Sequence as _Sequence,
+                    Tuple as _Tuple)
 
 from ground.base import (Context as _Context,
                          get_context as _get_context)
-from ground.hints import (Box,
-                          Coordinate,
-                          Point)
+from ground.hints import (Box as _Box,
+                          Coordinate as _Coordinate,
+                          Point as _Point)
 from reprit.base import generate_repr as _generate_repr
 
 from .core import (box as _box,
                    hilbert as _hilbert)
-from .core.utils import ceil_division
+from .core.utils import ceil_division as _ceil_division
 
-Item = Tuple[int, Box]
+Item = _Tuple[int, _Box]
 
 
 class Node:
@@ -29,9 +29,9 @@ class Node:
 
     def __init__(self,
                  index: int,
-                 box: Box,
-                 children: Optional[Sequence['Node']],
-                 metric: Callable[[Box, Point], Coordinate]) -> None:
+                 box: _Box,
+                 children: _Optional[_Sequence['Node']],
+                 metric: _Callable[[_Box, _Point], _Coordinate]) -> None:
         self.box, self.children, self.index, self.metric = (box, children,
                                                             index, metric)
 
@@ -47,7 +47,7 @@ class Node:
         """Returns underlying index with box."""
         return self.index, self.box
 
-    def distance_to_point(self, point: Point) -> Coordinate:
+    def distance_to_point(self, point: _Point) -> _Coordinate:
         """Calculates distance to given point."""
         return self.metric(self.box, point)
 
@@ -62,10 +62,10 @@ class Tree:
     __slots__ = '_boxes', '_context', '_max_children', '_root'
 
     def __init__(self,
-                 boxes: Sequence[Box],
+                 boxes: _Sequence[_Box],
                  *,
                  max_children: int = 16,
-                 context: Optional[_Context] = None) -> None:
+                 context: _Optional[_Context] = None) -> None:
         """
         Initializes tree from boxes.
 
@@ -93,7 +93,7 @@ class Tree:
     __repr__ = _generate_repr(__init__)
 
     @property
-    def boxes(self) -> Sequence[Box]:
+    def boxes(self) -> _Sequence[_Box]:
         """
         Returns underlying boxes.
 
@@ -144,7 +144,7 @@ class Tree:
         """
         return self._max_children
 
-    def find_subsets(self, box: Box) -> List[Box]:
+    def find_subsets(self, box: _Box) -> _List[_Box]:
         """
         Searches for boxes that lie inside the given box.
 
@@ -176,7 +176,7 @@ class Tree:
         """
         return [box for _, box in self._find_subsets_items(box)]
 
-    def find_subsets_indices(self, box: Box) -> List[int]:
+    def find_subsets_indices(self, box: _Box) -> _List[int]:
         """
         Searches for indices of boxes that lie inside the given box.
 
@@ -206,7 +206,7 @@ class Tree:
         """
         return [index for index, _ in self._find_subsets_items(box)]
 
-    def find_subsets_items(self, box: Box) -> List[Item]:
+    def find_subsets_items(self, box: _Box) -> _List[Item]:
         """
         Searches for indices with boxes that lie inside the given box.
 
@@ -240,7 +240,7 @@ class Tree:
         """
         return list(self._find_subsets_items(box))
 
-    def find_supersets(self, box: Box) -> List[Box]:
+    def find_supersets(self, box: _Box) -> _List[_Box]:
         """
         Searches for boxes that contain the given box.
 
@@ -273,7 +273,7 @@ class Tree:
         return [box
                 for _, box in self._find_supersets_items(box)]
 
-    def find_supersets_indices(self, box: Box) -> List[int]:
+    def find_supersets_indices(self, box: _Box) -> _List[int]:
         """
         Searches for indices of boxes that contain the given box.
 
@@ -303,7 +303,7 @@ class Tree:
         """
         return [index for index, _ in self._find_supersets_items(box)]
 
-    def find_supersets_items(self, box: Box) -> List[Item]:
+    def find_supersets_items(self, box: _Box) -> _List[Item]:
         """
         Searches for indices with boxes
         that contain the given box.
@@ -338,16 +338,16 @@ class Tree:
         """
         return list(self._find_supersets_items(box))
 
-    def _find_subsets_items(self, box: Box) -> Iterator[Item]:
+    def _find_subsets_items(self, box: _Box) -> _Iterator[Item]:
         yield from (enumerate(self._boxes)
                     if _box.is_subset_of(self._root.box, box)
                     else _find_node_box_subsets_items(self._root,
                                                       box))
 
-    def _find_supersets_items(self, box: Box) -> Iterator[Item]:
+    def _find_supersets_items(self, box: _Box) -> _Iterator[Item]:
         yield from _find_node_box_supersets_items(self._root, box)
 
-    def n_nearest_indices(self, n: int, point: Point) -> Sequence[int]:
+    def n_nearest_indices(self, n: int, point: _Point) -> _Sequence[int]:
         """
         Searches for indices of boxes in the tree
         the nearest to the given point.
@@ -382,7 +382,7 @@ class Tree:
                 if n < len(self._boxes)
                 else range(len(self._boxes)))
 
-    def n_nearest_boxes(self, n: int, point: Point) -> Sequence[Box]:
+    def n_nearest_boxes(self, n: int, point: _Point) -> _Sequence[_Box]:
         """
         Searches for boxes in the tree the nearest to the given point.
 
@@ -415,7 +415,7 @@ class Tree:
                 if n < len(self._boxes)
                 else self._boxes)
 
-    def n_nearest_items(self, n: int, point: Point) -> Sequence[Item]:
+    def n_nearest_items(self, n: int, point: _Point) -> _Sequence[Item]:
         """
         Searches for indices with boxes in the tree
         the nearest to the given point.
@@ -452,7 +452,7 @@ class Tree:
                     if n < len(self._boxes)
                     else enumerate(self._boxes))
 
-    def nearest_index(self, point: Point) -> int:
+    def nearest_index(self, point: _Point) -> int:
         """
         Searches for index of box in the tree
         the nearest to the given point.
@@ -479,7 +479,7 @@ class Tree:
         result, _ = self.nearest_item(point)
         return result
 
-    def nearest_box(self, point: Point) -> Box:
+    def nearest_box(self, point: _Point) -> _Box:
         """
         Searches for box in the tree the nearest to the given point.
 
@@ -505,7 +505,7 @@ class Tree:
         _, result = self.nearest_item(point)
         return result
 
-    def nearest_item(self, point: Point) -> Item:
+    def nearest_item(self, point: _Point) -> Item:
         """
         Searches for index with box in the tree
         the nearest to the given point.
@@ -540,67 +540,67 @@ class Tree:
         """
         queue = [(0, 0, self._root)]
         while queue:
-            _, _, node = heappop(queue)
+            _, _, node = _heappop(queue)
             for child in node.children:
-                heappush(queue,
-                         (child.distance_to_point(point),
-                          -child.index - 1 if child.is_leaf else child.index,
-                          child))
+                _heappush(queue,
+                          (child.distance_to_point(point),
+                           -child.index - 1 if child.is_leaf else child.index,
+                           child))
             if queue and queue[0][1] < 0:
-                _, _, node = heappop(queue)
+                _, _, node = _heappop(queue)
                 return node.item
 
-    def _n_nearest_items(self, n: int, point: Point) -> Iterator[Item]:
+    def _n_nearest_items(self, n: int, point: _Point) -> _Iterator[Item]:
         queue = [(0, 0, self._root)]
         while n and queue:
-            _, _, node = heappop(queue)
+            _, _, node = _heappop(queue)
             for child in node.children:
-                heappush(queue,
-                         (child.distance_to_point(point),
-                          -child.index - 1 if child.is_leaf else child.index,
-                          child))
+                _heappush(queue,
+                          (child.distance_to_point(point),
+                           -child.index - 1 if child.is_leaf else child.index,
+                           child))
             while n and queue and queue[0][1] < 0:
-                _, _, node = heappop(queue)
+                _, _, node = _heappop(queue)
                 yield node.item
                 n -= 1
 
 
-def _create_root(boxes: Sequence[Box],
+def _create_root(boxes: _Sequence[_Box],
                  max_children: int,
-                 boxes_merger: Callable[[Box, Box], Box],
-                 metric: Callable[[Box, Point], Coordinate]) -> Node:
+                 boxes_merger: _Callable[[_Box, _Box], _Box],
+                 metric: _Callable[[_Box, _Point], _Coordinate]) -> Node:
     nodes = [Node(index, box, None, metric)
              for index, box in enumerate(boxes)]
-    root_box = reduce(boxes_merger, boxes)
+    root_box = _reduce(boxes_merger, boxes)
     leaves_count = len(nodes)
     if leaves_count <= max_children:
         # only one node, skip sorting and just fill the root box
         return Node(len(nodes), root_box, nodes, metric)
     else:
         def node_key(node: Node,
-                     double_root_delta_x: Coordinate
+                     double_root_delta_x: _Coordinate
                      = 2 * (root_box.max_x - root_box.min_x),
-                     double_root_delta_y: Coordinate
+                     double_root_delta_y: _Coordinate
                      = 2 * (root_box.max_y - root_box.min_y),
-                     double_root_min_x: Coordinate = 2 * root_box.min_x,
-                     double_root_min_y: Coordinate = 2 * root_box.min_y
+                     double_root_min_x: _Coordinate = 2 * root_box.min_x,
+                     double_root_min_y: _Coordinate = 2 * root_box.min_y
                      ) -> int:
             box = node.box
-            return _hilbert.index(floor(_hilbert.MAX_COORDINATE
-                                        * (box.min_x + box.max_x
-                                           - double_root_min_x)
-                                        / double_root_delta_x),
-                                  floor(_hilbert.MAX_COORDINATE
-                                        * (box.min_y + box.max_y
-                                           - double_root_min_y)
-                                        / double_root_delta_y))
+            return _hilbert.index(_floor(_hilbert.MAX_COORDINATE
+                                         * (box.min_x + box.max_x
+                                            - double_root_min_x)
+                                         / double_root_delta_x),
+                                  _floor(_hilbert.MAX_COORDINATE
+                                         * (box.min_y + box.max_y
+                                            - double_root_min_y)
+                                         / double_root_delta_y))
 
         nodes = sorted(nodes,
                        key=node_key)
         nodes_count = step = leaves_count
         levels_limits = [nodes_count]
         while True:
-            step = ceil_division(step, max_children)
+            step = _ceil_division(step, max_children)
             if step == 1:
                 break
             nodes_count += step
@@ -611,14 +611,14 @@ def _create_root(boxes: Sequence[Box],
                 stop = min(start + max_children, level_limit)
                 children = nodes[start:stop]
                 nodes.append(Node(len(nodes),
-                                  reduce(boxes_merger,
-                                         [child.box for child in children]),
+                                  _reduce(boxes_merger,
+                                          [child.box for child in children]),
                                   children, metric))
                 start = stop
         return nodes[-1]
 
 
-def _node_to_leaves(node: Node) -> Iterator[Node]:
+def _node_to_leaves(node: Node) -> _Iterator[Node]:
     if node.is_leaf:
         yield node
     else:
@@ -626,8 +626,7 @@ def _node_to_leaves(node: Node) -> Iterator[Node]:
             yield from _node_to_leaves(child)
 
 
-def _find_node_box_subsets_items(node: Node,
-                                 box: Box) -> Iterator[Item]:
+def _find_node_box_subsets_items(node: Node, box: _Box) -> _Iterator[Item]:
     if _box.is_subset_of(node.box, box):
         for leaf in _node_to_leaves(node):
             yield leaf.item
@@ -636,8 +635,7 @@ def _find_node_box_subsets_items(node: Node,
             yield from _find_node_box_subsets_items(child, box)
 
 
-def _find_node_box_supersets_items(node: Node,
-                                   box: Box) -> Iterator[Item]:
+def _find_node_box_supersets_items(node: Node, box: _Box) -> _Iterator[Item]:
     if _box.is_subset_of(box, node.box):
         if node.is_leaf:
             yield node.item
