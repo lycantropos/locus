@@ -43,8 +43,8 @@ class Node:
                  segments_metric
                  : _Callable[[_Point, _Point, _Point, _Point], _Coordinate]
                  ) -> None:
-        self.index, self.box, self.segment, self.children = (
-            index, box, segment, children)
+        self.box, self.children, self.index, self.segment = (
+            box, children, index, segment)
         self.box_point_metric, self.box_segment_metric = (
             box_point_metric, box_segment_metric)
         self.segment_point_metric, self.segments_metric = (
