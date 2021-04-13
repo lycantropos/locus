@@ -35,8 +35,8 @@ class Node:
     Represents node of *kd*-tree.
     """
 
-    __slots__ = ('index', 'is_y_axis', 'left', 'point', 'points_distance',
-                 'projector', 'right')
+    __slots__ = ('index', 'is_y_axis', 'left', 'metric', 'point', 'projector',
+                 'right')
 
     def __init__(self,
                  index: int,
@@ -44,12 +44,11 @@ class Node:
                  is_y_axis: bool,
                  left: Union['Node', NIL],
                  right: Union['Node', NIL],
-                 points_distance: Callable[[Point, Point], Coordinate]
-                 ) -> None:
+                 metric: Callable[[Point, Point], Coordinate]) -> None:
         self.index, self.point = index, point
         self.is_y_axis, self.projector = is_y_axis, _PROJECTORS[is_y_axis]
         self.left, self.right = left, right
-        self.points_distance = points_distance
+        self.metric = metric
 
     __repr__ = generate_repr(__init__)
 
@@ -65,7 +64,7 @@ class Node:
 
     def distance_to_point(self, point: Point) -> Coordinate:
         """Calculates distance to given point."""
-        return self.points_distance(self.point, point)
+        return self.metric(self.point, point)
 
     def distance_to_coordinate(self, coordinate: Coordinate) -> Coordinate:
         """Calculates distance to given coordinate."""
@@ -521,7 +520,7 @@ def _create_node(cls: Type[Node],
                  indices: Sequence[int],
                  points: Sequence[Point],
                  is_y_axis: bool,
-                 points_distance: Callable[[Point, Point], Coordinate]
+                 metric: Callable[[Point, Point], Coordinate]
                  ) -> Union[Node, NIL]:
     if not indices:
         return NIL
@@ -533,7 +532,6 @@ def _create_node(cls: Type[Node],
     next_is_y_axis = not is_y_axis
     return cls(pivot_index, points[pivot_index], is_y_axis,
                _create_node(cls, indices[:middle_index], points,
-                            next_is_y_axis, points_distance),
+                            next_is_y_axis, metric),
                _create_node(cls, indices[middle_index + 1:], points,
-                            next_is_y_axis, points_distance),
-               points_distance)
+                            next_is_y_axis, metric), metric)
