@@ -24,10 +24,7 @@ Item = Tuple[int, Box]
 
 
 class Node:
-    """
-    Represents node of *R*-tree.
-    """
-
+    """Represents node of *R*-tree."""
     __slots__ = 'box', 'children', 'index', 'metric'
 
     def __init__(self,

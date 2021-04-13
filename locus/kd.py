@@ -31,10 +31,7 @@ _PROJECTORS = attrgetter('x'), attrgetter('y')
 
 
 class Node:
-    """
-    Represents node of *kd*-tree.
-    """
-
+    """Represents node of *kd*-tree."""
     __slots__ = ('index', 'is_y_axis', 'left', 'metric', 'point', 'projector',
                  'right')
 
