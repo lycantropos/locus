@@ -5,9 +5,9 @@ from ground.hints import (Box,
                           Point)
 from hypothesis import given
 
-from locus.core.box import distance_to_point
 from locus.r import Tree
-from tests.utils import is_box
+from tests.utils import (is_box,
+                         to_box_point_distance)
 from . import strategies
 
 
@@ -27,7 +27,7 @@ def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
     result = tree.nearest_box(point)
 
     def to_point_distance(box: Box) -> Coordinate:
-        return distance_to_point(box, point)
+        return to_box_point_distance(box, point)
 
     assert result in tree.boxes
     assert (min(map(to_point_distance, tree.boxes))

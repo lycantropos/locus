@@ -18,8 +18,6 @@ from hypothesis.strategies import SearchStrategy
 from locus import (kd,
                    r)
 from locus.core.box import is_subset_of
-from locus.core.segment import (distance_to,
-                                distance_to_point)
 
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
@@ -204,14 +202,15 @@ def rot(size: int, x: int, y: int, rx: int, ry: int) -> Tuple[int, int]:
     return x, y
 
 
+to_box_point_distance = _context.box_point_squared_distance
 to_points_distance = _context.points_squared_distance
 
 
 def to_segment_point_distance(segment: Segment, point: Point) -> Coordinate:
-    return distance_to_point(_context.dot_product, segment.start, segment.end,
-                             point)
+    return _context.segment_point_squared_distance(segment.start, segment.end,
+                                                   point)
 
 
 def to_segments_distance(first: Segment, second: Segment) -> Coordinate:
-    return distance_to(_context.dot_product, _context.segments_relation,
-                       first.start, first.end, second.start, second.end)
+    return _context.segments_squared_distance(first.start, first.end,
+                                              second.start, second.end)
