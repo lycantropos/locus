@@ -22,8 +22,8 @@ from locus.core.kd import (NIL,
                            Node as KdNode)
 from locus.core.r import Node as RNode
 
-Domain = TypeVar('Domain')
-Range = TypeVar('Range')
+_T1 = TypeVar('_T1')
+_T2 = TypeVar('_T2')
 Strategy = SearchStrategy
 _context = get_context()
 Box = _context.box_cls
@@ -35,16 +35,15 @@ def equivalence(left_statement: bool, right_statement: bool) -> bool:
     return left_statement is right_statement
 
 
-def pack(function: Callable[..., Range]
-         ) -> Callable[[Iterable[Domain]], Range]:
+def pack(function: Callable[..., _T2]) -> Callable[[Iterable[_T1]], _T2]:
     return partial(call, function)
 
 
-def call(function: Callable[..., Range], args: Iterable[Domain]) -> Range:
+def call(function: Callable[..., _T2], args: Iterable[_T1]) -> _T2:
     return function(*args)
 
 
-def to_pairs(elements: Strategy[Domain]) -> Strategy[Tuple[Domain, Domain]]:
+def to_pairs(elements: Strategy[_T1]) -> Strategy[Tuple[_T1, _T1]]:
     return strategies.tuples(elements, elements)
 
 
@@ -165,12 +164,12 @@ is_point = Point.__instancecheck__
 is_segment = Segment.__instancecheck__
 
 
-def all_equal(iterable: Iterable[Domain]) -> bool:
+def all_equal(iterable: Iterable[_T1]) -> bool:
     groups = groupby(iterable)
     return next(groups, True) and not next(groups, False)
 
 
-def all_unique(iterable: Iterable[Domain]) -> bool:
+def all_unique(iterable: Iterable[_T1]) -> bool:
     seen = set()
     register = seen.add
     for element in iterable:
@@ -181,7 +180,7 @@ def all_unique(iterable: Iterable[Domain]) -> bool:
     return True
 
 
-def identity(value: Domain) -> Domain:
+def identity(value: _T1) -> _T1:
     return value
 
 
