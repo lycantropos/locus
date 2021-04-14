@@ -1,12 +1,11 @@
 from heapq import (heappush as _heappush,
                    heapreplace as _heapreplace)
-from typing import (Callable as _Callable,
-                    Iterator as _Iterator,
+from typing import (Iterator as _Iterator,
                     List as _List,
                     Optional as _Optional,
                     Sequence as _Sequence,
-                    Type as _Type,
-                    Union as _Union)
+                    Tuple as _Tuple,
+                    Type as _Type)
 
 from ground.base import (Context as _Context,
                          get_context as _get_context)
@@ -19,7 +18,7 @@ from .core import box as _box
 from .core.kd import (NIL as _NIL,
                       Item as _Item,
                       Node as _Node,
-                      PROJECTORS as _PROJECTORS)
+                      create_node as _create_node)
 
 
 class Tree:
@@ -198,11 +197,11 @@ class Tree:
                 else list(enumerate(self._points)))
 
     def _n_nearest_items(self, n: int, point: _Point) -> _List[_Item]:
-        candidates = []  # type: List[Tuple[Coordinate, Item]]
+        candidates = []  # type: _List[_Tuple[_Coordinate, _Item]]
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
-            node = pop()  # type: Node
+            node = pop()  # type: _Node
             distance_to_point = node.distance_to_point(point)
             candidate = -distance_to_point, node.item
             if len(candidates) < n:
@@ -320,7 +319,7 @@ class Tree:
         queue = [node]
         push, pop = queue.append, queue.pop
         while queue:
-            node = pop()  # type: Node
+            node = pop()  # type: _Node
             distance_to_point = node.distance_to_point(point)
             if distance_to_point < min_distance:
                 result, min_distance = node.item, distance_to_point
@@ -442,7 +441,7 @@ class Tree:
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
-            node = pop()  # type: Node
+            node = pop()  # type: _Node
             if _box.contains_point(box, node.point):
                 yield node.item
             min_coordinate, max_coordinate = ((box.min_y, box.max_y)
@@ -453,24 +452,3 @@ class Tree:
                 push(node.left)
             if node.right is not _NIL and coordinate <= max_coordinate:
                 push(node.right)
-
-
-def _create_node(cls: _Type[_Node],
-                 indices: _Sequence[int],
-                 points: _Sequence[_Point],
-                 is_y_axis: bool,
-                 metric: _Callable[[_Point, _Point], _Coordinate]
-                 ) -> _Union[_Node, _NIL]:
-    if not indices:
-        return _NIL
-    indices = sorted(indices,
-                     key=(lambda index, projector=_PROJECTORS[is_y_axis]
-                          : projector(points[index])))
-    middle_index = (len(indices) - 1) // 2
-    pivot_index = indices[middle_index]
-    next_is_y_axis = not is_y_axis
-    return cls(pivot_index, points[pivot_index], is_y_axis,
-               _create_node(cls, indices[:middle_index], points,
-                            next_is_y_axis, metric),
-               _create_node(cls, indices[middle_index + 1:], points,
-                            next_is_y_axis, metric), metric)
