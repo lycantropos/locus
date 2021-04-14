@@ -96,10 +96,10 @@ class Tree:
         """
         if context is None:
             context = _get_context()
-        self._context = context
-        self._points, self._root = (
-            points, _create_node(node_cls, range(len(points)), points, False,
-                                 context.points_squared_distance))
+        self._context, self._points, self._root = (
+            context, points, _create_node(node_cls, range(len(points)), points,
+                                          False,
+                                          context.points_squared_distance))
 
     __repr__ = _generate_repr(__init__)
 
