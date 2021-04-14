@@ -1,24 +1,17 @@
-from functools import reduce as _reduce
 from heapq import (heappop as _heappop,
                    heappush as _heappush)
-from math import floor as _floor
-from typing import (Callable as _Callable,
-                    Iterator as _Iterator,
+from typing import (Iterator as _Iterator,
                     Optional as _Optional,
                     Sequence as _Sequence)
 
 from ground.base import (Context as _Context,
                          get_context as _get_context)
-from ground.hints import (Box as _Box,
-                          Coordinate as _Coordinate,
-                          Point as _Point,
+from ground.hints import (Point as _Point,
                           Segment as _Segment)
 from reprit.base import generate_repr as _generate_repr
 
-from .core import hilbert as _hilbert
 from .core.segmental import (Item as _Item,
-                             Node as _Node)
-from .core.utils import ceil_division as _ceil_division
+                             create_root as _create_root)
 
 
 class Tree:
@@ -280,8 +273,8 @@ class Tree:
                 if n < len(self._segments)
                 else range(len(self._segments)))
 
-    def n_nearest_to_point_items(self, n: int, point: _Point) -> _Sequence[
-        _Item]:
+    def n_nearest_to_point_items(self, n: int, point: _Point
+                                 ) -> _Sequence[_Item]:
         """
         Searches for indices with segments in the tree
         the nearest to the given point.
@@ -576,68 +569,3 @@ class Tree:
                 _, _, node = _heappop(queue)
                 yield node.item
                 n -= 1
-
-
-def _create_root(segments: _Sequence[_Segment],
-                 boxes: _Sequence[_Box],
-                 max_children: int,
-                 boxes_merger: _Callable[[_Box, _Box], _Box],
-                 box_point_metric: _Callable[[_Box, _Point], _Coordinate],
-                 box_segment_metric: _Callable[
-                     [_Box, _Point, _Point], _Coordinate],
-                 segment_point_metric
-                 : _Callable[[_Point, _Point, _Point], _Coordinate],
-                 segments_metric
-                 : _Callable[
-                     [_Point, _Point, _Point, _Point], _Coordinate]) -> _Node:
-    nodes = [_Node(index, box, segment, None, box_point_metric,
-                   box_segment_metric, segment_point_metric, segments_metric)
-             for index, (box, segment) in enumerate(zip(boxes, segments))]
-    root_box = _reduce(boxes_merger, boxes)
-    leaves_count = len(nodes)
-    if leaves_count <= max_children:
-        # only one node, skip sorting and just fill the root box
-        return _Node(len(nodes), root_box, None, nodes, box_point_metric,
-                     box_segment_metric, segment_point_metric, segments_metric)
-    else:
-        def node_key(node: _Node,
-                     double_root_delta_x: _Coordinate
-                     = 2 * (root_box.max_x - root_box.min_x) or 1,
-                     double_root_delta_y: _Coordinate
-                     = 2 * (root_box.max_y - root_box.min_y) or 1,
-                     double_root_min_x: _Coordinate = 2 * root_box.min_x,
-                     double_root_min_y: _Coordinate = 2 * root_box.min_y
-                     ) -> int:
-            box = node.box
-            return _hilbert.index(_floor(_hilbert.MAX_COORDINATE
-                                         * (box.min_x + box.max_x
-                                            - double_root_min_x)
-                                         / double_root_delta_x),
-                                  _floor(_hilbert.MAX_COORDINATE
-                                         * (box.min_y + box.max_y
-                                            - double_root_min_y)
-                                         / double_root_delta_y))
-
-        nodes = sorted(nodes,
-                       key=node_key)
-        nodes_count = step = leaves_count
-        levels_limits = [nodes_count]
-        while True:
-            step = _ceil_division(step, max_children)
-            if step == 1:
-                break
-            nodes_count += step
-            levels_limits.append(nodes_count)
-        start = 0
-        for level_limit in levels_limits:
-            while start < level_limit:
-                stop = min(start + max_children, level_limit)
-                children = nodes[start:stop]
-                nodes.append(_Node(len(nodes),
-                                   _reduce(boxes_merger,
-                                           [child.box for child in children]),
-                                   None, children, box_point_metric,
-                                   box_segment_metric, segment_point_metric,
-                                   segments_metric))
-                start = stop
-        return nodes[-1]
