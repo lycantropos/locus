@@ -115,10 +115,9 @@ class Tree:
         """
         if context is None:
             context = _get_context()
-        self._context = context
         box_cls = context.box_cls
-        self._max_children, self._root, self._segments = (
-            max_children,
+        self._context, self._max_children, self._root, self._segments = (
+            context, max_children,
             _create_root(segments,
                          [box_cls(*((segment.start.x, segment.end.x)
                                     if segment.start.x < segment.end.x
