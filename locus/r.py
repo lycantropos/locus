@@ -84,9 +84,8 @@ class Tree:
         """
         if context is None:
             context = _get_context()
-        self._context = context
-        self._boxes, self._max_children, self._root = (
-            boxes, max_children,
+        self._boxes, self._context, self._max_children, self._root = (
+            boxes, context, max_children,
             _create_root(boxes, max_children, context.merged_box,
                          context.box_point_squared_distance))
 
