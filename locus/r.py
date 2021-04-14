@@ -1,9 +1,6 @@
-from functools import reduce as _reduce
 from heapq import (heappop as _heappop,
                    heappush as _heappush)
-from math import floor as _floor
-from typing import (Callable as _Callable,
-                    Iterator as _Iterator,
+from typing import (Iterator as _Iterator,
                     List as _List,
                     Optional as _Optional,
                     Sequence as _Sequence)
@@ -11,15 +8,15 @@ from typing import (Callable as _Callable,
 from ground.base import (Context as _Context,
                          get_context as _get_context)
 from ground.hints import (Box as _Box,
-                          Coordinate as _Coordinate,
                           Point as _Point)
 from reprit.base import generate_repr as _generate_repr
 
-from .core import (box as _box,
-                   hilbert as _hilbert)
-from .core.r import (Item as _Item,
-                     Node as _Node)
-from .core.utils import ceil_division as _ceil_division
+from .core import box as _box
+from .core.r import (
+    Item as _Item,
+    create_root as _create_root,
+    find_node_box_subsets_items as _find_node_box_subsets_items,
+    find_node_box_supersets_items as _find_node_box_supersets_items)
 
 
 class Tree:
@@ -532,82 +529,3 @@ class Tree:
                 _, _, node = _heappop(queue)
                 yield node.item
                 n -= 1
-
-
-def _create_root(boxes: _Sequence[_Box],
-                 max_children: int,
-                 boxes_merger: _Callable[[_Box, _Box], _Box],
-                 metric: _Callable[[_Box, _Point], _Coordinate]) -> _Node:
-    nodes = [_Node(index, box, None, metric)
-             for index, box in enumerate(boxes)]
-    root_box = _reduce(boxes_merger, boxes)
-    leaves_count = len(nodes)
-    if leaves_count <= max_children:
-        # only one node, skip sorting and just fill the root box
-        return _Node(len(nodes), root_box, nodes, metric)
-    else:
-        def node_key(node: _Node,
-                     double_root_delta_x: _Coordinate
-                     = 2 * (root_box.max_x - root_box.min_x),
-                     double_root_delta_y: _Coordinate
-                     = 2 * (root_box.max_y - root_box.min_y),
-                     double_root_min_x: _Coordinate = 2 * root_box.min_x,
-                     double_root_min_y: _Coordinate = 2 * root_box.min_y
-                     ) -> int:
-            box = node.box
-            return _hilbert.index(_floor(_hilbert.MAX_COORDINATE
-                                         * (box.min_x + box.max_x
-                                            - double_root_min_x)
-                                         / double_root_delta_x),
-                                  _floor(_hilbert.MAX_COORDINATE
-                                         * (box.min_y + box.max_y
-                                            - double_root_min_y)
-                                         / double_root_delta_y))
-
-        nodes = sorted(nodes,
-                       key=node_key)
-        nodes_count = step = leaves_count
-        levels_limits = [nodes_count]
-        while True:
-            step = _ceil_division(step, max_children)
-            if step == 1:
-                break
-            nodes_count += step
-            levels_limits.append(nodes_count)
-        start = 0
-        for level_limit in levels_limits:
-            while start < level_limit:
-                stop = min(start + max_children, level_limit)
-                children = nodes[start:stop]
-                nodes.append(_Node(len(nodes),
-                                   _reduce(boxes_merger,
-                                           [child.box for child in children]),
-                                   children, metric))
-                start = stop
-        return nodes[-1]
-
-
-def _node_to_leaves(node: _Node) -> _Iterator[_Node]:
-    if node.is_leaf:
-        yield node
-    else:
-        for child in node.children:
-            yield from _node_to_leaves(child)
-
-
-def _find_node_box_subsets_items(node: _Node, box: _Box) -> _Iterator[_Item]:
-    if _box.is_subset_of(node.box, box):
-        for leaf in _node_to_leaves(node):
-            yield leaf.item
-    elif not node.is_leaf and _box.overlaps(box, node.box):
-        for child in node.children:
-            yield from _find_node_box_subsets_items(child, box)
-
-
-def _find_node_box_supersets_items(node: _Node, box: _Box) -> _Iterator[_Item]:
-    if _box.is_subset_of(box, node.box):
-        if node.is_leaf:
-            yield node.item
-        else:
-            for child in node.children:
-                yield from _find_node_box_supersets_items(child, box)
