@@ -5,8 +5,8 @@ from ground.hints import (Coordinate,
                           Point)
 from hypothesis import given
 
-from locus.kd import (Item,
-                      Tree)
+from locus.kd import Tree
+from locus.core.kd import Item
 from tests.utils import (is_kd_item,
                          to_points_distance)
 from . import strategies

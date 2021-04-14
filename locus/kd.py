@@ -1,12 +1,10 @@
 from heapq import (heappush as _heappush,
                    heapreplace as _heapreplace)
-from operator import attrgetter as _attrgetter
 from typing import (Callable as _Callable,
                     Iterator as _Iterator,
                     List as _List,
                     Optional as _Optional,
                     Sequence as _Sequence,
-                    Tuple as _Tuple,
                     Type as _Type,
                     Union as _Union)
 
@@ -18,49 +16,10 @@ from ground.hints import (Box as _Box,
 from reprit.base import generate_repr as _generate_repr
 
 from .core import box as _box
-
-Item = _Tuple[int, _Point]
-NIL = None
-
-_PROJECTORS = _attrgetter('x'), _attrgetter('y')
-
-
-class Node:
-    """Represents node of *kd*-tree."""
-    __slots__ = ('index', 'is_y_axis', 'left', 'metric', 'point', 'projector',
-                 'right')
-
-    def __init__(self,
-                 index: int,
-                 point: _Point,
-                 is_y_axis: bool,
-                 left: _Union['Node', NIL],
-                 right: _Union['Node', NIL],
-                 metric: _Callable[[_Point, _Point], _Coordinate]) -> None:
-        self.index, self.point = index, point
-        self.is_y_axis, self.projector = is_y_axis, _PROJECTORS[is_y_axis]
-        self.left, self.right = left, right
-        self.metric = metric
-
-    __repr__ = _generate_repr(__init__)
-
-    @property
-    def item(self) -> Item:
-        """Returns item of the node."""
-        return self.index, self.point
-
-    @property
-    def projection(self) -> _Coordinate:
-        """Returns projection of the node point onto the corresponding axis."""
-        return self.projector(self.point)
-
-    def distance_to_point(self, point: _Point) -> _Coordinate:
-        """Calculates distance to given point."""
-        return self.metric(self.point, point)
-
-    def distance_to_coordinate(self, coordinate: _Coordinate) -> _Coordinate:
-        """Calculates distance to given coordinate."""
-        return (self.projection - coordinate) ** 2
+from .core.kd import (NIL as _NIL,
+                      Item as _Item,
+                      Node as _Node,
+                      PROJECTORS as _PROJECTORS)
 
 
 class Tree:
@@ -76,7 +35,7 @@ class Tree:
     def __init__(self,
                  points: _Sequence[_Point],
                  *,
-                 node_cls: _Type[Node] = Node,
+                 node_cls: _Type[_Node] = _Node,
                  context: _Optional[_Context] = None) -> None:
         """
         Initializes tree from points.
@@ -202,7 +161,7 @@ class Tree:
                 if n < len(self._points)
                 else self._points)
 
-    def n_nearest_items(self, n: int, point: _Point) -> _Sequence[Item]:
+    def n_nearest_items(self, n: int, point: _Point) -> _Sequence[_Item]:
         """
         Searches for indices with points in the tree
         that are the nearest to the given point.
@@ -238,7 +197,7 @@ class Tree:
                 if n < len(self._points)
                 else list(enumerate(self._points)))
 
-    def _n_nearest_items(self, n: int, point: _Point) -> _List[Item]:
+    def _n_nearest_items(self, n: int, point: _Point) -> _List[_Item]:
         candidates = []  # type: List[Tuple[Coordinate, Item]]
         queue = [self._root]
         push, pop = queue.append, queue.pop
@@ -253,17 +212,17 @@ class Tree:
             coordinate = node.projector(point)
             point_is_on_the_left = coordinate < node.projection
             if point_is_on_the_left:
-                if node.left is not NIL:
+                if node.left is not _NIL:
                     push(node.left)
-            elif node.right is not NIL:
+            elif node.right is not _NIL:
                 push(node.right)
             if (len(candidates) < n
                     or (node.distance_to_coordinate(coordinate)
                         < -candidates[0][0])):
                 if point_is_on_the_left:
-                    if node.right is not NIL:
+                    if node.right is not _NIL:
                         push(node.right)
-                elif node.left is not NIL:
+                elif node.left is not _NIL:
                     push(node.left)
         return [item for _, item in candidates]
 
@@ -328,7 +287,7 @@ class Tree:
         _, result = self.nearest_item(point)
         return result
 
-    def nearest_item(self, point: _Point) -> Item:
+    def nearest_item(self, point: _Point) -> _Item:
         """
         Searches for index with point in the tree
         that is the nearest to the given point.
@@ -368,15 +327,15 @@ class Tree:
             coordinate = node.projector(point)
             point_is_on_the_left = coordinate < node.projection
             if point_is_on_the_left:
-                if node.left is not NIL:
+                if node.left is not _NIL:
                     push(node.left)
-            elif node.right is not NIL:
+            elif node.right is not _NIL:
                 push(node.right)
             if node.distance_to_coordinate(coordinate) < min_distance:
                 if point_is_on_the_left:
-                    if node.right is not NIL:
+                    if node.right is not _NIL:
                         push(node.right)
-                elif node.left is not NIL:
+                elif node.left is not _NIL:
                     push(node.left)
         return result
 
@@ -445,7 +404,7 @@ class Tree:
         """
         return [point for _, point in self._find_box_items(box)]
 
-    def find_box_items(self, box: _Box) -> _List[Item]:
+    def find_box_items(self, box: _Box) -> _List[_Item]:
         """
         Searches for indices with points in the tree
         that lie inside the given box.
@@ -479,7 +438,7 @@ class Tree:
         """
         return list(self._find_box_items(box))
 
-    def _find_box_items(self, box: _Box) -> _Iterator[Item]:
+    def _find_box_items(self, box: _Box) -> _Iterator[_Item]:
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
@@ -490,20 +449,20 @@ class Tree:
                                               if node.is_y_axis
                                               else (box.min_x, box.max_x))
             coordinate = node.projector(node.point)
-            if node.left is not NIL and min_coordinate <= coordinate:
+            if node.left is not _NIL and min_coordinate <= coordinate:
                 push(node.left)
-            if node.right is not NIL and coordinate <= max_coordinate:
+            if node.right is not _NIL and coordinate <= max_coordinate:
                 push(node.right)
 
 
-def _create_node(cls: _Type[Node],
+def _create_node(cls: _Type[_Node],
                  indices: _Sequence[int],
                  points: _Sequence[_Point],
                  is_y_axis: bool,
                  metric: _Callable[[_Point, _Point], _Coordinate]
-                 ) -> _Union[Node, NIL]:
+                 ) -> _Union[_Node, _NIL]:
     if not indices:
-        return NIL
+        return _NIL
     indices = sorted(indices,
                      key=(lambda index, projector=_PROJECTORS[is_y_axis]
                           : projector(points[index])))

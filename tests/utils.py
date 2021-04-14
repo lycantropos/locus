@@ -18,6 +18,8 @@ from hypothesis.strategies import SearchStrategy
 from locus import (kd,
                    r)
 from locus.core.box import is_subset_of
+from locus.core.kd import (NIL,
+                           Node as KdNode)
 from locus.core.r import Node as RNode
 
 Domain = TypeVar('Domain')
@@ -77,7 +79,7 @@ def to_r_tree_height(tree: r.Tree) -> int:
     return to_r_node_height(tree._root)
 
 
-def is_kd_node_balanced(node: kd.Node) -> bool:
+def is_kd_node_balanced(node: KdNode) -> bool:
     return (abs(to_kd_node_height(node.left)
                 - to_kd_node_height(node.right)) <= 1
             and all(is_kd_node_balanced(child)
@@ -93,12 +95,12 @@ def is_r_node_balanced(node: RNode) -> bool:
                 and all(is_r_node_balanced(child) for child in node.children))
 
 
-def is_kd_node_valid(points: Sequence[Point], node: kd.Node) -> bool:
+def is_kd_node_valid(points: Sequence[Point], node: KdNode) -> bool:
     hyperplane = node.projector(points[node.index])
-    if (node.left is not kd.NIL
+    if (node.left is not NIL
             and hyperplane < node.projector(points[node.left.index])):
         return False
-    if (node.right is not kd.NIL
+    if (node.right is not NIL
             and node.projector(points[node.right.index]) < hyperplane):
         return False
     return all(is_kd_node_valid(points, child)
@@ -114,8 +116,8 @@ def is_r_node_valid(node: RNode) -> bool:
                 and all(is_r_node_valid(child) for child in node.children))
 
 
-def to_kd_node_height(node: Union[kd.Node, kd.NIL]) -> int:
-    if node is kd.NIL:
+def to_kd_node_height(node: Union[KdNode, NIL]) -> int:
+    if node is NIL:
         return -1
     return max([1 + to_kd_node_height(child)
                 for child in to_kd_node_children(node)],
@@ -128,10 +130,10 @@ def to_r_node_height(node: RNode) -> int:
             else max(1 + to_r_node_height(child) for child in node.children))
 
 
-def to_kd_node_children(node: kd.Node) -> Iterable[kd.Node]:
-    if node.left is not kd.NIL:
+def to_kd_node_children(node: KdNode) -> Iterable[KdNode]:
+    if node.left is not NIL:
         yield node.left
-    if node.right is not kd.NIL:
+    if node.right is not NIL:
         yield node.right
 
 
