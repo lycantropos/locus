@@ -6,8 +6,7 @@ from typing import (Callable as _Callable,
                     Iterator as _Iterator,
                     List as _List,
                     Optional as _Optional,
-                    Sequence as _Sequence,
-                    Tuple as _Tuple)
+                    Sequence as _Sequence)
 
 from ground.base import (Context as _Context,
                          get_context as _get_context)
@@ -18,38 +17,9 @@ from reprit.base import generate_repr as _generate_repr
 
 from .core import (box as _box,
                    hilbert as _hilbert)
+from .core.r import (Item as _Item,
+                     Node as _Node)
 from .core.utils import ceil_division as _ceil_division
-
-Item = _Tuple[int, _Box]
-
-
-class Node:
-    """Represents node of *R*-tree."""
-    __slots__ = 'box', 'children', 'index', 'metric'
-
-    def __init__(self,
-                 index: int,
-                 box: _Box,
-                 children: _Optional[_Sequence['Node']],
-                 metric: _Callable[[_Box, _Point], _Coordinate]) -> None:
-        self.box, self.children, self.index, self.metric = (box, children,
-                                                            index, metric)
-
-    __repr__ = _generate_repr(__init__)
-
-    @property
-    def is_leaf(self) -> bool:
-        """Checks whether the node is a leaf."""
-        return self.children is None
-
-    @property
-    def item(self) -> Item:
-        """Returns underlying index with box."""
-        return self.index, self.box
-
-    def distance_to_point(self, point: _Point) -> _Coordinate:
-        """Calculates distance to given point."""
-        return self.metric(self.box, point)
 
 
 class Tree:
@@ -205,7 +175,7 @@ class Tree:
         """
         return [index for index, _ in self._find_subsets_items(box)]
 
-    def find_subsets_items(self, box: _Box) -> _List[Item]:
+    def find_subsets_items(self, box: _Box) -> _List[_Item]:
         """
         Searches for indices with boxes that lie inside the given box.
 
@@ -302,7 +272,7 @@ class Tree:
         """
         return [index for index, _ in self._find_supersets_items(box)]
 
-    def find_supersets_items(self, box: _Box) -> _List[Item]:
+    def find_supersets_items(self, box: _Box) -> _List[_Item]:
         """
         Searches for indices with boxes
         that contain the given box.
@@ -337,13 +307,13 @@ class Tree:
         """
         return list(self._find_supersets_items(box))
 
-    def _find_subsets_items(self, box: _Box) -> _Iterator[Item]:
+    def _find_subsets_items(self, box: _Box) -> _Iterator[_Item]:
         yield from (enumerate(self._boxes)
                     if _box.is_subset_of(self._root.box, box)
                     else _find_node_box_subsets_items(self._root,
                                                       box))
 
-    def _find_supersets_items(self, box: _Box) -> _Iterator[Item]:
+    def _find_supersets_items(self, box: _Box) -> _Iterator[_Item]:
         yield from _find_node_box_supersets_items(self._root, box)
 
     def n_nearest_indices(self, n: int, point: _Point) -> _Sequence[int]:
@@ -414,7 +384,7 @@ class Tree:
                 if n < len(self._boxes)
                 else self._boxes)
 
-    def n_nearest_items(self, n: int, point: _Point) -> _Sequence[Item]:
+    def n_nearest_items(self, n: int, point: _Point) -> _Sequence[_Item]:
         """
         Searches for indices with boxes in the tree
         the nearest to the given point.
@@ -504,7 +474,7 @@ class Tree:
         _, result = self.nearest_item(point)
         return result
 
-    def nearest_item(self, point: _Point) -> Item:
+    def nearest_item(self, point: _Point) -> _Item:
         """
         Searches for index with box in the tree
         the nearest to the given point.
@@ -549,7 +519,7 @@ class Tree:
                 _, _, node = _heappop(queue)
                 return node.item
 
-    def _n_nearest_items(self, n: int, point: _Point) -> _Iterator[Item]:
+    def _n_nearest_items(self, n: int, point: _Point) -> _Iterator[_Item]:
         queue = [(0, 0, self._root)]
         while n and queue:
             _, _, node = _heappop(queue)
@@ -567,16 +537,16 @@ class Tree:
 def _create_root(boxes: _Sequence[_Box],
                  max_children: int,
                  boxes_merger: _Callable[[_Box, _Box], _Box],
-                 metric: _Callable[[_Box, _Point], _Coordinate]) -> Node:
-    nodes = [Node(index, box, None, metric)
+                 metric: _Callable[[_Box, _Point], _Coordinate]) -> _Node:
+    nodes = [_Node(index, box, None, metric)
              for index, box in enumerate(boxes)]
     root_box = _reduce(boxes_merger, boxes)
     leaves_count = len(nodes)
     if leaves_count <= max_children:
         # only one node, skip sorting and just fill the root box
-        return Node(len(nodes), root_box, nodes, metric)
+        return _Node(len(nodes), root_box, nodes, metric)
     else:
-        def node_key(node: Node,
+        def node_key(node: _Node,
                      double_root_delta_x: _Coordinate
                      = 2 * (root_box.max_x - root_box.min_x),
                      double_root_delta_y: _Coordinate
@@ -609,15 +579,15 @@ def _create_root(boxes: _Sequence[_Box],
             while start < level_limit:
                 stop = min(start + max_children, level_limit)
                 children = nodes[start:stop]
-                nodes.append(Node(len(nodes),
-                                  _reduce(boxes_merger,
-                                          [child.box for child in children]),
-                                  children, metric))
+                nodes.append(_Node(len(nodes),
+                                   _reduce(boxes_merger,
+                                           [child.box for child in children]),
+                                   children, metric))
                 start = stop
         return nodes[-1]
 
 
-def _node_to_leaves(node: Node) -> _Iterator[Node]:
+def _node_to_leaves(node: _Node) -> _Iterator[_Node]:
     if node.is_leaf:
         yield node
     else:
@@ -625,7 +595,7 @@ def _node_to_leaves(node: Node) -> _Iterator[Node]:
             yield from _node_to_leaves(child)
 
 
-def _find_node_box_subsets_items(node: Node, box: _Box) -> _Iterator[Item]:
+def _find_node_box_subsets_items(node: _Node, box: _Box) -> _Iterator[_Item]:
     if _box.is_subset_of(node.box, box):
         for leaf in _node_to_leaves(node):
             yield leaf.item
@@ -634,7 +604,7 @@ def _find_node_box_subsets_items(node: Node, box: _Box) -> _Iterator[Item]:
             yield from _find_node_box_subsets_items(child, box)
 
 
-def _find_node_box_supersets_items(node: Node, box: _Box) -> _Iterator[Item]:
+def _find_node_box_supersets_items(node: _Node, box: _Box) -> _Iterator[_Item]:
     if _box.is_subset_of(box, node.box):
         if node.is_leaf:
             yield node.item

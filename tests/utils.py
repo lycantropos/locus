@@ -18,6 +18,7 @@ from hypothesis.strategies import SearchStrategy
 from locus import (kd,
                    r)
 from locus.core.box import is_subset_of
+from locus.core.r import Node as RNode
 
 Domain = TypeVar('Domain')
 Range = TypeVar('Range')
@@ -83,7 +84,7 @@ def is_kd_node_balanced(node: kd.Node) -> bool:
                     for child in to_kd_node_children(node)))
 
 
-def is_r_node_balanced(node: r.Node) -> bool:
+def is_r_node_balanced(node: RNode) -> bool:
     if node.is_leaf:
         return True
     else:
@@ -104,7 +105,7 @@ def is_kd_node_valid(points: Sequence[Point], node: kd.Node) -> bool:
                for child in to_kd_node_children(node))
 
 
-def is_r_node_valid(node: r.Node) -> bool:
+def is_r_node_valid(node: RNode) -> bool:
     if node.is_leaf:
         return True
     else:
@@ -121,7 +122,7 @@ def to_kd_node_height(node: Union[kd.Node, kd.NIL]) -> int:
                default=0)
 
 
-def to_r_node_height(node: r.Node) -> int:
+def to_r_node_height(node: RNode) -> int:
     return (0
             if node.is_leaf
             else max(1 + to_r_node_height(child) for child in node.children))

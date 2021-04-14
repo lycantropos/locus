@@ -5,8 +5,8 @@ from ground.hints import (Coordinate,
                           Point)
 from hypothesis import given
 
-from locus.r import (Item,
-                     Tree)
+from locus.core.r import Item
+from locus.r import Tree
 from tests.utils import (is_r_item,
                          to_box_point_distance)
 from . import strategies
