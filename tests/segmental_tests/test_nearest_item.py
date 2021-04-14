@@ -4,8 +4,8 @@ from ground.hints import (Coordinate,
                           Segment)
 from hypothesis import given
 
-from locus.segmental import (Item,
-                             Tree)
+from locus.core.segmental import Item
+from locus.segmental import Tree
 from tests.utils import (is_segmental_item,
                          to_segments_distance)
 from . import strategies
