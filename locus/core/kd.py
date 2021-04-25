@@ -2,7 +2,6 @@ from operator import attrgetter
 from typing import (Callable,
                     Sequence,
                     Tuple,
-                    Type,
                     Union)
 
 from ground.hints import (Coordinate,
@@ -52,8 +51,7 @@ class Node:
         return (self.projection - coordinate) ** 2
 
 
-def create_node(cls: Type[Node],
-                indices: Sequence[int],
+def create_node(indices: Sequence[int],
                 points: Sequence[Point],
                 is_y_axis: bool,
                 metric: Callable[[Point, Point], Coordinate]
@@ -66,8 +64,8 @@ def create_node(cls: Type[Node],
     middle_index = (len(indices) - 1) // 2
     pivot_index = indices[middle_index]
     next_is_y_axis = not is_y_axis
-    return cls(pivot_index, points[pivot_index], is_y_axis,
-               create_node(cls, indices[:middle_index], points,
-                           next_is_y_axis, metric),
-               create_node(cls, indices[middle_index + 1:], points,
-                           next_is_y_axis, metric), metric)
+    return Node(pivot_index, points[pivot_index], is_y_axis,
+                create_node(indices[:middle_index], points, next_is_y_axis,
+                            metric),
+                create_node(indices[middle_index + 1:], points, next_is_y_axis,
+                            metric), metric)

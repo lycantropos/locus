@@ -34,7 +34,6 @@ class Tree:
     def __init__(self,
                  points: _Sequence[_Point],
                  *,
-                 node_cls: _Type[_Node] = _Node,
                  context: _Optional[_Context] = None) -> None:
         """
         Initializes tree from points.
@@ -55,8 +54,7 @@ class Tree:
         if context is None:
             context = _get_context()
         self._context, self._points, self._root = (
-            context, points, _create_node(node_cls, range(len(points)), points,
-                                          False,
+            context, points, _create_node(range(len(points)), points, False,
                                           context.points_squared_distance))
 
     __repr__ = _generate_repr(__init__)
