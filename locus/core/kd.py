@@ -34,20 +34,16 @@ class Node:
 
     @property
     def item(self) -> Item:
-        """Returns item of the node."""
         return self.index, self.point
 
     @property
     def projection(self) -> Scalar:
-        """Returns projection of the node point onto the corresponding axis."""
         return self.projector(self.point)
 
     def distance_to_point(self, point: Point) -> Scalar:
-        """Calculates distance to given point."""
         return self.metric(self.point, point)
 
     def distance_to_coordinate(self, coordinate: Scalar) -> Scalar:
-        """Calculates distance to given coordinate."""
         return (self.projection - coordinate) ** 2
 
 

@@ -35,16 +35,13 @@ class Node:
 
     @property
     def is_leaf(self) -> bool:
-        """Checks whether the node is a leaf."""
         return self.children is None
 
     @property
     def item(self) -> Item:
-        """Returns underlying index with box."""
         return self.index, self.box
 
     def distance_to_point(self, point: Point) -> Scalar:
-        """Calculates distance to given point."""
         return self.metric(self.box, point)
 
 
