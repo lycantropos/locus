@@ -7,8 +7,8 @@ from typing import (Callable,
                     Tuple)
 
 from ground.hints import (Box,
-                          Coordinate,
-                          Point)
+                          Point,
+                          Scalar)
 from reprit.base import generate_repr
 
 from . import hilbert
@@ -27,7 +27,7 @@ class Node:
                  index: int,
                  box: Box,
                  children: Optional[Sequence['Node']],
-                 metric: Callable[[Box, Point], Coordinate]) -> None:
+                 metric: Callable[[Box, Point], Scalar]) -> None:
         self.box, self.children, self.index, self.metric = (box, children,
                                                             index, metric)
 
@@ -43,7 +43,7 @@ class Node:
         """Returns underlying index with box."""
         return self.index, self.box
 
-    def distance_to_point(self, point: Point) -> Coordinate:
+    def distance_to_point(self, point: Point) -> Scalar:
         """Calculates distance to given point."""
         return self.metric(self.box, point)
 
@@ -51,7 +51,7 @@ class Node:
 def create_root(boxes: Sequence[Box],
                 max_children: int,
                 boxes_merger: Callable[[Box, Box], Box],
-                metric: Callable[[Box, Point], Coordinate]) -> Node:
+                metric: Callable[[Box, Point], Scalar]) -> Node:
     nodes = [Node(index, box, None, metric) for index, box in enumerate(boxes)]
     root_box = reduce(boxes_merger, boxes)
     leaves_count = len(nodes)
@@ -60,13 +60,12 @@ def create_root(boxes: Sequence[Box],
         return Node(len(nodes), root_box, nodes, metric)
     else:
         def node_key(node: Node,
-                     double_root_delta_x: Coordinate
+                     double_root_delta_x: Scalar
                      = 2 * (root_box.max_x - root_box.min_x),
-                     double_root_delta_y: Coordinate
+                     double_root_delta_y: Scalar
                      = 2 * (root_box.max_y - root_box.min_y),
-                     double_root_min_x: Coordinate = 2 * root_box.min_x,
-                     double_root_min_y: Coordinate = 2 * root_box.min_y
-                     ) -> int:
+                     double_root_min_x: Scalar = 2 * root_box.min_x,
+                     double_root_min_y: Scalar = 2 * root_box.min_y) -> int:
             box = node.box
             return hilbert.index(floor(hilbert.MAX_COORDINATE
                                        * (box.min_x + box.max_x

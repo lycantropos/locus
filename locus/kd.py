@@ -4,14 +4,13 @@ from typing import (Iterator as _Iterator,
                     List as _List,
                     Optional as _Optional,
                     Sequence as _Sequence,
-                    Tuple as _Tuple,
-                    Type as _Type)
+                    Tuple as _Tuple)
 
 from ground.base import (Context as _Context,
                          get_context as _get_context)
 from ground.hints import (Box as _Box,
-                          Coordinate as _Coordinate,
-                          Point as _Point)
+                          Point as _Point,
+                          Scalar as _Scalar)
 from reprit.base import generate_repr as _generate_repr
 
 from .core import box as _box
@@ -195,7 +194,7 @@ class Tree:
                 else list(enumerate(self._points)))
 
     def _n_nearest_items(self, n: int, point: _Point) -> _List[_Item]:
-        candidates = []  # type: _List[_Tuple[_Coordinate, _Item]]
+        candidates = []  # type: _List[_Tuple[_Scalar, _Item]]
         queue = [self._root]
         push, pop = queue.append, queue.pop
         while queue:

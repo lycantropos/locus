@@ -7,8 +7,8 @@ from typing import (Callable,
                     Tuple)
 
 from ground.hints import (Box,
-                          Coordinate,
                           Point,
+                          Scalar,
                           Segment)
 from reprit.base import generate_repr
 
@@ -29,13 +29,10 @@ class Node:
                  box: Box,
                  segment: Optional[Segment],
                  children: Optional[Sequence['Node']],
-                 box_point_metric: Callable[[Box, Point], Coordinate],
-                 box_segment_metric
-                 : Callable[[Box, Point, Point], Coordinate],
-                 segment_point_metric
-                 : Callable[[Point, Point, Point], Coordinate],
-                 segments_metric
-                 : Callable[[Point, Point, Point, Point], Coordinate]
+                 box_point_metric: Callable[[Box, Point], Scalar],
+                 box_segment_metric: Callable[[Box, Segment], Scalar],
+                 segment_point_metric: Callable[[Segment, Point], Scalar],
+                 segments_metric: Callable[[Segment, Segment], Scalar]
                  ) -> None:
         self.box, self.children, self.index, self.segment = (
             box, children, index, segment)
@@ -57,33 +54,28 @@ class Node:
     def distance_to_point(self,
                           point: Point,
                           *,
-                          _minus_inf: Coordinate = -inf) -> Coordinate:
-        return (self.segment_point_metric(self.segment.start, self.segment.end,
-                                          point) or _minus_inf
+                          _minus_inf: Scalar = -inf) -> Scalar:
+        return (self.segment_point_metric(self.segment, point) or _minus_inf
                 if self.is_leaf
                 else self.box_point_metric(self.box, point))
 
     def distance_to_segment(self,
                             segment: Segment,
                             *,
-                            _minus_inf: Coordinate = -inf) -> Coordinate:
-        return (self.segments_metric(self.segment.start, self.segment.end,
-                                     segment.start, segment.end) or _minus_inf
+                            _minus_inf: Scalar = -inf) -> Scalar:
+        return (self.segments_metric(self.segment, segment) or _minus_inf
                 if self.is_leaf
-                else self.box_segment_metric(self.box, segment.start,
-                                             segment.end))
+                else self.box_segment_metric(self.box, segment))
 
 
 def create_root(segments: Sequence[Segment],
                 boxes: Sequence[Box],
                 max_children: int,
                 boxes_merger: Callable[[Box, Box], Box],
-                box_point_metric: Callable[[Box, Point], Coordinate],
-                box_segment_metric: Callable[[Box, Point, Point], Coordinate],
-                segment_point_metric
-                : Callable[[Point, Point, Point], Coordinate],
-                segments_metric
-                : Callable[[Point, Point, Point, Point], Coordinate]) -> Node:
+                box_point_metric: Callable[[Box, Point], Scalar],
+                box_segment_metric: Callable[[Box, Segment], Scalar],
+                segment_point_metric: Callable[[Segment, Point], Scalar],
+                segments_metric: Callable[[Segment, Segment], Scalar]) -> Node:
     nodes = [Node(index, box, segment, None, box_point_metric,
                   box_segment_metric, segment_point_metric, segments_metric)
              for index, (box, segment) in enumerate(zip(boxes, segments))]
@@ -95,12 +87,12 @@ def create_root(segments: Sequence[Segment],
                     box_segment_metric, segment_point_metric, segments_metric)
     else:
         def node_key(node: Node,
-                     double_root_delta_x: Coordinate
+                     double_root_delta_x: Scalar
                      = 2 * (root_box.max_x - root_box.min_x) or 1,
-                     double_root_delta_y: Coordinate
+                     double_root_delta_y: Scalar
                      = 2 * (root_box.max_y - root_box.min_y) or 1,
-                     double_root_min_x: Coordinate = 2 * root_box.min_x,
-                     double_root_min_y: Coordinate = 2 * root_box.min_y
+                     double_root_min_x: Scalar = 2 * root_box.min_x,
+                     double_root_min_y: Scalar = 2 * root_box.min_y
                      ) -> int:
             box = node.box
             return hilbert.index(floor(hilbert.MAX_COORDINATE

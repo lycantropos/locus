@@ -4,8 +4,8 @@ from typing import (Callable,
                     Tuple,
                     Union)
 
-from ground.hints import (Coordinate,
-                          Point)
+from ground.hints import (Point,
+                          Scalar)
 from reprit.base import generate_repr
 
 Item = Tuple[int, Point]
@@ -24,7 +24,7 @@ class Node:
                  is_y_axis: bool,
                  left: Union['Node', NIL],
                  right: Union['Node', NIL],
-                 metric: Callable[[Point, Point], Coordinate]) -> None:
+                 metric: Callable[[Point, Point], Scalar]) -> None:
         self.index, self.point = index, point
         self.is_y_axis, self.projector = is_y_axis, PROJECTORS[is_y_axis]
         self.left, self.right = left, right
@@ -38,15 +38,15 @@ class Node:
         return self.index, self.point
 
     @property
-    def projection(self) -> Coordinate:
+    def projection(self) -> Scalar:
         """Returns projection of the node point onto the corresponding axis."""
         return self.projector(self.point)
 
-    def distance_to_point(self, point: Point) -> Coordinate:
+    def distance_to_point(self, point: Point) -> Scalar:
         """Calculates distance to given point."""
         return self.metric(self.point, point)
 
-    def distance_to_coordinate(self, coordinate: Coordinate) -> Coordinate:
+    def distance_to_coordinate(self, coordinate: Scalar) -> Scalar:
         """Calculates distance to given coordinate."""
         return (self.projection - coordinate) ** 2
 
@@ -54,7 +54,7 @@ class Node:
 def create_node(indices: Sequence[int],
                 points: Sequence[Point],
                 is_y_axis: bool,
-                metric: Callable[[Point, Point], Coordinate]
+                metric: Callable[[Point, Point], Scalar]
                 ) -> Union[Node, NIL]:
     if not indices:
         return NIL
