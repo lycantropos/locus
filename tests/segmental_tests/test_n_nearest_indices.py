@@ -1,7 +1,7 @@
 from heapq import nsmallest
 from typing import Tuple
 
-from ground.hints import (Coordinate,
+from ground.hints import (Scalar,
                           Segment)
 from hypothesis import given
 
@@ -27,7 +27,7 @@ def test_properties(tree_with_segment_and_n: Tuple[Tree, Segment, int]
 
     result = tree.n_nearest_indices(n, segment)
 
-    def to_segment_distance(index: int) -> Coordinate:
+    def to_segment_distance(index: int) -> Scalar:
         return to_segments_distance(tree.segments[index], segment)
 
     indices = range(len(tree.segments))

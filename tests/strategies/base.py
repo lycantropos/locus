@@ -4,7 +4,7 @@ from fractions import Fraction
 from functools import partial
 from operator import add
 
-from ground.hints import Coordinate
+from ground.hints import Scalar
 from hypothesis import strategies
 
 from tests.utils import (Box,
@@ -14,12 +14,12 @@ from tests.utils import (Box,
                          pack,
                          to_pairs)
 
-MAX_COORDINATE = 10 ** 15
-MIN_COORDINATE = -MAX_COORDINATE
+MAX_SCALAR = 10 ** 15
+MIN_SCALAR = -MAX_SCALAR
 
 
-def to_floats(min_value: Coordinate,
-              max_value: Coordinate,
+def to_floats(min_value: Scalar,
+              max_value: Scalar,
               *,
               allow_nan: bool = False,
               allow_infinity: bool = False) -> Strategy:
@@ -56,36 +56,33 @@ def to_digits_count(number: float,
     return float(str(decimal))
 
 
-coordinates_strategies_factories = {
+scalars_strategies_factories = {
     float: to_floats,
     Fraction: partial(strategies.fractions,
-                      max_denominator=MAX_COORDINATE),
+                      max_denominator=MAX_SCALAR),
     int: strategies.integers}
-coordinates_strategies = strategies.sampled_from(
-        [factory(MIN_COORDINATE, MAX_COORDINATE)
-         for factory in coordinates_strategies_factories.values()])
+scalars_strategies = strategies.sampled_from(
+        [factory(MIN_SCALAR, MAX_SCALAR)
+         for factory in scalars_strategies_factories.values()])
 
 
-def coordinates_to_points(coordinates: Strategy[Coordinate]
-                          ) -> Strategy[Point]:
-    return strategies.builds(Point, coordinates, coordinates)
+def to_points(scalars: Strategy[Scalar]) -> Strategy[Point]:
+    return strategies.builds(Point, scalars, scalars)
 
 
-points_strategies = coordinates_strategies.map(coordinates_to_points)
+points_strategies = scalars_strategies.map(to_points)
 
 
-def coordinates_to_segments(coordinates: Strategy[Coordinate]
-                            ) -> Strategy[Segment]:
-    return (strategies.lists(coordinates_to_points(coordinates),
+def to_segments(scalar: Strategy[Scalar]) -> Strategy[Segment]:
+    return (strategies.lists(to_points(scalar),
                              min_size=2,
                              max_size=2,
                              unique=True)
             .map(pack(Segment)))
 
 
-def coordinates_to_boxes(coordinates: Strategy[Coordinate]
-                             ) -> Strategy[Box]:
-    return (to_pairs(strategies.lists(coordinates,
+def to_boxes(scalars: Strategy[Scalar]) -> Strategy[Box]:
+    return (to_pairs(strategies.lists(scalars,
                                       min_size=2,
                                       max_size=2,
                                       unique=True)

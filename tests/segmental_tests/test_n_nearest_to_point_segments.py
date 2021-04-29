@@ -1,8 +1,8 @@
 from heapq import nsmallest
 from typing import Tuple
 
-from ground.hints import (Coordinate,
-                          Point,
+from ground.hints import (Point,
+                          Scalar,
                           Segment)
 from hypothesis import given
 
@@ -28,7 +28,7 @@ def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
 
     result = tree.n_nearest_to_point_segments(n, point)
 
-    def to_point_distance(segment: Segment) -> Coordinate:
+    def to_point_distance(segment: Segment) -> Scalar:
         return to_segment_point_distance(segment, point)
 
     assert 0 < len(result) <= n

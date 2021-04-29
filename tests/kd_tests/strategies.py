@@ -4,14 +4,14 @@ from typing import (List,
                     Tuple)
 
 from ground.hints import (Box,
-                          Coordinate)
+                          Scalar)
 from hypothesis import strategies
 
 from locus.kd import Tree
-from tests.strategies import (coordinates_strategies,
-                              coordinates_to_boxes,
-                              coordinates_to_points,
-                              points_strategies)
+from tests.strategies import (points_strategies,
+                              scalars_strategies,
+                              to_boxes,
+                              to_points)
 from tests.utils import (Point,
                          Strategy,
                          identity)
@@ -57,44 +57,43 @@ trees_with_points_and_sizes = (points_strategies
                                .flatmap(points_to_trees_with_points_and_sizes))
 
 
-def coordinates_to_trees_with_balls(coordinates: Strategy[Coordinate],
-                                    *,
-                                    min_tree_size: int = 1,
-                                    max_tree_size: Optional[int] = None
-                                    ) -> Strategy[Tuple[Tree, Point,
-                                                        Coordinate]]:
-    points = coordinates_to_points(coordinates)
+def scalars_to_trees_with_balls(scalars: Strategy[Scalar],
+                                *,
+                                min_tree_size: int = 1,
+                                max_tree_size: Optional[int] = None
+                                ) -> Strategy[Tuple[Tree, Point, Scalar]]:
+    points = to_points(scalars)
     return strategies.tuples(points_to_trees(points,
                                              min_size=min_tree_size,
                                              max_size=max_tree_size),
-                             points, coordinates.map(abs))
+                             points, scalars.map(abs))
 
 
-trees_with_balls = (strategies.builds(coordinates_to_trees_with_balls,
-                                      coordinates_strategies)
+trees_with_balls = (strategies.builds(scalars_to_trees_with_balls,
+                                      scalars_strategies)
                     .flatmap(identity))
 
 
-def coordinates_to_trees_with_boxes(coordinates: Strategy[Coordinate],
-                                    *,
-                                    min_tree_size: int = 1,
-                                    max_tree_size: Optional[int] = None
-                                    ) -> Strategy[Tuple[Tree, Box]]:
-    return strategies.tuples(coordinates_to_trees(coordinates,
-                                                  min_tree_size=min_tree_size,
-                                                  max_tree_size=max_tree_size),
-                             coordinates_to_boxes(coordinates))
+def scalars_to_trees_with_boxes(scalars: Strategy[Scalar],
+                                *,
+                                min_tree_size: int = 1,
+                                max_tree_size: Optional[int] = None
+                                ) -> Strategy[Tuple[Tree, Box]]:
+    return strategies.tuples(scalars_to_trees(scalars,
+                                              min_tree_size=min_tree_size,
+                                              max_tree_size=max_tree_size),
+                             to_boxes(scalars))
 
 
-def coordinates_to_trees(coordinates: Strategy[Coordinate],
-                         *,
-                         min_tree_size: int = 1,
-                         max_tree_size: Optional[int] = None):
-    return points_to_trees(coordinates_to_points(coordinates),
+def scalars_to_trees(scalars: Strategy[Scalar],
+                     *,
+                     min_tree_size: int = 1,
+                     max_tree_size: Optional[int] = None):
+    return points_to_trees(to_points(scalars),
                            min_size=min_tree_size,
                            max_size=max_tree_size)
 
 
-trees_with_boxes = (strategies.builds(coordinates_to_trees_with_boxes,
-                                      coordinates_strategies)
+trees_with_boxes = (strategies.builds(scalars_to_trees_with_boxes,
+                                      scalars_strategies)
                     .flatmap(identity))

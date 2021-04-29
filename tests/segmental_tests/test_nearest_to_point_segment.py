@@ -1,7 +1,7 @@
 from typing import Tuple
 
-from ground.hints import (Coordinate,
-                          Point,
+from ground.hints import (Point,
+                          Scalar,
                           Segment)
 from hypothesis import given
 
@@ -26,7 +26,7 @@ def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
 
     result = tree.nearest_to_point_segment(point)
 
-    def to_point_distance(segment: Segment) -> Coordinate:
+    def to_point_distance(segment: Segment) -> Scalar:
         return to_segment_point_distance(segment, point)
 
     assert result in tree.segments

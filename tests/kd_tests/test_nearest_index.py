@@ -1,7 +1,7 @@
 from typing import Tuple
 
-from ground.hints import (Coordinate,
-                          Point)
+from ground.hints import (Point,
+                          Scalar)
 from hypothesis import given
 
 from locus.kd import Tree
@@ -33,7 +33,7 @@ def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
 
     result = tree.nearest_index(point)
 
-    def to_point_distance(index: int) -> Coordinate:
+    def to_point_distance(index: int) -> Scalar:
         return to_points_distance(tree.points[index], point)
 
     indices = range(len(tree.points))

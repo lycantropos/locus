@@ -1,5 +1,5 @@
-from .base import (coordinates_strategies,
-                   coordinates_to_boxes,
-                   coordinates_to_points,
-                   coordinates_to_segments,
-                   points_strategies)
+from .base import (points_strategies,
+                   scalars_strategies,
+                   to_boxes,
+                   to_points,
+                   to_segments)

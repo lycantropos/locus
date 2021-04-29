@@ -1,11 +1,11 @@
 from typing import Tuple
 
-from ground.hints import (Coordinate,
-                          Point)
+from ground.hints import (Point,
+                          Scalar)
 from hypothesis import given
 
-from locus.kd import Tree
 from locus.core.kd import Item
+from locus.kd import Tree
 from tests.utils import (all_unique,
                          equivalence,
                          is_kd_item,
@@ -35,7 +35,7 @@ def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
 
     result = tree.nearest_item(point)
 
-    def to_point_distance(item: Item) -> Coordinate:
+    def to_point_distance(item: Item) -> Scalar:
         return to_points_distance(item[1], point)
 
     items = list(enumerate(tree.points))

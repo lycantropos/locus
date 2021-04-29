@@ -11,7 +11,6 @@ from typing import (Any,
                     Union)
 
 from ground.base import get_context
-from ground.hints import Coordinate
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
@@ -206,13 +205,5 @@ def rot(size: int, x: int, y: int, rx: int, ry: int) -> Tuple[int, int]:
 
 to_box_point_distance = _context.box_point_squared_distance
 to_points_distance = _context.points_squared_distance
-
-
-def to_segment_point_distance(segment: Segment, point: Point) -> Coordinate:
-    return _context.segment_point_squared_distance(segment.start, segment.end,
-                                                   point)
-
-
-def to_segments_distance(first: Segment, second: Segment) -> Coordinate:
-    return _context.segments_squared_distance(first.start, first.end,
-                                              second.start, second.end)
+to_segment_point_distance = _context.segment_point_squared_distance
+to_segments_distance = _context.segments_squared_distance

@@ -2,8 +2,8 @@ from heapq import nsmallest
 from typing import Tuple
 
 from ground.hints import (Box,
-                          Coordinate,
-                          Point)
+                          Point,
+                          Scalar)
 from hypothesis import given
 
 from locus.r import Tree
@@ -28,7 +28,7 @@ def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
 
     result = tree.n_nearest_boxes(n, point)
 
-    def to_point_distance(box: Box) -> Coordinate:
+    def to_point_distance(box: Box) -> Scalar:
         return to_box_point_distance(box, point)
 
     assert 0 < len(result) <= n

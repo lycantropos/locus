@@ -3,23 +3,23 @@ from typing import (List,
                     Optional,
                     Tuple)
 
-from ground.hints import (Coordinate,
-                          Point,
+from ground.hints import (Point,
+                          Scalar,
                           Segment)
 from hypothesis import strategies
 
 from locus.core.hilbert import MAX_COORDINATE
 from locus.segmental import Tree
-from tests.strategies import (coordinates_strategies,
-                              coordinates_to_points,
-                              coordinates_to_segments)
+from tests.strategies import (scalars_strategies,
+                              to_points,
+                              to_segments)
 from tests.utils import Strategy
 
 MIN_SEGMENTS_SIZE = 2
 max_children_counts = (strategies.sampled_from([2 ** power
                                                 for power in range(1, 10)])
                        | strategies.integers(2, MAX_COORDINATE))
-segments_strategies = coordinates_strategies.map(coordinates_to_segments)
+segments_strategies = scalars_strategies.map(to_segments)
 segments_lists = (segments_strategies
                   .flatmap(partial(strategies.lists,
                                    min_size=MIN_SEGMENTS_SIZE)))
@@ -28,12 +28,12 @@ trees = strategies.builds(Tree,
                           max_children=max_children_counts)
 
 
-def coordinates_to_trees_with_segments(coordinates: Strategy[Coordinate],
-                                       *,
-                                       min_size: int = MIN_SEGMENTS_SIZE,
-                                       max_size: Optional[int] = None
-                                       ) -> Strategy[Tuple[Tree, Segment]]:
-    segments = coordinates_to_segments(coordinates)
+def scalars_to_trees_with_segments(scalars: Strategy[Scalar],
+                                   *,
+                                   min_size: int = MIN_SEGMENTS_SIZE,
+                                   max_size: Optional[int] = None
+                                   ) -> Strategy[Tuple[Tree, Segment]]:
+    segments = to_segments(scalars)
     return strategies.tuples(
             strategies.builds(Tree,
                               strategies.lists(segments,
@@ -43,31 +43,31 @@ def coordinates_to_trees_with_segments(coordinates: Strategy[Coordinate],
             segments)
 
 
-trees_with_segments = (coordinates_strategies
-                       .flatmap(coordinates_to_trees_with_segments))
+trees_with_segments = (scalars_strategies
+                       .flatmap(scalars_to_trees_with_segments))
 
 
-def coordinates_to_trees_with_points(coordinates: Strategy[Coordinate],
-                                     *,
-                                     min_size: int = MIN_SEGMENTS_SIZE,
-                                     max_size: Optional[int] = None
-                                     ) -> Strategy[Tuple[Tree, Point]]:
+def scalars_to_trees_with_points(scalars: Strategy[Scalar],
+                                 *,
+                                 min_size: int = MIN_SEGMENTS_SIZE,
+                                 max_size: Optional[int] = None
+                                 ) -> Strategy[Tuple[Tree, Point]]:
     return (strategies.tuples(
             strategies.builds(Tree,
                               strategies.lists(
-                                      coordinates_to_segments(coordinates),
+                                      to_segments(scalars),
                                       min_size=min_size,
                                       max_size=max_size),
                               max_children=max_children_counts),
-            coordinates_to_points(coordinates)))
+            to_points(scalars)))
 
 
-trees_with_points = (coordinates_strategies
-                     .flatmap(coordinates_to_trees_with_points))
+trees_with_points = (scalars_strategies
+                     .flatmap(scalars_to_trees_with_points))
 
 
-def coordinates_to_trees_with_points_and_sizes(
-        coordinates: Strategy[Coordinate],
+def scalars_to_trees_with_points_and_sizes(
+        scalars: Strategy[Scalar],
         *,
         min_size: int = MIN_SEGMENTS_SIZE,
         max_size: Optional[int] = None) -> Strategy[Tuple[Tree, Point, int]]:
@@ -83,19 +83,19 @@ def coordinates_to_trees_with_points_and_sizes(
                 strategies.integers(1, len(segments_list)))
 
     return (strategies.tuples(
-            strategies.lists(coordinates_to_segments(coordinates),
+            strategies.lists(to_segments(scalars),
                              min_size=min_size,
                              max_size=max_size),
-            coordinates_to_points(coordinates))
+            to_points(scalars))
             .flatmap(to_trees_with_points_and_sizes))
 
 
 trees_with_points_and_sizes = (
-    coordinates_strategies.flatmap(coordinates_to_trees_with_points_and_sizes))
+    scalars_strategies.flatmap(scalars_to_trees_with_points_and_sizes))
 
 
-def coordinates_to_trees_with_segments_and_sizes(
-        coordinates: Strategy[Coordinate],
+def scalars_to_trees_with_segments_and_sizes(
+        scalars: Strategy[Scalar],
         *,
         min_size: int = MIN_SEGMENTS_SIZE,
         max_size: Optional[int] = None) -> Strategy[Tuple[Tree, Segment, int]]:
@@ -110,7 +110,7 @@ def coordinates_to_trees_with_segments_and_sizes(
                 strategies.just(segment),
                 strategies.integers(1, len(segments_list)))
 
-    segments = coordinates_to_segments(coordinates)
+    segments = to_segments(scalars)
     return (strategies.tuples(strategies.lists(segments,
                                                min_size=min_size,
                                                max_size=max_size),
@@ -118,5 +118,5 @@ def coordinates_to_trees_with_segments_and_sizes(
             .flatmap(to_trees_with_segments_and_sizes))
 
 
-trees_with_segments_and_sizes = coordinates_strategies.flatmap(
-        coordinates_to_trees_with_segments_and_sizes)
+trees_with_segments_and_sizes = scalars_strategies.flatmap(
+        scalars_to_trees_with_segments_and_sizes)

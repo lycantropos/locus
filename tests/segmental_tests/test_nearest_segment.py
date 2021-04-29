@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from ground.hints import (Coordinate,
+from ground.hints import (Scalar,
                           Segment)
 from hypothesis import given
 
@@ -25,7 +25,7 @@ def test_properties(tree_with_segment: Tuple[Tree, Segment]) -> None:
 
     result = tree.nearest_segment(segment)
 
-    def to_segment_distance(tree_segment: Segment) -> Coordinate:
+    def to_segment_distance(tree_segment: Segment) -> Scalar:
         return to_segments_distance(tree_segment, segment)
 
     assert result in tree.segments
