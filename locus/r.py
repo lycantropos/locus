@@ -42,12 +42,6 @@ class Tree:
             ``O(size)``
 
         where ``size = len(boxes)``.
-
-        >>> from ground.base import get_context
-        >>> context = get_context()
-        >>> Box = context.box_cls
-        >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
         """
         if context is None:
             context = _get_context()
