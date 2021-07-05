@@ -31,20 +31,12 @@ class Tree:
         """
         Initializes tree from segments.
 
-
         Time complexity:
             ``O(size * log size)``
         Memory complexity:
             ``O(size)``
 
         where ``size = len(segments)``.
-
-        >>> from ground.base import get_context
-        >>> context = get_context()
-        >>> Point, Segment = context.point_cls, context.segment_cls
-        >>> segments = [Segment(Point(0, index), Point(index, index))
-        ...             for index in range(1, 11)]
-        >>> tree = Tree(segments)
         """
         if context is None:
             context = _get_context()
