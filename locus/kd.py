@@ -43,12 +43,6 @@ class Tree:
             ``O(dimension * size)``
 
         where ``dimension = len(points[0])``, ``size = len(points)``.
-
-        >>> from ground.base import get_context
-        >>> context = get_context()
-        >>> Point = context.point_cls
-        >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
         """
         if context is None:
             context = _get_context()
