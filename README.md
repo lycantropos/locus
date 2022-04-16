@@ -7,8 +7,8 @@ locus
 [![](https://img.shields.io/github/license/lycantropos/locus.svg)](https://github.com/lycantropos/locus/blob/master/LICENSE "License")
 [![](https://badge.fury.io/py/locus.svg)](https://badge.fury.io/py/locus "PyPI")
 
-In what follows `python` is an alias for `python3.5` or `pypy3.5`
-or any later version (`python3.6`, `pypy3.6` and so on).
+In what follows `python` is an alias for `python3.6` or `pypy3.6`
+or any later version (`python3.7`, `pypy3.7` and so on).
 
 Installation
 ------------
