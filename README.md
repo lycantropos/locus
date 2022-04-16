@@ -152,7 +152,7 @@ Inside `Docker` container:
   docker-compose --file docker-compose.pypy.yml up
   ```
 
-`Bash` script (e.g. can be used in `Git` hooks):
+`Bash` script:
 - with `CPython`
   ```bash
   ./run-tests.sh
@@ -167,7 +167,7 @@ Inside `Docker` container:
   ./run-tests.sh pypy
   ```
 
-`PowerShell` script (e.g. can be used in `Git` hooks):
+`PowerShell` script:
 - with `CPython`
   ```powershell
   .\run-tests.ps1
