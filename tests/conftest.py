@@ -8,9 +8,9 @@ from hypothesis import (HealthCheck,
 
 is_pypy = platform.python_implementation() == 'PyPy'
 on_ci = bool(os.getenv('CI', False))
-max_examples = (-(-settings.default.max_examples) // 10
+max_examples = (-(-settings.default.max_examples) // 25
                 if is_pypy
-                else -(-settings.default.max_examples) // 2)
+                else -(-settings.default.max_examples) // 5)
 settings.register_profile('default',
                           deadline=(timedelta(hours=1) / max_examples
                                     if on_ci
