@@ -1,7 +1,7 @@
 locus
 =====
 
-[![](https://github.com/lycantropos/locus/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/lycantropos/locus/actions/workflows/ci.yml "Github Actions")
+[![](https://github.com/lycantropos/locus/workflows/CI/badge.svg)](https://github.com/lycantropos/locus/actions/workflows/ci.yml "Github Actions")
 [![](https://readthedocs.org/projects/locus/badge/?version=latest)](https://locus.readthedocs.io/en/latest "Documentation")
 [![](https://codecov.io/gh/lycantropos/locus/branch/master/graph/badge.svg)](https://codecov.io/gh/lycantropos/locus "Codecov")
 [![](https://img.shields.io/github/license/lycantropos/locus.svg)](https://github.com/lycantropos/locus/blob/master/LICENSE "License")
