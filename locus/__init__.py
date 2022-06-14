@@ -1,3 +1,3 @@
 """Data structures for spatial queries."""
 
-__version__ = '8.1.0'
+__version__ = '8.2.0-alpha'
