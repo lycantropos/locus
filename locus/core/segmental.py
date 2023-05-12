@@ -35,11 +35,13 @@ class Node:
                  segments_metric: Callable[[Segment, Segment], Scalar]
                  ) -> None:
         self.box, self.children, self.index, self.segment = (
-            box, children, index, segment)
+            box, children, index, segment
+        )
         (self.box_point_metric, self.box_segment_metric,
          self.segment_point_metric, self.segments_metric) = (
             box_point_metric, box_segment_metric, segment_point_metric,
-            segments_metric)
+            segments_metric
+        )
 
     __repr__ = generate_repr(__init__)
 
