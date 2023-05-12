@@ -10,10 +10,8 @@ services:
     image: lycantropos/locus-pypy:8.2.0
     volumes:
       - ./locus:/opt/locus/locus
-      - ./pytest.ini:/opt/locus/pytest.ini
+      - ./pyproject.toml:/opt/locus/pyproject.toml
       - ./README.md:/opt/locus/README.md
-      - ./requirements-tests.txt:/opt/locus/requirements-tests.txt
-      - ./requirements.txt:/opt/locus/requirements.txt
       - ./setup.py:/opt/locus/setup.py
       - ./tests:/opt/locus/tests
     entrypoint: pytest
