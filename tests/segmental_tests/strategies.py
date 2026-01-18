@@ -23,13 +23,14 @@ segments_lists = segments_strategies.flatmap(
 trees = st.builds(Tree, segments_lists, max_children=max_children_counts)
 
 
-def scalars_to_trees_with_segments(
-    scalars: st.SearchStrategy[ScalarT],
+def scalar_strategy_to_tree_with_segment_strategy(
+    scalar_strategy: st.SearchStrategy[ScalarT],
+    /,
     *,
     min_size: int = MIN_SEGMENTS_SIZE,
     max_size: int | None = None,
 ) -> st.SearchStrategy[tuple[Tree[ScalarT], Segment[ScalarT]]]:
-    segments = to_segment_strategy(scalars)
+    segments = to_segment_strategy(scalar_strategy)
     return st.tuples(
         st.builds(
             Tree,
@@ -41,12 +42,13 @@ def scalars_to_trees_with_segments(
 
 
 trees_with_segments = scalar_strategy_strategy.flatmap(
-    scalars_to_trees_with_segments
+    scalar_strategy_to_tree_with_segment_strategy
 )
 
 
-def scalars_to_trees_with_points(
-    scalars: st.SearchStrategy[ScalarT],
+def scalar_strategy_to_tree_with_point_strategy(
+    scalar_strategy: st.SearchStrategy[ScalarT],
+    /,
     *,
     min_size: int = MIN_SEGMENTS_SIZE,
     max_size: int | None = None,
@@ -55,22 +57,22 @@ def scalars_to_trees_with_points(
         st.builds(
             Tree,
             st.lists(
-                to_segment_strategy(scalars),
+                to_segment_strategy(scalar_strategy),
                 min_size=min_size,
                 max_size=max_size,
             ),
             max_children=max_children_counts,
         ),
-        to_point_strategy(scalars),
+        to_point_strategy(scalar_strategy),
     )
 
 
-trees_with_points = scalar_strategy_strategy.flatmap(
-    scalars_to_trees_with_points
+tree_with_point_strategy = scalar_strategy_strategy.flatmap(
+    scalar_strategy_to_tree_with_point_strategy
 )
 
 
-def scalars_to_trees_with_points_and_sizes(
+def scalar_strategy_to_tree_with_point_and_size_strategy(
     scalar_strategy: st.SearchStrategy[ScalarT],
     /,
     *,
@@ -102,12 +104,12 @@ def scalars_to_trees_with_points_and_sizes(
     ).flatmap(to_trees_with_points_and_sizes)
 
 
-trees_with_points_and_sizes = scalar_strategy_strategy.flatmap(
-    scalars_to_trees_with_points_and_sizes
+tree_with_point_and_size_strategy = scalar_strategy_strategy.flatmap(
+    scalar_strategy_to_tree_with_point_and_size_strategy
 )
 
 
-def scalars_to_trees_with_segments_and_sizes(
+def scalar_strategy_to_tree_with_segment_and_size_strategy(
     scalar_strategy: st.SearchStrategy[ScalarT],
     /,
     *,
@@ -135,6 +137,6 @@ def scalars_to_trees_with_segments_and_sizes(
     ).flatmap(to_trees_with_segments_and_sizes)
 
 
-trees_with_segments_and_sizes = scalar_strategy_strategy.flatmap(
-    scalars_to_trees_with_segments_and_sizes
+tree_with_segment_and_size_strategy = scalar_strategy_strategy.flatmap(
+    scalar_strategy_to_tree_with_segment_and_size_strategy
 )

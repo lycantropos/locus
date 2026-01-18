@@ -11,7 +11,7 @@ from tests.utils import is_kd_item, to_point_squared_distance
 from . import strategies
 
 
-@given(strategies.trees_with_points_and_sizes)
+@given(strategies.tree_with_point_and_size_strategy)
 def test_basic(
     tree_with_point_and_n: tuple[Tree[ScalarT], Point[ScalarT], int],
 ) -> None:
@@ -23,7 +23,7 @@ def test_basic(
     assert all(is_kd_item(element) for element in result)
 
 
-@given(strategies.trees_with_points_and_sizes)
+@given(strategies.tree_with_point_and_size_strategy)
 def test_properties(
     tree_with_point_and_n: tuple[Tree[ScalarT], Point[ScalarT], int],
 ) -> None:

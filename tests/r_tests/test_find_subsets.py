@@ -9,7 +9,7 @@ from tests.utils import context
 from . import strategies
 
 
-@given(strategies.trees_with_boxes)
+@given(strategies.tree_with_box_strategy)
 def test_basic(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     tree, box = tree_with_box
 
@@ -24,7 +24,7 @@ def test_base_boxes(tree: Tree[ScalarT]) -> None:
     assert all(box in tree.find_subsets(box) for box in tree.boxes)
 
 
-@given(strategies.trees_with_boxes)
+@given(strategies.tree_with_box_strategy)
 def test_properties(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     tree, box = tree_with_box
 

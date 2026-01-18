@@ -15,7 +15,7 @@ from tests.utils import (
 from . import strategies
 
 
-@given(strategies.trees_with_points)
+@given(strategies.tree_with_point_strategy)
 def test_basic(tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]]) -> None:
     tree, point = tree_with_point
 
@@ -24,12 +24,12 @@ def test_basic(tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]]) -> None:
     assert isinstance(result, context.point_cls)
 
 
-@given(strategies.trees)
+@given(strategies.tree_strategy)
 def test_fixed_points(tree: Tree[ScalarT]) -> None:
     assert all(tree.nearest_point(point) == point for point in tree.points)
 
 
-@given(strategies.trees)
+@given(strategies.tree_strategy)
 def test_uniqueness_criteria(tree: Tree[ScalarT]) -> None:
     assert equivalence(
         all(tree.nearest_point(point) is point for point in tree.points),
@@ -37,7 +37,7 @@ def test_uniqueness_criteria(tree: Tree[ScalarT]) -> None:
     )
 
 
-@given(strategies.trees_with_points)
+@given(strategies.tree_with_point_strategy)
 def test_properties(
     tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]],
 ) -> None:

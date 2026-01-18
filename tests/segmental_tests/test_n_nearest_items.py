@@ -11,7 +11,7 @@ from tests.utils import is_segmental_item, to_segment_squared_distance
 from . import strategies
 
 
-@given(strategies.trees_with_segments_and_sizes)
+@given(strategies.tree_with_segment_and_size_strategy)
 def test_basic(
     tree_with_segment_and_n: tuple[Tree[ScalarT], Segment[ScalarT], int],
 ) -> None:
@@ -23,7 +23,7 @@ def test_basic(
     assert all(is_segmental_item(element) for element in result)
 
 
-@given(strategies.trees_with_segments_and_sizes)
+@given(strategies.tree_with_segment_and_size_strategy)
 def test_properties(
     tree_with_segment_and_n: tuple[Tree[ScalarT], Segment[ScalarT], int],
 ) -> None:

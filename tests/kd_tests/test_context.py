@@ -7,7 +7,7 @@ from tests.hints import ScalarT
 from . import strategies
 
 
-@given(strategies.trees)
+@given(strategies.tree_strategy)
 def test_basic(tree: Tree[ScalarT]) -> None:
     result = tree.context
 

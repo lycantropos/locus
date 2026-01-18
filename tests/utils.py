@@ -66,7 +66,7 @@ def is_segmental_tree_valid(tree: segmental.Tree[ScalarT], /) -> bool:
     return is_segmental_node_valid(tree._root)
 
 
-def to_balanced_tree_height(size: int, max_children: int) -> int:
+def to_balanced_tree_height(size: int, max_children: int, /) -> int:
     size_log2 = size.bit_length() - 1
     return (
         size_log2
@@ -148,7 +148,7 @@ def is_segmental_node_valid(node: AnySegmentalNode[ScalarT], /) -> bool:
     ) and all(is_segmental_node_valid(child) for child in node.children)
 
 
-def to_kd_node_height(node: KdNode[ScalarT] | Nil) -> int:
+def to_kd_node_height(node: KdNode[ScalarT] | Nil, /) -> int:
     if node is NIL:
         return -1
     return max(
@@ -179,7 +179,7 @@ def to_kd_node_children(node: KdNode[ScalarT], /) -> Iterable[KdNode[ScalarT]]:
         yield node.right
 
 
-def is_kd_item(value: Any) -> bool:
+def is_kd_item(value: Any, /) -> bool:
     return (
         isinstance(value, tuple)
         and len(value) == 2
@@ -188,7 +188,7 @@ def is_kd_item(value: Any) -> bool:
     )
 
 
-def is_r_item(value: Any) -> bool:
+def is_r_item(value: Any, /) -> bool:
     return (
         isinstance(value, tuple)
         and len(value) == 2
@@ -213,7 +213,7 @@ def all_equal(iterable: Iterable[_T], /) -> bool:
     return next(groups, True) and not next(groups, False)
 
 
-def all_unique(iterable: Iterable[_T]) -> bool:
+def all_unique(iterable: Iterable[_T], /) -> bool:
     seen: set[_T] = set()
     register = seen.add
     for element in iterable:
@@ -227,7 +227,7 @@ def identity(value: _T, /) -> _T:
     return value
 
 
-def to_hilbert_index_complete(size: int, x: int, y: int) -> int:
+def to_hilbert_index_complete(size: int, x: int, y: int, /) -> int:
     result = 0
     step = size // 2
     while step > 0:
@@ -239,7 +239,7 @@ def to_hilbert_index_complete(size: int, x: int, y: int) -> int:
     return result
 
 
-def rot(size: int, x: int, y: int, rx: int, ry: int) -> tuple[int, int]:
+def rot(size: int, x: int, y: int, rx: int, ry: int, /) -> tuple[int, int]:
     if not ry:
         if rx == 1:
             x, y = size - 1 - x, size - 1 - y

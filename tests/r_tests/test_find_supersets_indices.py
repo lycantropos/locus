@@ -8,7 +8,7 @@ from tests.hints import ScalarT
 from . import strategies
 
 
-@given(strategies.trees_with_boxes)
+@given(strategies.tree_with_box_strategy)
 def test_basic(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     tree, box = tree_with_box
 
@@ -26,7 +26,7 @@ def test_base_boxes(tree: Tree[ScalarT]) -> None:
     )
 
 
-@given(strategies.trees_with_boxes)
+@given(strategies.tree_with_box_strategy)
 def test_properties(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     tree, box = tree_with_box
 

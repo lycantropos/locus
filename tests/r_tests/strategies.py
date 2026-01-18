@@ -23,13 +23,14 @@ boxes_lists = boxes_strategies.flatmap(
 trees = st.builds(Tree, boxes_lists, max_children=max_children_counts)
 
 
-def scalars_to_trees_with_boxes(
-    scalars: st.SearchStrategy[ScalarT],
+def scalar_strategy_to_tree_with_box_strategy(
+    scalar_strategy: st.SearchStrategy[ScalarT],
+    /,
     *,
     min_size: int = MIN_BOXES_SIZE,
     max_size: int | None = None,
 ) -> st.SearchStrategy[tuple[Tree[ScalarT], Box[ScalarT]]]:
-    boxes = to_box_strategy(scalars)
+    boxes = to_box_strategy(scalar_strategy)
     return st.tuples(
         st.builds(
             Tree,
@@ -40,8 +41,8 @@ def scalars_to_trees_with_boxes(
     )
 
 
-trees_with_boxes = scalar_strategy_strategy.flatmap(
-    scalars_to_trees_with_boxes
+tree_with_box_strategy = scalar_strategy_strategy.flatmap(
+    scalar_strategy_to_tree_with_box_strategy
 )
 
 

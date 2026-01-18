@@ -9,7 +9,7 @@ from tests.utils import is_segmental_item, to_segment_point_squared_distance
 from . import strategies
 
 
-@given(strategies.trees_with_points)
+@given(strategies.tree_with_point_strategy)
 def test_basic(tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]]) -> None:
     tree, point = tree_with_point
 
@@ -18,7 +18,7 @@ def test_basic(tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]]) -> None:
     assert is_segmental_item(result)
 
 
-@given(strategies.trees_with_points)
+@given(strategies.tree_with_point_strategy)
 def test_properties(
     tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]],
 ) -> None:

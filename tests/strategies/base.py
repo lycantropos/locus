@@ -1,18 +1,19 @@
 import sys
 from decimal import Decimal
 from operator import add
+from typing import Final
 
 from ground.hints import Box, Point, Segment
 from hypothesis import strategies as st
 
-from tests.hints import ScalarT
+from tests.hints import Scalar, ScalarT
 from tests.utils import context, pack, to_pairs
 
-MAX_SCALAR = 10**15
-MIN_SCALAR = -MAX_SCALAR
+MAX_SCALAR: Final = 10**15
+MIN_SCALAR: Final = -MAX_SCALAR
 
 
-def to_floats(
+def to_float_strategy(
     min_value: float,
     max_value: float,
     /,
@@ -29,7 +30,7 @@ def to_floats(
 
 
 def to_digits_count(
-    number: float, *, max_digits_count: int = sys.float_info.dig
+    number: float, /, *, max_digits_count: int = sys.float_info.dig
 ) -> float:
     decimal = Decimal(number).normalize()
     _, significant_digits, exponent = decimal.as_tuple()
@@ -57,8 +58,13 @@ def to_digits_count(
     return float(str(decimal))
 
 
-scalar_strategy_strategy = st.just(
-    st.fractions(MIN_SCALAR, MAX_SCALAR, max_denominator=MAX_SCALAR)
+scalar_strategy_strategy: st.SearchStrategy[st.SearchStrategy[Scalar]] = (
+    st.sampled_from(
+        [
+            to_float_strategy(MIN_SCALAR, MAX_SCALAR),
+            st.fractions(MIN_SCALAR, MAX_SCALAR, max_denominator=MAX_SCALAR),
+        ]
+    )
 )
 
 
@@ -68,7 +74,7 @@ def to_point_strategy(
     return st.builds(context.point_cls, scalar_strategy, scalar_strategy)
 
 
-points_strategy_strategy = scalar_strategy_strategy.map(to_point_strategy)
+point_strategy_strategy = scalar_strategy_strategy.map(to_point_strategy)
 
 
 def to_segment_strategy(
