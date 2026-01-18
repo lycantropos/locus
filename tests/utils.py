@@ -13,7 +13,7 @@ from hypothesis.strategies import SearchStrategy
 from locus import kd, r, segmental
 from locus.core.box import is_subset_of
 from locus.core.kd import NIL, Nil, Node as KdNode
-from locus.core.r import Node as RNode
+from locus.core.r import AnyNode as AnyRNode, is_leaf as is_r_leaf
 from locus.core.segmental import Node as SegmentalNode
 from tests.hints import ScalarT
 
@@ -92,10 +92,9 @@ def is_kd_node_balanced(node: KdNode[ScalarT], /) -> bool:
     )
 
 
-def is_r_node_balanced(node: RNode[ScalarT], /) -> bool:
-    if node.is_leaf:
+def is_r_node_balanced(node: AnyRNode[ScalarT], /) -> bool:
+    if is_r_leaf(node):
         return True
-    assert node.children is not None, node
     children_heights = list(map(to_r_node_height, node.children))
     return max(children_heights) - min(children_heights) <= 1 and all(
         is_r_node_balanced(child) for child in node.children
@@ -130,13 +129,11 @@ def is_kd_node_valid(
     )
 
 
-def is_r_node_valid(node: RNode[ScalarT], /) -> bool:
-    if node.is_leaf:
-        return True
-    assert node.children is not None, node
-    return all(
-        is_subset_of(child.box, node.box) for child in node.children
-    ) and all(is_r_node_valid(child) for child in node.children)
+def is_r_node_valid(node: AnyRNode[ScalarT], /) -> bool:
+    return is_r_leaf(node) or (
+        all(is_subset_of(child.box, node.box) for child in node.children)
+        and all(is_r_node_valid(child) for child in node.children)
+    )
 
 
 def is_segmental_node_valid(node: SegmentalNode[ScalarT], /) -> bool:
@@ -157,11 +154,12 @@ def to_kd_node_height(node: KdNode[ScalarT] | Nil) -> int:
     )
 
 
-def to_r_node_height(node: RNode[ScalarT], /) -> int:
-    if node.is_leaf:
-        return 0
-    assert node.children is not None, node
-    return max(1 + to_r_node_height(child) for child in node.children)
+def to_r_node_height(node: AnyRNode[ScalarT], /) -> int:
+    return (
+        0
+        if is_r_leaf(node)
+        else max(1 + to_r_node_height(child) for child in node.children)
+    )
 
 
 def to_segmental_node_height(node: SegmentalNode[ScalarT], /) -> int:

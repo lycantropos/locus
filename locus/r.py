@@ -9,10 +9,12 @@ from reprit.base import generate_repr as _generate_repr
 from .core import box as _box
 from .core.hints import HasCustomRepr as _HasCustomRepr, ScalarT as _ScalarT
 from .core.r import (
+    AnyNode as _AnyNode,
     Item as _Item,
     create_root as _create_root,
     find_node_box_subsets_items as _find_node_box_subsets_items,
     find_node_box_supersets_items as _find_node_box_supersets_items,
+    is_leaf as _is_leaf,
 )
 
 
@@ -52,9 +54,9 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
             _create_root(
                 boxes,
                 max_children,
-                context.merged_box,
-                context.box_point_squared_distance,
-                context.coordinate_factory,
+                boxes_merger=context.merged_box,
+                coordinate_factory=context.coordinate_factory,
+                metric=context.box_point_squared_distance,
             ),
         )
 
@@ -558,41 +560,47 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         >>> tree.nearest_item(Point(10, 10)) == (9, Box(-10, 10, 0, 10))
         True
         """
-        queue = [(self._context.zero, 0, self._root)]
+        queue: list[tuple[_ScalarT, int, _AnyNode[_ScalarT]]] = [
+            (self._context.zero, 0, self._root)
+        ]
         while queue:
             _, _, node = _heappop(queue)
-            assert node.children is not None, node
+            assert not _is_leaf(node), node
             for child in node.children:
                 _heappush(
                     queue,
                     (
                         child.distance_to_point(point),
-                        -child.index - 1 if child.is_leaf else child.index,
+                        -child.index - 1 if _is_leaf(child) else child.index,
                         child,
                     ),
                 )
             if queue and queue[0][1] < 0:
                 _, _, node = _heappop(queue)
+                assert _is_leaf(node), node
                 return node.item
         raise ValueError
 
     def _n_nearest_items(
         self, n: int, point: _Point[_ScalarT], /
     ) -> _Iterator[_Item[_ScalarT]]:
-        queue = [(self._context.zero, 0, self._root)]
+        queue: list[tuple[_ScalarT, int, _AnyNode[_ScalarT]]] = [
+            (self._context.zero, 0, self._root)
+        ]
         while n and queue:
             _, _, node = _heappop(queue)
-            assert node.children is not None, node
+            assert not _is_leaf(node), node
             for child in node.children:
                 _heappush(
                     queue,
                     (
                         child.distance_to_point(point),
-                        -child.index - 1 if child.is_leaf else child.index,
+                        -child.index - 1 if _is_leaf(child) else child.index,
                         child,
                     ),
                 )
             while n and queue and queue[0][1] < 0:
                 _, _, node = _heappop(queue)
+                assert _is_leaf(node)
                 yield node.item
                 n -= 1
