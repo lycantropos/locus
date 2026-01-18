@@ -1,134 +1,177 @@
+from collections.abc import Callable, Iterable, Sequence
 from functools import partial
 from itertools import groupby
-from math import (ceil,
-                  log)
-from typing import (Any,
-                    Callable,
-                    Iterable,
-                    Sequence,
-                    Tuple,
-                    TypeVar,
-                    Union)
+from math import ceil, log2
+from operator import is_
+from typing import Any, TypeVar, cast
 
-from ground.base import get_context
+from ground.context import get_context
+from ground.hints import Box, Point, Segment
 from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
-from locus import (kd,
-                   r)
+from locus import kd, r, segmental
 from locus.core.box import is_subset_of
-from locus.core.kd import (NIL,
-                           Node as KdNode)
+from locus.core.kd import NIL, Nil, Node as KdNode
 from locus.core.r import Node as RNode
+from locus.core.segmental import Node as SegmentalNode
+from tests.hints import ScalarT
 
-_T1 = TypeVar('_T1')
-_T2 = TypeVar('_T2')
 Strategy = SearchStrategy
-_context = get_context()
-Box = _context.box_cls
-Point = _context.point_cls
-Segment = _context.segment_cls
+context = get_context()
 
 
-def equivalence(left_statement: bool, right_statement: bool) -> bool:
-    return left_statement is right_statement
+equivalence = is_
 
 
-def pack(function: Callable[..., _T2]) -> Callable[[Iterable[_T1]], _T2]:
+_T = TypeVar('_T')
+
+
+def pack(function: Callable[..., _T], /) -> Callable[[Iterable[Any]], _T]:
     return partial(call, function)
 
 
-def call(function: Callable[..., _T2], args: Iterable[_T1]) -> _T2:
+def call(function: Callable[..., _T], args: Iterable[Any], /) -> _T:
     return function(*args)
 
 
-def to_pairs(elements: Strategy[_T1]) -> Strategy[Tuple[_T1, _T1]]:
+def to_pairs(elements: Strategy[_T], /) -> Strategy[tuple[_T, _T]]:
     return strategies.tuples(elements, elements)
 
 
-def is_kd_tree_balanced(tree: kd.Tree) -> bool:
-    return is_kd_node_balanced(tree._root)
+def is_kd_tree_balanced(tree: kd.Tree[ScalarT], /) -> bool:
+    return tree._root is NIL or is_kd_node_balanced(tree._root)
 
 
-def is_r_tree_balanced(tree: r.Tree) -> bool:
+def is_r_tree_balanced(tree: r.Tree[ScalarT], /) -> bool:
     return is_r_node_balanced(tree._root)
 
 
-def is_kd_tree_valid(tree: kd.Tree) -> bool:
-    return is_kd_node_valid(tree.points, tree._root)
+def is_segmental_tree_balanced(tree: segmental.Tree[ScalarT], /) -> bool:
+    return is_segmental_node_balanced(tree._root)
 
 
-def is_r_tree_valid(tree: r.Tree) -> bool:
+def is_kd_tree_valid(tree: kd.Tree[ScalarT], /) -> bool:
+    return tree._root is NIL or is_kd_node_valid(tree.points, tree._root)
+
+
+def is_r_tree_valid(tree: r.Tree[ScalarT], /) -> bool:
     return is_r_node_valid(tree._root)
+
+
+def is_segmental_tree_valid(tree: segmental.Tree[ScalarT], /) -> bool:
+    return is_segmental_node_valid(tree._root)
 
 
 def to_balanced_tree_height(size: int, max_children: int) -> int:
     size_log2 = size.bit_length() - 1
-    return (size_log2
-            if max_children == 2
-            else ceil(size_log2 / log(max_children, 2)))
+    return (
+        size_log2
+        if max_children == 2
+        else ceil(size_log2 / log2(max_children))
+    )
 
 
-def to_kd_tree_height(tree: kd.Tree) -> int:
+def to_kd_tree_height(tree: kd.Tree[ScalarT], /) -> int:
     return to_kd_node_height(tree._root)
 
 
-def to_r_tree_height(tree: r.Tree) -> int:
+def to_r_tree_height(tree: r.Tree[ScalarT], /) -> int:
     return to_r_node_height(tree._root)
 
 
-def is_kd_node_balanced(node: KdNode) -> bool:
-    return (abs(to_kd_node_height(node.left)
-                - to_kd_node_height(node.right)) <= 1
-            and all(is_kd_node_balanced(child)
-                    for child in to_kd_node_children(node)))
+def to_segmental_tree_height(tree: segmental.Tree[ScalarT], /) -> int:
+    return to_segmental_node_height(tree._root)
 
 
-def is_r_node_balanced(node: RNode) -> bool:
+def is_kd_node_balanced(node: KdNode[ScalarT], /) -> bool:
+    return abs(
+        to_kd_node_height(node.left) - to_kd_node_height(node.right)
+    ) <= 1 and all(
+        is_kd_node_balanced(child) for child in to_kd_node_children(node)
+    )
+
+
+def is_r_node_balanced(node: RNode[ScalarT], /) -> bool:
     if node.is_leaf:
         return True
-    else:
-        children_heights = list(map(to_r_node_height, node.children))
-        return (max(children_heights) - min(children_heights) <= 1
-                and all(is_r_node_balanced(child) for child in node.children))
+    assert node.children is not None, node
+    children_heights = list(map(to_r_node_height, node.children))
+    return max(children_heights) - min(children_heights) <= 1 and all(
+        is_r_node_balanced(child) for child in node.children
+    )
 
 
-def is_kd_node_valid(points: Sequence[Point], node: KdNode) -> bool:
+def is_segmental_node_balanced(node: SegmentalNode[ScalarT], /) -> bool:
+    if node.is_leaf:
+        return True
+    assert node.children is not None, node
+    children_heights = list(map(to_segmental_node_height, node.children))
+    return max(children_heights) - min(children_heights) <= 1 and all(
+        is_segmental_node_balanced(child) for child in node.children
+    )
+
+
+def is_kd_node_valid(
+    points: Sequence[Point[ScalarT]], node: KdNode[ScalarT], /
+) -> bool:
     hyperplane = node.projector(points[node.index])
-    if (node.left is not NIL
-            and hyperplane < node.projector(points[node.left.index])):
+    if node.left is not NIL and hyperplane < node.projector(
+        points[node.left.index]
+    ):
         return False
-    if (node.right is not NIL
-            and node.projector(points[node.right.index]) < hyperplane):
+    if (
+        node.right is not NIL
+        and node.projector(points[node.right.index]) < hyperplane
+    ):
         return False
-    return all(is_kd_node_valid(points, child)
-               for child in to_kd_node_children(node))
+    return all(
+        is_kd_node_valid(points, child) for child in to_kd_node_children(node)
+    )
 
 
-def is_r_node_valid(node: RNode) -> bool:
+def is_r_node_valid(node: RNode[ScalarT], /) -> bool:
     if node.is_leaf:
         return True
-    else:
-        return (all(is_subset_of(child.box, node.box)
-                    for child in node.children)
-                and all(is_r_node_valid(child) for child in node.children))
+    assert node.children is not None, node
+    return all(
+        is_subset_of(child.box, node.box) for child in node.children
+    ) and all(is_r_node_valid(child) for child in node.children)
 
 
-def to_kd_node_height(node: Union[KdNode, NIL]) -> int:
+def is_segmental_node_valid(node: SegmentalNode[ScalarT], /) -> bool:
+    if node.is_leaf:
+        return True
+    assert node.children is not None, node
+    return all(
+        is_subset_of(child.box, node.box) for child in node.children
+    ) and all(is_segmental_node_valid(child) for child in node.children)
+
+
+def to_kd_node_height(node: KdNode[ScalarT] | Nil) -> int:
     if node is NIL:
         return -1
-    return max([1 + to_kd_node_height(child)
-                for child in to_kd_node_children(node)],
-               default=0)
+    return max(
+        [1 + to_kd_node_height(child) for child in to_kd_node_children(node)],
+        default=0,
+    )
 
 
-def to_r_node_height(node: RNode) -> int:
-    return (0
-            if node.is_leaf
-            else max(1 + to_r_node_height(child) for child in node.children))
+def to_r_node_height(node: RNode[ScalarT], /) -> int:
+    if node.is_leaf:
+        return 0
+    assert node.children is not None, node
+    return max(1 + to_r_node_height(child) for child in node.children)
 
 
-def to_kd_node_children(node: KdNode) -> Iterable[KdNode]:
+def to_segmental_node_height(node: SegmentalNode[ScalarT], /) -> int:
+    if node.is_leaf:
+        return 0
+    assert node.children is not None, node
+    return max(1 + to_segmental_node_height(child) for child in node.children)
+
+
+def to_kd_node_children(node: KdNode[ScalarT], /) -> Iterable[KdNode[ScalarT]]:
     if node.left is not NIL:
         yield node.left
     if node.right is not NIL:
@@ -136,50 +179,50 @@ def to_kd_node_children(node: KdNode) -> Iterable[KdNode]:
 
 
 def is_kd_item(value: Any) -> bool:
-    return (isinstance(value, tuple)
-            and len(value) == 2
-            and isinstance(value[0], int)
-            and is_point(value[1]))
+    return (
+        isinstance(value, tuple)
+        and len(value) == 2
+        and isinstance(value[0], int)
+        and isinstance(value[1], context.point_cls)
+    )
 
 
 def is_r_item(value: Any) -> bool:
-    return (isinstance(value, tuple)
-            and len(value) == 2
-            and isinstance(value[0], int)
-            and value[0] >= 0
-            and is_box(value[1]))
+    return (
+        isinstance(value, tuple)
+        and len(value) == 2
+        and isinstance(value[0], int)
+        and value[0] >= 0
+        and isinstance(value[1], context.box_cls)
+    )
 
 
-def is_segmental_item(value: Any) -> bool:
-    return (isinstance(value, tuple)
-            and len(value) == 2
-            and isinstance(value[0], int)
-            and value[0] >= 0
-            and is_segment(value[1]))
+def is_segmental_item(value: Any, /) -> bool:
+    return (
+        isinstance(value, tuple)
+        and len(value) == 2
+        and isinstance(value[0], int)
+        and value[0] >= 0
+        and isinstance(value[1], context.segment_cls)
+    )
 
 
-is_box = Box.__instancecheck__
-is_point = Point.__instancecheck__
-is_segment = Segment.__instancecheck__
-
-
-def all_equal(iterable: Iterable[_T1]) -> bool:
+def all_equal(iterable: Iterable[_T], /) -> bool:
     groups = groupby(iterable)
     return next(groups, True) and not next(groups, False)
 
 
-def all_unique(iterable: Iterable[_T1]) -> bool:
-    seen = set()
+def all_unique(iterable: Iterable[_T]) -> bool:
+    seen: set[_T] = set()
     register = seen.add
     for element in iterable:
         if element in seen:
             return False
-        else:
-            register(element)
+        register(element)
     return True
 
 
-def identity(value: _T1) -> _T1:
+def identity(value: _T, /) -> _T:
     return value
 
 
@@ -195,7 +238,7 @@ def to_hilbert_index_complete(size: int, x: int, y: int) -> int:
     return result
 
 
-def rot(size: int, x: int, y: int, rx: int, ry: int) -> Tuple[int, int]:
+def rot(size: int, x: int, y: int, rx: int, ry: int) -> tuple[int, int]:
     if not ry:
         if rx == 1:
             x, y = size - 1 - x, size - 1 - y
@@ -203,7 +246,27 @@ def rot(size: int, x: int, y: int, rx: int, ry: int) -> Tuple[int, int]:
     return x, y
 
 
-to_box_point_distance = _context.box_point_squared_distance
-to_points_distance = _context.points_squared_distance
-to_segment_point_distance = _context.segment_point_squared_distance
-to_segments_distance = _context.segments_squared_distance
+def to_box_point_squared_distance(
+    box: Box[ScalarT], point: Point[ScalarT], /
+) -> ScalarT:
+    return cast(ScalarT, context.box_point_squared_distance(box, point))
+
+
+def to_point_squared_distance(
+    first: Point[ScalarT], second: Point[ScalarT], /
+) -> ScalarT:
+    return cast(ScalarT, context.points_squared_distance(first, second))
+
+
+def to_segment_point_squared_distance(
+    segment: Segment[ScalarT], point: Point[ScalarT], /
+) -> ScalarT:
+    return cast(
+        ScalarT, context.segment_point_squared_distance(segment, point)
+    )
+
+
+def to_segment_squared_distance(
+    first: Segment[ScalarT], second: Segment[ScalarT], /
+) -> ScalarT:
+    return cast(ScalarT, context.segments_squared_distance(first, second))

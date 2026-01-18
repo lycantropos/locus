@@ -1,20 +1,21 @@
-from typing import Tuple
-
-from ground.hints import (Point,
-                          Scalar)
+from ground.hints import Point
 from hypothesis import given
 
 from locus.core.kd import Item
 from locus.kd import Tree
-from tests.utils import (all_unique,
-                         equivalence,
-                         is_kd_item,
-                         to_points_distance)
+from tests.hints import ScalarT
+from tests.utils import (
+    all_unique,
+    equivalence,
+    is_kd_item,
+    to_point_squared_distance,
+)
+
 from . import strategies
 
 
 @given(strategies.trees_with_points)
-def test_basic(tree_with_point: Tuple[Tree, Point]) -> None:
+def test_basic(tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]]) -> None:
     tree, point = tree_with_point
 
     result = tree.nearest_item(point)
@@ -23,20 +24,26 @@ def test_basic(tree_with_point: Tuple[Tree, Point]) -> None:
 
 
 @given(strategies.trees)
-def test_uniqueness_criteria(tree: Tree) -> None:
-    assert equivalence(all(tree.nearest_item(point) == (index, point)
-                           for index, point in enumerate(tree.points)),
-                       all_unique(tree.points))
+def test_uniqueness_criteria(tree: Tree[ScalarT]) -> None:
+    assert equivalence(
+        all(
+            tree.nearest_item(point) == (index, point)
+            for index, point in enumerate(tree.points)
+        ),
+        all_unique(tree.points),
+    )
 
 
 @given(strategies.trees_with_points)
-def test_properties(tree_with_point: Tuple[Tree, Point]) -> None:
+def test_properties(
+    tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]],
+) -> None:
     tree, point = tree_with_point
 
     result = tree.nearest_item(point)
 
-    def to_point_distance(item: Item) -> Scalar:
-        return to_points_distance(item[1], point)
+    def to_point_distance(item: Item[ScalarT], /) -> ScalarT:
+        return to_point_squared_distance(item[1], point)
 
     items = list(enumerate(tree.points))
     assert result in items

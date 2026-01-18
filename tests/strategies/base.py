@@ -1,45 +1,46 @@
 import sys
 from decimal import Decimal
-from fractions import Fraction
-from functools import partial
 from operator import add
 
-from ground.hints import Scalar
-from hypothesis import strategies
+from ground.hints import Box, Point, Segment
+from hypothesis import strategies as st
 
-from tests.utils import (Box,
-                         Point,
-                         Segment,
-                         Strategy,
-                         pack,
-                         to_pairs)
+from tests.hints import ScalarT
+from tests.utils import context, pack, to_pairs
 
-MAX_SCALAR = 10 ** 15
+MAX_SCALAR = 10**15
 MIN_SCALAR = -MAX_SCALAR
 
 
-def to_floats(min_value: Scalar,
-              max_value: Scalar,
-              *,
-              allow_nan: bool = False,
-              allow_infinity: bool = False) -> Strategy:
-    return (strategies.floats(min_value=min_value,
-                              max_value=max_value,
-                              allow_nan=allow_nan,
-                              allow_infinity=allow_infinity)
-            .map(to_digits_count))
+def to_floats(
+    min_value: float,
+    max_value: float,
+    /,
+    *,
+    allow_nan: bool = False,
+    allow_infinity: bool = False,
+) -> st.SearchStrategy[float]:
+    return st.floats(
+        min_value=min_value,
+        max_value=max_value,
+        allow_nan=allow_nan,
+        allow_infinity=allow_infinity,
+    ).map(to_digits_count)
 
 
-def to_digits_count(number: float,
-                    *,
-                    max_digits_count: int = sys.float_info.dig) -> float:
+def to_digits_count(
+    number: float, *, max_digits_count: int = sys.float_info.dig
+) -> float:
     decimal = Decimal(number).normalize()
     _, significant_digits, exponent = decimal.as_tuple()
+    assert isinstance(exponent, int), (number, exponent)
     significant_digits_count = len(significant_digits)
     if exponent < 0:
-        fixed_digits_count = (1 - exponent
-                              if exponent <= -significant_digits_count
-                              else significant_digits_count)
+        fixed_digits_count = (
+            1 - exponent
+            if exponent <= -significant_digits_count
+            else significant_digits_count
+        )
     else:
         fixed_digits_count = exponent + significant_digits_count
     if fixed_digits_count <= max_digits_count:
@@ -47,7 +48,7 @@ def to_digits_count(number: float,
     whole_digits_count = max(significant_digits_count + exponent, 0)
     if whole_digits_count:
         whole_digits_offset = max(whole_digits_count - max_digits_count, 0)
-        decimal /= 10 ** whole_digits_offset
+        decimal /= 10**whole_digits_offset
         whole_digits_count -= whole_digits_offset
     else:
         decimal *= 10 ** (-exponent - significant_digits_count)
@@ -56,36 +57,37 @@ def to_digits_count(number: float,
     return float(str(decimal))
 
 
-scalars_strategies_factories = {
-    float: to_floats,
-    Fraction: partial(strategies.fractions,
-                      max_denominator=MAX_SCALAR),
-    int: strategies.integers}
-scalars_strategies = strategies.sampled_from(
-        [factory(MIN_SCALAR, MAX_SCALAR)
-         for factory in scalars_strategies_factories.values()])
+scalar_strategy_strategy = st.just(
+    st.fractions(MIN_SCALAR, MAX_SCALAR, max_denominator=MAX_SCALAR)
+)
 
 
-def to_points(scalars: Strategy[Scalar]) -> Strategy[Point]:
-    return strategies.builds(Point, scalars, scalars)
+def to_point_strategy(
+    scalar_strategy: st.SearchStrategy[ScalarT], /
+) -> st.SearchStrategy[Point[ScalarT]]:
+    return st.builds(context.point_cls, scalar_strategy, scalar_strategy)
 
 
-points_strategies = scalars_strategies.map(to_points)
+points_strategy_strategy = scalar_strategy_strategy.map(to_point_strategy)
 
 
-def to_segments(scalar: Strategy[Scalar]) -> Strategy[Segment]:
-    return (strategies.lists(to_points(scalar),
-                             min_size=2,
-                             max_size=2,
-                             unique=True)
-            .map(pack(Segment)))
+def to_segment_strategy(
+    scalar_strategy: st.SearchStrategy[ScalarT], /
+) -> st.SearchStrategy[Segment[ScalarT]]:
+    return st.lists(
+        to_point_strategy(scalar_strategy), min_size=2, max_size=2, unique=True
+    ).map(pack(context.segment_cls))
 
 
-def to_boxes(scalars: Strategy[Scalar]) -> Strategy[Box]:
-    return (to_pairs(strategies.lists(scalars,
-                                      min_size=2,
-                                      max_size=2,
-                                      unique=True)
-                     .map(sorted))
-            .map(pack(add))
-            .map(pack(Box)))
+def to_box_strategy(
+    scalar_strategy: st.SearchStrategy[ScalarT], /
+) -> st.SearchStrategy[Box[ScalarT]]:
+    return (
+        to_pairs(
+            st.lists(scalar_strategy, min_size=2, max_size=2, unique=True).map(
+                sorted
+            )
+        )
+        .map(pack(add))
+        .map(pack(context.box_cls))
+    )

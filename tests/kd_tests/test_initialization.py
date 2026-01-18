@@ -1,25 +1,29 @@
-from typing import List
+from collections.abc import Sequence
 
 from ground.hints import Point
 from hypothesis import given
 
 from locus.kd import Tree
-from tests.utils import (is_kd_tree_balanced,
-                         is_kd_tree_valid,
-                         to_balanced_tree_height,
-                         to_kd_tree_height)
-from . import strategies
+from tests.hints import ScalarT
+from tests.utils import (
+    is_kd_tree_balanced,
+    is_kd_tree_valid,
+    to_balanced_tree_height,
+    to_kd_tree_height,
+)
+
+from .strategies import non_empty_point_sequence_strategy
 
 
-@given(strategies.non_empty_points_lists)
-def test_basic(points: List[Point]) -> None:
+@given(non_empty_point_sequence_strategy)
+def test_basic(points: list[Point[ScalarT]]) -> None:
     result = Tree(points)
 
     assert isinstance(result, Tree)
 
 
-@given(strategies.non_empty_points_lists)
-def test_properties(points: List[Point]) -> None:
+@given(non_empty_point_sequence_strategy)
+def test_properties(points: Sequence[Point[ScalarT]]) -> None:
     result = Tree(points)
 
     assert is_kd_tree_valid(result)

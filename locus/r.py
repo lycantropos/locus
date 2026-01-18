@@ -1,38 +1,38 @@
-from heapq import (heappop as _heappop,
-                   heappush as _heappush)
-from typing import (Iterator as _Iterator,
-                    List as _List,
-                    Optional as _Optional,
-                    Sequence as _Sequence)
+from collections.abc import Iterator as _Iterator, Sequence as _Sequence
+from heapq import heappop as _heappop, heappush as _heappush
+from typing import Generic as _Generic
 
-from ground.base import (Context as _Context,
-                         get_context as _get_context)
-from ground.hints import (Box as _Box,
-                          Point as _Point)
+from ground.context import Context as _Context, get_context as _get_context
+from ground.hints import Box as _Box, Point as _Point
 from reprit.base import generate_repr as _generate_repr
 
 from .core import box as _box
+from .core.hints import HasCustomRepr as _HasCustomRepr, ScalarT as _ScalarT
 from .core.r import (
     Item as _Item,
     create_root as _create_root,
     find_node_box_subsets_items as _find_node_box_subsets_items,
-    find_node_box_supersets_items as _find_node_box_supersets_items)
+    find_node_box_supersets_items as _find_node_box_supersets_items,
+)
 
 
-class Tree:
+class Tree(_HasCustomRepr, _Generic[_ScalarT]):
     """
     Represents packed 2-dimensional Hilbert *R*-tree.
 
     Reference:
         https://en.wikipedia.org/wiki/Hilbert_R-tree#Packed_Hilbert_R-trees
     """
+
     __slots__ = '_boxes', '_context', '_max_children', '_root'
 
-    def __init__(self,
-                 boxes: _Sequence[_Box],
-                 *,
-                 max_children: int = 16,
-                 context: _Optional[_Context] = None) -> None:
+    def __init__(
+        self,
+        boxes: _Sequence[_Box[_ScalarT]],
+        *,
+        max_children: int = 16,
+        context: _Context[_ScalarT] | None = None,
+    ) -> None:
         """
         Initializes tree from boxes.
 
@@ -46,14 +46,22 @@ class Tree:
         if context is None:
             context = _get_context()
         self._boxes, self._context, self._max_children, self._root = (
-            boxes, context, max_children,
-            _create_root(boxes, max_children, context.merged_box,
-                         context.box_point_squared_distance))
+            boxes,
+            context,
+            max_children,
+            _create_root(
+                boxes,
+                max_children,
+                context.merged_box,
+                context.box_point_squared_distance,
+                context.coordinate_factory,
+            ),
+        )
 
     __repr__ = _generate_repr(__init__)
 
     @property
-    def boxes(self) -> _Sequence[_Box]:
+    def boxes(self, /) -> _Sequence[_Box[_ScalarT]]:
         """
         Returns underlying boxes.
 
@@ -62,7 +70,7 @@ class Tree:
         Memory complexity:
             ``O(1)``
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
@@ -73,7 +81,7 @@ class Tree:
         return self._boxes
 
     @property
-    def context(self) -> _Context:
+    def context(self, /) -> _Context[_ScalarT]:
         """
         Returns context of the tree.
 
@@ -85,7 +93,7 @@ class Tree:
         return self._context
 
     @property
-    def max_children(self) -> int:
+    def max_children(self, /) -> int:
         """
         Returns maximum number of children in each node.
 
@@ -94,7 +102,7 @@ class Tree:
         Memory complexity:
             ``O(1)``
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
@@ -104,7 +112,7 @@ class Tree:
         """
         return self._max_children
 
-    def find_subsets(self, box: _Box) -> _List[_Box]:
+    def find_subsets(self, box: _Box[_ScalarT]) -> list[_Box[_ScalarT]]:
         """
         Searches for boxes that lie inside the given box.
 
@@ -120,23 +128,27 @@ class Tree:
         :param box: input box.
         :returns: boxes that lie inside the input box.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
         >>> tree = Tree(boxes)
         >>> tree.find_subsets(Box(-1, 1, 0, 1)) == [Box(-1, 1, 0, 1)]
         True
-        >>> (tree.find_subsets(Box(-2, 2, 0, 2))
-        ...  == [Box(-1, 1, 0, 1), Box(-2, 2, 0, 2)])
+        >>> (
+        ...     tree.find_subsets(Box(-2, 2, 0, 2))
+        ...     == [Box(-1, 1, 0, 1), Box(-2, 2, 0, 2)]
+        ... )
         True
-        >>> (tree.find_subsets(Box(-3, 3, 0, 3))
-        ...  == [Box(-1, 1, 0, 1), Box(-2, 2, 0, 2), Box(-3, 3, 0, 3)])
+        >>> (
+        ...     tree.find_subsets(Box(-3, 3, 0, 3))
+        ...     == [Box(-1, 1, 0, 1), Box(-2, 2, 0, 2), Box(-3, 3, 0, 3)]
+        ... )
         True
         """
         return [box for _, box in self._find_subsets_items(box)]
 
-    def find_subsets_indices(self, box: _Box) -> _List[int]:
+    def find_subsets_indices(self, box: _Box[_ScalarT]) -> list[int]:
         """
         Searches for indices of boxes that lie inside the given box.
 
@@ -152,7 +164,7 @@ class Tree:
         :param box: input box.
         :returns: indices of boxes that lie inside the input box.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
@@ -166,7 +178,7 @@ class Tree:
         """
         return [index for index, _ in self._find_subsets_items(box)]
 
-    def find_subsets_items(self, box: _Box) -> _List[_Item]:
+    def find_subsets_items(self, box: _Box[_ScalarT]) -> list[_Item[_ScalarT]]:
         """
         Searches for indices with boxes that lie inside the given box.
 
@@ -182,25 +194,34 @@ class Tree:
         :param box: input box.
         :returns: indices with boxes that lie inside the input box.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
         >>> tree = Tree(boxes)
-        >>> (tree.find_subsets_items(Box(-1, 1, 0, 1))
-        ...  == [(0, Box(-1, 1, 0, 1))])
+        >>> (
+        ...     tree.find_subsets_items(Box(-1, 1, 0, 1))
+        ...     == [(0, Box(-1, 1, 0, 1))]
+        ... )
         True
-        >>> (tree.find_subsets_items(Box(-2, 2, 0, 2))
-        ...  == [(0, Box(-1, 1, 0, 1)), (1, Box(-2, 2, 0, 2))])
+        >>> (
+        ...     tree.find_subsets_items(Box(-2, 2, 0, 2))
+        ...     == [(0, Box(-1, 1, 0, 1)), (1, Box(-2, 2, 0, 2))]
+        ... )
         True
-        >>> (tree.find_subsets_items(Box(-3, 3, 0, 3))
-        ...  == [(0, Box(-1, 1, 0, 1)), (1, Box(-2, 2, 0, 2)),
-        ...      (2, Box(-3, 3, 0, 3))])
+        >>> (
+        ...     tree.find_subsets_items(Box(-3, 3, 0, 3))
+        ...     == [
+        ...         (0, Box(-1, 1, 0, 1)),
+        ...         (1, Box(-2, 2, 0, 2)),
+        ...         (2, Box(-3, 3, 0, 3)),
+        ...     ]
+        ... )
         True
         """
         return list(self._find_subsets_items(box))
 
-    def find_supersets(self, box: _Box) -> _List[_Box]:
+    def find_supersets(self, box: _Box[_ScalarT]) -> list[_Box[_ScalarT]]:
         """
         Searches for boxes that contain the given box.
 
@@ -216,24 +237,27 @@ class Tree:
         :param box: input box.
         :returns: boxes that contain the input box.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
         >>> tree = Tree(boxes)
         >>> tree.find_supersets(Box(-10, 10, 0, 10)) == [Box(-10, 10, 0, 10)]
         True
-        >>> (tree.find_supersets(Box(-9, 9, 0, 9))
-        ...  == [Box(-9, 9, 0, 9), Box(-10, 10, 0, 10)])
+        >>> (
+        ...     tree.find_supersets(Box(-9, 9, 0, 9))
+        ...     == [Box(-9, 9, 0, 9), Box(-10, 10, 0, 10)]
+        ... )
         True
-        >>> (tree.find_supersets(Box(-8, 8, 0, 8))
-        ...  == [Box(-8, 8, 0, 8), Box(-9, 9, 0, 9), Box(-10, 10, 0, 10)])
+        >>> (
+        ...     tree.find_supersets(Box(-8, 8, 0, 8))
+        ...     == [Box(-8, 8, 0, 8), Box(-9, 9, 0, 9), Box(-10, 10, 0, 10)]
+        ... )
         True
         """
-        return [box
-                for _, box in self._find_supersets_items(box)]
+        return [box for _, box in self._find_supersets_items(box)]
 
-    def find_supersets_indices(self, box: _Box) -> _List[int]:
+    def find_supersets_indices(self, box: _Box[_ScalarT]) -> list[int]:
         """
         Searches for indices of boxes that contain the given box.
 
@@ -249,7 +273,7 @@ class Tree:
         :param box: input box.
         :returns: indices of boxes that contain the input box.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
@@ -263,7 +287,9 @@ class Tree:
         """
         return [index for index, _ in self._find_supersets_items(box)]
 
-    def find_supersets_items(self, box: _Box) -> _List[_Item]:
+    def find_supersets_items(
+        self, box: _Box[_ScalarT]
+    ) -> list[_Item[_ScalarT]]:
         """
         Searches for indices with boxes
         that contain the given box.
@@ -280,34 +306,50 @@ class Tree:
         :param box: input box.
         :returns: indices with boxes that contain the input box.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
         >>> tree = Tree(boxes)
-        >>> (tree.find_supersets_items(Box(-10, 10, 0, 10))
-        ...  == [(9, Box(-10, 10, 0, 10))])
+        >>> (
+        ...     tree.find_supersets_items(Box(-10, 10, 0, 10))
+        ...     == [(9, Box(-10, 10, 0, 10))]
+        ... )
         True
-        >>> (tree.find_supersets_items(Box(-9, 9, 0, 9))
-        ...  == [(8, Box(-9, 9, 0, 9)), (9, Box(-10, 10, 0, 10))])
+        >>> (
+        ...     tree.find_supersets_items(Box(-9, 9, 0, 9))
+        ...     == [(8, Box(-9, 9, 0, 9)), (9, Box(-10, 10, 0, 10))]
+        ... )
         True
-        >>> (tree.find_supersets_items(Box(-8, 8, 0, 8))
-        ...  == [(7, Box(-8, 8, 0, 8)), (8, Box(-9, 9, 0, 9)),
-        ...      (9, Box(-10, 10, 0, 10))])
+        >>> (
+        ...     tree.find_supersets_items(Box(-8, 8, 0, 8))
+        ...     == [
+        ...         (7, Box(-8, 8, 0, 8)),
+        ...         (8, Box(-9, 9, 0, 9)),
+        ...         (9, Box(-10, 10, 0, 10)),
+        ...     ]
+        ... )
         True
         """
         return list(self._find_supersets_items(box))
 
-    def _find_subsets_items(self, box: _Box) -> _Iterator[_Item]:
-        yield from (enumerate(self._boxes)
-                    if _box.is_subset_of(self._root.box, box)
-                    else _find_node_box_subsets_items(self._root,
-                                                      box))
+    def _find_subsets_items(
+        self, box: _Box[_ScalarT]
+    ) -> _Iterator[_Item[_ScalarT]]:
+        yield from (
+            enumerate(self._boxes)
+            if _box.is_subset_of(self._root.box, box)
+            else _find_node_box_subsets_items(self._root, box)
+        )
 
-    def _find_supersets_items(self, box: _Box) -> _Iterator[_Item]:
+    def _find_supersets_items(
+        self, box: _Box[_ScalarT]
+    ) -> _Iterator[_Item[_ScalarT]]:
         yield from _find_node_box_supersets_items(self._root, box)
 
-    def n_nearest_indices(self, n: int, point: _Point) -> _Sequence[int]:
+    def n_nearest_indices(
+        self, n: int, point: _Point[_ScalarT], /
+    ) -> _Sequence[int]:
         """
         Searches for indices of boxes in the tree
         the nearest to the given point.
@@ -327,22 +369,28 @@ class Tree:
         :returns:
             indices of boxes in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
         >>> tree = Tree(boxes)
         >>> tree.n_nearest_indices(2, Point(0, 0)) == [9, 8]
         True
-        >>> (tree.n_nearest_indices(len(boxes), Point(0, 0))
-        ...  == range(len(boxes)))
+        >>> (
+        ...     tree.n_nearest_indices(len(boxes), Point(0, 0))
+        ...     == range(len(boxes))
+        ... )
         True
         """
-        return ([index for index, _ in self._n_nearest_items(n, point)]
-                if n < len(self._boxes)
-                else range(len(self._boxes)))
+        return (
+            [index for index, _ in self._n_nearest_items(n, point)]
+            if n < len(self._boxes)
+            else range(len(self._boxes))
+        )
 
-    def n_nearest_boxes(self, n: int, point: _Point) -> _Sequence[_Box]:
+    def n_nearest_boxes(
+        self, n: int, point: _Point[_ScalarT], /
+    ) -> _Sequence[_Box[_ScalarT]]:
         """
         Searches for boxes in the tree the nearest to the given point.
 
@@ -360,22 +408,28 @@ class Tree:
         :param point: input point.
         :returns: boxes in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
         >>> tree = Tree(boxes)
-        >>> (tree.n_nearest_boxes(2, Point(0, 0))
-        ...  == [Box(-10, 10, 0, 10), Box(-9, 9, 0, 9)])
+        >>> (
+        ...     tree.n_nearest_boxes(2, Point(0, 0))
+        ...     == [Box(-10, 10, 0, 10), Box(-9, 9, 0, 9)]
+        ... )
         True
         >>> tree.n_nearest_boxes(len(boxes), Point(0, 0)) == boxes
         True
         """
-        return ([box for _, box in self._n_nearest_items(n, point)]
-                if n < len(self._boxes)
-                else self._boxes)
+        return (
+            [box for _, box in self._n_nearest_items(n, point)]
+            if n < len(self._boxes)
+            else self._boxes
+        )
 
-    def n_nearest_items(self, n: int, point: _Point) -> _Sequence[_Item]:
+    def n_nearest_items(
+        self, n: int, point: _Point[_ScalarT], /
+    ) -> _Sequence[_Item[_ScalarT]]:
         """
         Searches for indices with boxes in the tree
         the nearest to the given point.
@@ -396,23 +450,29 @@ class Tree:
         :returns:
             indices with boxes in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
         >>> tree = Tree(boxes)
-        >>> (tree.n_nearest_items(2, Point(0, 0))
-        ...  == [(9, Box(-10, 10, 0, 10)), (8, Box(-9, 9, 0, 9))])
+        >>> (
+        ...     tree.n_nearest_items(2, Point(0, 0))
+        ...     == [(9, Box(-10, 10, 0, 10)), (8, Box(-9, 9, 0, 9))]
+        ... )
         True
-        >>> (tree.n_nearest_items(len(boxes), Point(0, 0))
-        ...  == list(enumerate(boxes)))
+        >>> (
+        ...     tree.n_nearest_items(len(boxes), Point(0, 0))
+        ...     == list(enumerate(boxes))
+        ... )
         True
         """
-        return list(self._n_nearest_items(n, point)
-                    if n < len(self._boxes)
-                    else enumerate(self._boxes))
+        return list(
+            self._n_nearest_items(n, point)
+            if n < len(self._boxes)
+            else enumerate(self._boxes)
+        )
 
-    def nearest_index(self, point: _Point) -> int:
+    def nearest_index(self, point: _Point[_ScalarT], /) -> int:
         """
         Searches for index of box in the tree
         the nearest to the given point.
@@ -428,7 +488,7 @@ class Tree:
         :param point: input point.
         :returns: index of box in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
@@ -439,7 +499,7 @@ class Tree:
         result, _ = self.nearest_item(point)
         return result
 
-    def nearest_box(self, point: _Point) -> _Box:
+    def nearest_box(self, point: _Point[_ScalarT], /) -> _Box[_ScalarT]:
         """
         Searches for box in the tree the nearest to the given point.
 
@@ -454,7 +514,7 @@ class Tree:
         :param point: input point.
         :returns: box in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
@@ -465,7 +525,7 @@ class Tree:
         _, result = self.nearest_item(point)
         return result
 
-    def nearest_item(self, point: _Point) -> _Item:
+    def nearest_item(self, point: _Point[_ScalarT], /) -> _Item[_ScalarT]:
         """
         Searches for index with box in the tree
         the nearest to the given point.
@@ -482,7 +542,7 @@ class Tree:
         :returns:
             index with box in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
@@ -498,27 +558,40 @@ class Tree:
         >>> tree.nearest_item(Point(10, 10)) == (9, Box(-10, 10, 0, 10))
         True
         """
-        queue = [(0, 0, self._root)]
+        queue = [(self._context.zero, 0, self._root)]
         while queue:
             _, _, node = _heappop(queue)
+            assert node.children is not None, node
             for child in node.children:
-                _heappush(queue,
-                          (child.distance_to_point(point),
-                           -child.index - 1 if child.is_leaf else child.index,
-                           child))
+                _heappush(
+                    queue,
+                    (
+                        child.distance_to_point(point),
+                        -child.index - 1 if child.is_leaf else child.index,
+                        child,
+                    ),
+                )
             if queue and queue[0][1] < 0:
                 _, _, node = _heappop(queue)
                 return node.item
+        raise ValueError
 
-    def _n_nearest_items(self, n: int, point: _Point) -> _Iterator[_Item]:
-        queue = [(0, 0, self._root)]
+    def _n_nearest_items(
+        self, n: int, point: _Point[_ScalarT], /
+    ) -> _Iterator[_Item[_ScalarT]]:
+        queue = [(self._context.zero, 0, self._root)]
         while n and queue:
             _, _, node = _heappop(queue)
+            assert node.children is not None, node
             for child in node.children:
-                _heappush(queue,
-                          (child.distance_to_point(point),
-                           -child.index - 1 if child.is_leaf else child.index,
-                           child))
+                _heappush(
+                    queue,
+                    (
+                        child.distance_to_point(point),
+                        -child.index - 1 if child.is_leaf else child.index,
+                        child,
+                    ),
+                )
             while n and queue and queue[0][1] < 0:
                 _, _, node = _heappop(queue)
                 yield node.item

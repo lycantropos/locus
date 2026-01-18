@@ -1,17 +1,19 @@
 from heapq import nsmallest
-from typing import Tuple
 
-from ground.hints import (Scalar,
-                          Segment)
+from ground.hints import Segment
 from hypothesis import given
 
 from locus.segmental import Tree
-from tests.utils import to_segments_distance
+from tests.hints import ScalarT
+from tests.utils import to_segment_squared_distance
+
 from . import strategies
 
 
 @given(strategies.trees_with_segments_and_sizes)
-def test_basic(tree_with_segment_and_n: Tuple[Tree, Segment, int]) -> None:
+def test_basic(
+    tree_with_segment_and_n: tuple[Tree[ScalarT], Segment[ScalarT], int],
+) -> None:
     tree, segment, n = tree_with_segment_and_n
 
     result = tree.n_nearest_indices(n, segment)
@@ -21,17 +23,19 @@ def test_basic(tree_with_segment_and_n: Tuple[Tree, Segment, int]) -> None:
 
 
 @given(strategies.trees_with_segments_and_sizes)
-def test_properties(tree_with_segment_and_n: Tuple[Tree, Segment, int]
-                    ) -> None:
+def test_properties(
+    tree_with_segment_and_n: tuple[Tree[ScalarT], Segment[ScalarT], int],
+) -> None:
     tree, segment, n = tree_with_segment_and_n
 
     result = tree.n_nearest_indices(n, segment)
 
-    def to_segment_distance(index: int) -> Scalar:
-        return to_segments_distance(tree.segments[index], segment)
+    def to_segment_distance(index: int, /) -> ScalarT:
+        return to_segment_squared_distance(tree.segments[index], segment)
 
     indices = range(len(tree.segments))
     assert 0 < len(result) <= n
     assert all(index in indices for index in result)
-    assert (set(nsmallest(n, map(to_segment_distance, indices)))
-            == set(map(to_segment_distance, result)))
+    assert set(nsmallest(n, map(to_segment_distance, indices))) == set(
+        map(to_segment_distance, result)
+    )

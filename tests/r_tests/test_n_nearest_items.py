@@ -1,19 +1,20 @@
 from heapq import nsmallest
-from typing import Tuple
 
-from ground.hints import (Point,
-                          Scalar)
+from ground.hints import Point
 from hypothesis import given
 
 from locus.core.r import Item
 from locus.r import Tree
-from tests.utils import (is_r_item,
-                         to_box_point_distance)
+from tests.hints import ScalarT
+from tests.utils import is_r_item, to_box_point_squared_distance
+
 from . import strategies
 
 
 @given(strategies.trees_with_points_and_sizes)
-def test_basic(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
+def test_basic(
+    tree_with_point_and_n: tuple[Tree[ScalarT], Point[ScalarT], int],
+) -> None:
     tree, point, n = tree_with_point_and_n
 
     result = tree.n_nearest_items(n, point)
@@ -23,16 +24,19 @@ def test_basic(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
 
 
 @given(strategies.trees_with_points_and_sizes)
-def test_properties(tree_with_point_and_n: Tuple[Tree, Point, int]) -> None:
+def test_properties(
+    tree_with_point_and_n: tuple[Tree[ScalarT], Point[ScalarT], int],
+) -> None:
     tree, point, n = tree_with_point_and_n
 
     result = tree.n_nearest_items(n, point)
 
-    def to_point_distance(item: Item) -> Scalar:
-        return to_box_point_distance(item[1], point)
+    def to_point_distance(item: Item[ScalarT], /) -> ScalarT:
+        return to_box_point_squared_distance(item[1], point)
 
     items = list(enumerate(tree.boxes))
     assert 0 < len(result) <= n
     assert all(item in items for item in result)
-    assert (set(nsmallest(n, map(to_point_distance, items)))
-            == set(map(to_point_distance, result)))
+    assert set(nsmallest(n, map(to_point_distance, items))) == set(
+        map(to_point_distance, result)
+    )

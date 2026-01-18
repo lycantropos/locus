@@ -1,26 +1,22 @@
-from heapq import (heappush as _heappush,
-                   heapreplace as _heapreplace)
-from typing import (Iterator as _Iterator,
-                    List as _List,
-                    Optional as _Optional,
-                    Sequence as _Sequence,
-                    Tuple as _Tuple)
+from collections.abc import Iterator as _Iterator, Sequence as _Sequence
+from heapq import heappush as _heappush, heapreplace as _heapreplace
+from typing import Generic as _Generic
 
-from ground.base import (Context as _Context,
-                         get_context as _get_context)
-from ground.hints import (Box as _Box,
-                          Point as _Point,
-                          Scalar as _Scalar)
+from ground.context import Context as _Context, get_context as _get_context
+from ground.hints import Box as _Box, Point as _Point
 from reprit.base import generate_repr as _generate_repr
 
 from .core import box as _box
-from .core.kd import (NIL as _NIL,
-                      Item as _Item,
-                      Node as _Node,
-                      create_node as _create_node)
+from .core.hints import HasCustomRepr as _HasCustomRepr, ScalarT as _ScalarT
+from .core.kd import (
+    Item as _Item,
+    NIL as _NIL,
+    Node as _Node,
+    create_node as _create_node,
+)
 
 
-class Tree:
+class Tree(_HasCustomRepr, _Generic[_ScalarT]):
     """
     Represents `k`-dimensional (aka *kd*) tree.
 
@@ -30,10 +26,13 @@ class Tree:
 
     __slots__ = '_context', '_points', '_root'
 
-    def __init__(self,
-                 points: _Sequence[_Point],
-                 *,
-                 context: _Optional[_Context] = None) -> None:
+    def __init__(
+        self,
+        points: _Sequence[_Point[_ScalarT]],
+        /,
+        *,
+        context: _Context[_ScalarT] | None = None,
+    ) -> None:
         """
         Initializes tree from points.
 
@@ -47,13 +46,20 @@ class Tree:
         if context is None:
             context = _get_context()
         self._context, self._points, self._root = (
-            context, points, _create_node(range(len(points)), points, False,
-                                          context.points_squared_distance))
+            context,
+            points,
+            _create_node(
+                range(len(points)),
+                points,
+                is_y_axis=False,
+                metric=context.points_squared_distance,
+            ),
+        )
 
     __repr__ = _generate_repr(__init__)
 
     @property
-    def context(self) -> _Context:
+    def context(self, /) -> _Context[_ScalarT]:
         """
         Returns context of the tree.
 
@@ -65,7 +71,7 @@ class Tree:
         return self._context
 
     @property
-    def points(self) -> _Sequence[_Point]:
+    def points(self, /) -> _Sequence[_Point[_ScalarT]]:
         """
         Returns underlying points.
 
@@ -74,7 +80,7 @@ class Tree:
         Memory complexity:
             ``O(1)``
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
@@ -84,7 +90,9 @@ class Tree:
         """
         return self._points
 
-    def n_nearest_indices(self, n: int, point: _Point) -> _Sequence[int]:
+    def n_nearest_indices(
+        self, n: int, point: _Point[_ScalarT], /
+    ) -> _Sequence[int]:
         """
         Searches for indices of points in the tree
         that are the nearest to the given point.
@@ -103,22 +111,28 @@ class Tree:
         :param point: input point.
         :returns: indices of points in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
         >>> tree.n_nearest_indices(2, Point(0, 0)) == [2, 3]
         True
-        >>> (tree.n_nearest_indices(len(points), Point(0, 0))
-        ...  == range(len(points)))
+        >>> (
+        ...     tree.n_nearest_indices(len(points), Point(0, 0))
+        ...     == range(len(points))
+        ... )
         True
         """
-        return ([index for index, _ in self._n_nearest_items(n, point)]
-                if n < len(self._points)
-                else range(len(self._points)))
+        return (
+            [index for index, _ in self._n_nearest_items(n, point)]
+            if n < len(self._points)
+            else range(len(self._points))
+        )
 
-    def n_nearest_points(self, n: int, point: _Point) -> _Sequence[_Point]:
+    def n_nearest_points(
+        self, n: int, point: _Point[_ScalarT], /
+    ) -> _Sequence[_Point[_ScalarT]]:
         """
         Searches for points in the tree the nearest to the given point.
 
@@ -136,22 +150,28 @@ class Tree:
         :param point: input point.
         :returns: points in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> (tree.n_nearest_points(2, Point(0, 0))
-        ...  == [Point(-3, 2), Point(-2, 3)])
+        >>> (
+        ...     tree.n_nearest_points(2, Point(0, 0))
+        ...     == [Point(-3, 2), Point(-2, 3)]
+        ... )
         True
         >>> tree.n_nearest_points(len(points), Point(0, 0)) == points
         True
         """
-        return ([point for _, point in self._n_nearest_items(n, point)]
-                if n < len(self._points)
-                else self._points)
+        return (
+            [point for _, point in self._n_nearest_items(n, point)]
+            if n < len(self._points)
+            else self._points
+        )
 
-    def n_nearest_items(self, n: int, point: _Point) -> _Sequence[_Item]:
+    def n_nearest_items(
+        self, n: int, point: _Point[_ScalarT], /
+    ) -> _Sequence[_Item[_ScalarT]]:
         """
         Searches for indices with points in the tree
         that are the nearest to the given point.
@@ -171,30 +191,40 @@ class Tree:
         :returns:
             indices with points in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
         >>> tree = Tree(points)
-        >>> (tree.n_nearest_items(2, Point(0, 0))
-        ...  == [(2, Point(-3, 2)), (3, Point(-2, 3))])
+        >>> (
+        ...     tree.n_nearest_items(2, Point(0, 0))
+        ...     == [(2, Point(-3, 2)), (3, Point(-2, 3))]
+        ... )
         True
-        >>> (tree.n_nearest_items(len(points), Point(0, 0))
-        ...  == list(enumerate(points)))
+        >>> (
+        ...     tree.n_nearest_items(len(points), Point(0, 0))
+        ...     == list(enumerate(points))
+        ... )
         True
         """
-        return (self._n_nearest_items(n, point)
-                if n < len(self._points)
-                else list(enumerate(self._points)))
+        return (
+            self._n_nearest_items(n, point)
+            if n < len(self._points)
+            else list(enumerate(self._points))
+        )
 
-    def _n_nearest_items(self, n: int, point: _Point) -> _List[_Item]:
-        candidates = []  # type: _List[_Tuple[_Scalar, _Item]]
-        queue = [self._root]
+    def _n_nearest_items(
+        self, n: int, point: _Point[_ScalarT], /
+    ) -> list[_Item[_ScalarT]]:
+        if self._root is _NIL:
+            return []
+        candidates: list[tuple[_ScalarT, _Item[_ScalarT]]] = []
+        queue: list[_Node[_ScalarT]] = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
-            node = pop()  # type: _Node
+            node = pop()
             distance_to_point = node.distance_to_point(point)
-            candidate = -distance_to_point, node.item
+            candidate = (-distance_to_point, node.item)
             if len(candidates) < n:
                 _heappush(candidates, candidate)
             elif distance_to_point < -candidates[0][0]:
@@ -206,9 +236,9 @@ class Tree:
                     push(node.left)
             elif node.right is not _NIL:
                 push(node.right)
-            if (len(candidates) < n
-                    or (node.distance_to_coordinate(coordinate)
-                        < -candidates[0][0])):
+            if len(candidates) < n or (
+                node.distance_to_coordinate(coordinate) < -candidates[0][0]
+            ):
                 if point_is_on_the_left:
                     if node.right is not _NIL:
                         push(node.right)
@@ -216,7 +246,7 @@ class Tree:
                     push(node.left)
         return [item for _, item in candidates]
 
-    def nearest_index(self, point: _Point) -> int:
+    def nearest_index(self, point: _Point[_ScalarT], /) -> int:
         """
         Searches for index of a point in the tree
         that is the nearest to the given point.
@@ -234,7 +264,7 @@ class Tree:
         :param point: input point.
         :returns: index of a point in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
@@ -247,7 +277,7 @@ class Tree:
         result, _ = self.nearest_item(point)
         return result
 
-    def nearest_point(self, point: _Point) -> _Point:
+    def nearest_point(self, point: _Point[_ScalarT], /) -> _Point[_ScalarT]:
         """
         Searches for point in the tree that is the nearest to the given point.
 
@@ -264,7 +294,7 @@ class Tree:
         :param point: input point.
         :returns: point in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
@@ -277,7 +307,7 @@ class Tree:
         _, result = self.nearest_item(point)
         return result
 
-    def nearest_item(self, point: _Point) -> _Item:
+    def nearest_item(self, point: _Point[_ScalarT], /) -> _Item[_ScalarT]:
         """
         Searches for index with point in the tree
         that is the nearest to the given point.
@@ -295,7 +325,7 @@ class Tree:
         :param point: input point.
         :returns: index with point in the tree the nearest to the input point.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
@@ -305,12 +335,14 @@ class Tree:
         >>> tree.nearest_item(Point(-3, 2)) == (2, Point(-3, 2))
         True
         """
-        node = self._root
+        if self._root is _NIL:
+            raise ValueError
+        node: _Node[_ScalarT] = self._root
         result, min_distance = node.item, node.distance_to_point(point)
         queue = [node]
         push, pop = queue.append, queue.pop
         while queue:
-            node = pop()  # type: _Node
+            node = pop()
             distance_to_point = node.distance_to_point(point)
             if distance_to_point < min_distance:
                 result, min_distance = node.item, distance_to_point
@@ -329,7 +361,7 @@ class Tree:
                     push(node.left)
         return result
 
-    def find_box_indices(self, box: _Box) -> _List[int]:
+    def find_box_indices(self, box: _Box[_ScalarT], /) -> list[int]:
         """
         Searches for indices of points that lie inside the given box.
 
@@ -347,7 +379,7 @@ class Tree:
         :param box: box to search in.
         :returns: indices of points that lie inside the box.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box, Point = context.box_cls, context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
@@ -361,7 +393,9 @@ class Tree:
         """
         return [index for index, _ in self._find_box_items(box)]
 
-    def find_box_points(self, box: _Box) -> _List[_Point]:
+    def find_box_points(
+        self, box: _Box[_ScalarT], /
+    ) -> list[_Point[_ScalarT]]:
         """
         Searches for points that lie inside the given box.
 
@@ -379,7 +413,7 @@ class Tree:
         :param box: box to search in.
         :returns: points that lie inside the box.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box, Point = context.box_cls, context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
@@ -388,13 +422,15 @@ class Tree:
         True
         >>> tree.find_box_points(Box(-3, 3, 0, 2)) == [Point(-3, 2)]
         True
-        >>> (tree.find_box_points(Box(-3, 3, 0, 3))
-        ...  == [Point(-3, 2), Point(-2, 3)])
+        >>> (
+        ...     tree.find_box_points(Box(-3, 3, 0, 3))
+        ...     == [Point(-3, 2), Point(-2, 3)]
+        ... )
         True
         """
         return [point for _, point in self._find_box_items(box)]
 
-    def find_box_items(self, box: _Box) -> _List[_Item]:
+    def find_box_items(self, box: _Box[_ScalarT], /) -> list[_Item[_ScalarT]]:
         """
         Searches for indices with points in the tree
         that lie inside the given box.
@@ -413,7 +449,7 @@ class Tree:
         :param box: box to search in.
         :returns: indices with points in the tree that lie inside the box.
 
-        >>> from ground.base import get_context
+        >>> from ground.context import get_context
         >>> context = get_context()
         >>> Box, Point = context.box_cls, context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
@@ -422,22 +458,30 @@ class Tree:
         True
         >>> tree.find_box_items(Box(-3, 3, 0, 2)) == [(2, Point(-3, 2))]
         True
-        >>> (tree.find_box_items(Box(-3, 3, 0, 3))
-        ...  == [(2, Point(-3, 2)), (3, Point(-2, 3))])
+        >>> (
+        ...     tree.find_box_items(Box(-3, 3, 0, 3))
+        ...     == [(2, Point(-3, 2)), (3, Point(-2, 3))]
+        ... )
         True
         """
         return list(self._find_box_items(box))
 
-    def _find_box_items(self, box: _Box) -> _Iterator[_Item]:
-        queue = [self._root]
+    def _find_box_items(
+        self, box: _Box[_ScalarT], /
+    ) -> _Iterator[_Item[_ScalarT]]:
+        if self._root is _NIL:
+            return
+        queue: list[_Node[_ScalarT]] = [self._root]
         push, pop = queue.append, queue.pop
         while queue:
-            node = pop()  # type: _Node
+            node = pop()
             if _box.contains_point(box, node.point):
                 yield node.item
-            min_coordinate, max_coordinate = ((box.min_y, box.max_y)
-                                              if node.is_y_axis
-                                              else (box.min_x, box.max_x))
+            min_coordinate, max_coordinate = (
+                (box.min_y, box.max_y)
+                if node.is_y_axis
+                else (box.min_x, box.max_x)
+            )
             coordinate = node.projector(node.point)
             if node.left is not _NIL and min_coordinate <= coordinate:
                 push(node.left)
