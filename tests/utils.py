@@ -14,7 +14,10 @@ from locus import kd, r, segmental
 from locus.core.box import is_subset_of
 from locus.core.kd import NIL, Nil, Node as KdNode
 from locus.core.r import AnyNode as AnyRNode, is_leaf as is_r_leaf
-from locus.core.segmental import Node as SegmentalNode
+from locus.core.segmental import (
+    AnyNode as AnySegmentalNode,
+    is_leaf as is_segmental_leaf,
+)
 from tests.hints import ScalarT
 
 Strategy = SearchStrategy
@@ -101,8 +104,8 @@ def is_r_node_balanced(node: AnyRNode[ScalarT], /) -> bool:
     )
 
 
-def is_segmental_node_balanced(node: SegmentalNode[ScalarT], /) -> bool:
-    if node.is_leaf:
+def is_segmental_node_balanced(node: AnySegmentalNode[ScalarT], /) -> bool:
+    if is_segmental_leaf(node):
         return True
     assert node.children is not None, node
     children_heights = list(map(to_segmental_node_height, node.children))
@@ -136,8 +139,8 @@ def is_r_node_valid(node: AnyRNode[ScalarT], /) -> bool:
     )
 
 
-def is_segmental_node_valid(node: SegmentalNode[ScalarT], /) -> bool:
-    if node.is_leaf:
+def is_segmental_node_valid(node: AnySegmentalNode[ScalarT], /) -> bool:
+    if is_segmental_leaf(node):
         return True
     assert node.children is not None, node
     return all(
@@ -162,8 +165,8 @@ def to_r_node_height(node: AnyRNode[ScalarT], /) -> int:
     )
 
 
-def to_segmental_node_height(node: SegmentalNode[ScalarT], /) -> int:
-    if node.is_leaf:
+def to_segmental_node_height(node: AnySegmentalNode[ScalarT], /) -> int:
+    if is_segmental_leaf(node):
         return 0
     assert node.children is not None, node
     return max(1 + to_segmental_node_height(child) for child in node.children)

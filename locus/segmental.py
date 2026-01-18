@@ -7,7 +7,12 @@ from ground.hints import Point as _Point, Segment as _Segment
 from reprit.base import generate_repr as _generate_repr
 
 from .core.hints import HasCustomRepr as _HasCustomRepr, ScalarT as _ScalarT
-from .core.segmental import Item as _Item, create_root as _create_root
+from .core.segmental import (
+    AnyNode as _AnyNode,
+    Item as _Item,
+    create_root as _create_root,
+    is_leaf as _is_leaf,
+)
 
 
 class Tree(_HasCustomRepr, _Generic[_ScalarT]):
@@ -61,12 +66,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
                     for segment in segments
                 ],
                 max_children,
-                context.merged_box,
-                context.box_point_squared_distance,
-                context.box_segment_squared_distance,
-                context.segment_point_squared_distance,
-                context.segments_squared_distance,
-                context.coordinate_factory,
+                box_point_metric=context.box_point_squared_distance,
+                box_segment_metric=context.box_segment_squared_distance,
+                boxes_merger=context.merged_box,
+                coordinate_factory=context.coordinate_factory,
+                segment_point_metric=context.segment_point_squared_distance,
+                segments_metric=context.segments_squared_distance,
+                zero=context.zero,
             ),
             segments,
         )
@@ -482,21 +488,24 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         ... )
         True
         """
-        queue = [(self._context.zero, 0, self._root)]
+        queue: list[tuple[_ScalarT, int, _AnyNode[_ScalarT]]] = [
+            (self._context.zero, 0, self._root)
+        ]
         while queue:
             _, _, node = _heappop(queue)
-            assert node.children is not None, node
+            assert not _is_leaf(node), node
             for child in node.children:
                 _heappush(
                     queue,
                     (
                         child.distance_to_segment(segment),
-                        child.index if child.is_leaf else -child.index - 1,
+                        child.index if _is_leaf(child) else -child.index - 1,
                         child,
                     ),
                 )
             if queue and queue[0][1] >= 0:
                 _, _, node = _heappop(queue)
+                assert _is_leaf(node), node
                 return node.item
         raise ValueError
 
@@ -597,21 +606,24 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         ... )
         True
         """
-        queue = [(self._context.zero, 0, self._root)]
+        queue: list[tuple[_ScalarT, int, _AnyNode[_ScalarT]]] = [
+            (self._context.zero, 0, self._root)
+        ]
         while queue:
             _, _, node = _heappop(queue)
-            assert node.children is not None, node
+            assert not _is_leaf(node), node
             for child in node.children:
                 _heappush(
                     queue,
                     (
                         child.distance_to_point(point),
-                        child.index if child.is_leaf else -child.index - 1,
+                        child.index if _is_leaf(child) else -child.index - 1,
                         child,
                     ),
                 )
             if queue and queue[0][1] >= 0:
                 _, _, node = _heappop(queue)
+                assert _is_leaf(node), node
                 return node.item
         raise ValueError
 
@@ -652,41 +664,47 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
     def _n_nearest_items(
         self, n: int, segment: _Segment[_ScalarT], /
     ) -> _Iterator[_Item[_ScalarT]]:
-        queue = [(self._context.zero, 0, self._root)]
+        queue: list[tuple[_ScalarT, int, _AnyNode[_ScalarT]]] = [
+            (self._context.zero, 0, self._root)
+        ]
         while n and queue:
             _, _, node = _heappop(queue)
-            assert node.children is not None, node
+            assert not _is_leaf(node), node
             for child in node.children:
                 _heappush(
                     queue,
                     (
                         child.distance_to_segment(segment),
-                        child.index if child.is_leaf else -child.index - 1,
+                        child.index if _is_leaf(child) else -child.index - 1,
                         child,
                     ),
                 )
             while n and queue and queue[0][1] >= 0:
                 _, _, node = _heappop(queue)
+                assert _is_leaf(node), node
                 yield node.item
                 n -= 1
 
     def _n_nearest_to_point_items(
         self, n: int, point: _Point[_ScalarT], /
     ) -> _Iterator[_Item[_ScalarT]]:
-        queue = [(self._context.zero, 0, self._root)]
+        queue: list[tuple[_ScalarT, int, _AnyNode[_ScalarT]]] = [
+            (self._context.zero, 0, self._root)
+        ]
         while n and queue:
             _, _, node = _heappop(queue)
-            assert node.children is not None, node
+            assert not _is_leaf(node), node
             for child in node.children:
                 _heappush(
                     queue,
                     (
                         child.distance_to_point(point),
-                        child.index if child.is_leaf else -child.index - 1,
+                        child.index if _is_leaf(child) else -child.index - 1,
                         child,
                     ),
                 )
             while n and queue and queue[0][1] >= 0:
                 _, _, node = _heappop(queue)
+                assert _is_leaf(node), node
                 yield node.item
                 n -= 1
