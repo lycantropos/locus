@@ -28,6 +28,7 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
     def __init__(
         self,
         segments: _Sequence[_Segment[_ScalarT]],
+        /,
         *,
         max_children: int = 16,
         context: _Context[_ScalarT] | None = None,

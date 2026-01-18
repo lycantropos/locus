@@ -31,6 +31,7 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
     def __init__(
         self,
         boxes: _Sequence[_Box[_ScalarT]],
+        /,
         *,
         max_children: int = 16,
         context: _Context[_ScalarT] | None = None,
@@ -114,7 +115,7 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         """
         return self._max_children
 
-    def find_subsets(self, box: _Box[_ScalarT]) -> list[_Box[_ScalarT]]:
+    def find_subsets(self, box: _Box[_ScalarT], /) -> list[_Box[_ScalarT]]:
         """
         Searches for boxes that lie inside the given box.
 
@@ -150,7 +151,7 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         """
         return [box for _, box in self._find_subsets_items(box)]
 
-    def find_subsets_indices(self, box: _Box[_ScalarT]) -> list[int]:
+    def find_subsets_indices(self, box: _Box[_ScalarT], /) -> list[int]:
         """
         Searches for indices of boxes that lie inside the given box.
 
@@ -180,7 +181,9 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         """
         return [index for index, _ in self._find_subsets_items(box)]
 
-    def find_subsets_items(self, box: _Box[_ScalarT]) -> list[_Item[_ScalarT]]:
+    def find_subsets_items(
+        self, box: _Box[_ScalarT], /
+    ) -> list[_Item[_ScalarT]]:
         """
         Searches for indices with boxes that lie inside the given box.
 
@@ -223,7 +226,7 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         """
         return list(self._find_subsets_items(box))
 
-    def find_supersets(self, box: _Box[_ScalarT]) -> list[_Box[_ScalarT]]:
+    def find_supersets(self, box: _Box[_ScalarT], /) -> list[_Box[_ScalarT]]:
         """
         Searches for boxes that contain the given box.
 
@@ -259,7 +262,7 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         """
         return [box for _, box in self._find_supersets_items(box)]
 
-    def find_supersets_indices(self, box: _Box[_ScalarT]) -> list[int]:
+    def find_supersets_indices(self, box: _Box[_ScalarT], /) -> list[int]:
         """
         Searches for indices of boxes that contain the given box.
 
@@ -290,7 +293,7 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         return [index for index, _ in self._find_supersets_items(box)]
 
     def find_supersets_items(
-        self, box: _Box[_ScalarT]
+        self, box: _Box[_ScalarT], /
     ) -> list[_Item[_ScalarT]]:
         """
         Searches for indices with boxes
@@ -336,7 +339,7 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         return list(self._find_supersets_items(box))
 
     def _find_subsets_items(
-        self, box: _Box[_ScalarT]
+        self, box: _Box[_ScalarT], /
     ) -> _Iterator[_Item[_ScalarT]]:
         yield from (
             enumerate(self._boxes)
@@ -345,7 +348,7 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         )
 
     def _find_supersets_items(
-        self, box: _Box[_ScalarT]
+        self, box: _Box[_ScalarT], /
     ) -> _Iterator[_Item[_ScalarT]]:
         yield from _find_node_box_supersets_items(self._root, box)
 
