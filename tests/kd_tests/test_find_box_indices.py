@@ -1,14 +1,14 @@
 from ground.hints import Box
 from hypothesis import given
 
-from locus.core.box import contains_point
+from locus._core.box import contains_point
 from locus.kd import Tree
 from tests.hints import ScalarT
 
-from . import strategies
+from .strategies import tree_with_box_strategy
 
 
-@given(strategies.tree_with_box_strategy)
+@given(tree_with_box_strategy)
 def test_basic(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     tree, box = tree_with_box
 
@@ -18,7 +18,7 @@ def test_basic(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     assert all(isinstance(element, int) for element in result)
 
 
-@given(strategies.tree_with_box_strategy)
+@given(tree_with_box_strategy)
 def test_properties(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     tree, box = tree_with_box
 

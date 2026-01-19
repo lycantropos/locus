@@ -1,7 +1,7 @@
 from ground.hints import Point
 from hypothesis import given
 
-from locus.core.r import Item
+from locus._core.r import Item
 from locus.r import Tree
 from tests.hints import ScalarT
 from tests.utils import is_r_item, to_box_point_squared_distance
@@ -9,7 +9,7 @@ from tests.utils import is_r_item, to_box_point_squared_distance
 from . import strategies
 
 
-@given(strategies.trees_with_points)
+@given(strategies.tree_with_point_strategy)
 def test_basic(tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]]) -> None:
     tree, point = tree_with_point
 
@@ -18,7 +18,7 @@ def test_basic(tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]]) -> None:
     assert is_r_item(result)
 
 
-@given(strategies.trees_with_points)
+@given(strategies.tree_with_point_strategy)
 def test_properties(
     tree_with_point: tuple[Tree[ScalarT], Point[ScalarT]],
 ) -> None:

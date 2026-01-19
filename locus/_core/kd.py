@@ -7,7 +7,7 @@ from ground.hints import Point
 from reprit.base import generate_repr
 from typing_extensions import Self
 
-from locus.core.hints import HasCustomRepr, ScalarT
+from locus._core.hints import HasCustomRepr, ScalarT
 
 Item: TypeAlias = tuple[int, Point[ScalarT]]
 _Projector: TypeAlias = Callable[[Point[ScalarT]], ScalarT]

@@ -1,6 +1,6 @@
 from ground.hints import Box, Point
 
-from locus.core.hints import ScalarT
+from locus._core.hints import ScalarT
 
 
 def contains_point(box: Box[ScalarT], point: Point[ScalarT], /) -> bool:

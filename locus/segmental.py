@@ -6,8 +6,8 @@ from ground.context import Context as _Context, get_context as _get_context
 from ground.hints import Point as _Point, Segment as _Segment
 from reprit.base import generate_repr as _generate_repr
 
-from .core.hints import HasCustomRepr as _HasCustomRepr, ScalarT as _ScalarT
-from .core.segmental import (
+from ._core.hints import HasCustomRepr as _HasCustomRepr, ScalarT as _ScalarT
+from ._core.segmental import (
     AnyNode as _AnyNode,
     Item as _Item,
     create_root as _create_root,

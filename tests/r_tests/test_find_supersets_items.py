@@ -1,7 +1,7 @@
 from ground.hints import Box
 from hypothesis import given
 
-from locus.core.box import is_subset_of
+from locus._core.box import is_subset_of
 from locus.r import Tree
 from tests.hints import ScalarT
 from tests.utils import is_r_item
@@ -19,7 +19,7 @@ def test_basic(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     assert all(is_r_item(element) for element in result)
 
 
-@given(strategies.trees)
+@given(strategies.tree_strategy)
 def test_base_boxes(tree: Tree[ScalarT]) -> None:
     assert all(
         (index, box) in tree.find_supersets_items(box)

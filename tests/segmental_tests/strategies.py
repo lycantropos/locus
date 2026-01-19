@@ -3,7 +3,7 @@ from functools import partial
 from ground.hints import Point, Segment
 from hypothesis import strategies as st
 
-from locus.core.hilbert import MAX_COORDINATE
+from locus._core.hilbert import MAX_COORDINATE
 from locus.segmental import Tree
 from tests.hints import ScalarT
 from tests.strategies import (

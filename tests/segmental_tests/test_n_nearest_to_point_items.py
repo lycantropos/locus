@@ -3,7 +3,7 @@ from heapq import nsmallest
 from ground.hints import Point
 from hypothesis import given
 
-from locus.core.segmental import Item
+from locus._core.segmental import Item
 from locus.segmental import Tree
 from tests.hints import ScalarT
 from tests.utils import is_segmental_item, to_segment_point_squared_distance

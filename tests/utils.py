@@ -11,10 +11,10 @@ from hypothesis import strategies
 from hypothesis.strategies import SearchStrategy
 
 from locus import kd, r, segmental
-from locus.core.box import is_subset_of
-from locus.core.kd import NIL, Nil, Node as KdNode
-from locus.core.r import AnyNode as AnyRNode, is_leaf as is_r_leaf
-from locus.core.segmental import (
+from locus._core.box import is_subset_of
+from locus._core.kd import NIL, Nil, Node as KdNode
+from locus._core.r import AnyNode as AnyRNode, is_leaf as is_r_leaf
+from locus._core.segmental import (
     AnyNode as AnySegmentalNode,
     is_leaf as is_segmental_leaf,
 )

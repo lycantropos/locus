@@ -1,14 +1,14 @@
 from ground.hints import Box
 from hypothesis import given
 
-from locus.core.box import is_subset_of
+from locus._core.box import is_subset_of
 from locus.r import Tree
 from tests.hints import ScalarT
 
-from . import strategies
+from .strategies import tree_strategy, tree_with_box_strategy
 
 
-@given(strategies.tree_with_box_strategy)
+@given(tree_with_box_strategy)
 def test_basic(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     tree, box = tree_with_box
 
@@ -18,7 +18,7 @@ def test_basic(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     assert all(isinstance(element, int) for element in result)
 
 
-@given(strategies.trees)
+@given(tree_strategy)
 def test_base_boxes(tree: Tree[ScalarT]) -> None:
     assert all(
         index in tree.find_subsets_indices(box)
@@ -26,7 +26,7 @@ def test_base_boxes(tree: Tree[ScalarT]) -> None:
     )
 
 
-@given(strategies.tree_with_box_strategy)
+@given(tree_with_box_strategy)
 def test_properties(tree_with_box: tuple[Tree[ScalarT], Box[ScalarT]]) -> None:
     tree, box = tree_with_box
 

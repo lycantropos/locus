@@ -4,10 +4,10 @@ from hypothesis import given
 from locus.r import Tree
 from tests.hints import ScalarT
 
-from . import strategies
+from .strategies import tree_strategy
 
 
-@given(strategies.trees)
+@given(tree_strategy)
 def test_basic(tree: Tree[ScalarT]) -> None:
     result = tree.context
 

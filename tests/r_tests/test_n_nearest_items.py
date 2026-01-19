@@ -3,7 +3,7 @@ from heapq import nsmallest
 from ground.hints import Point
 from hypothesis import given
 
-from locus.core.r import Item
+from locus._core.r import Item
 from locus.r import Tree
 from tests.hints import ScalarT
 from tests.utils import is_r_item, to_box_point_squared_distance

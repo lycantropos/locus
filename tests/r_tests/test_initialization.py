@@ -13,7 +13,7 @@ from tests.utils import (
 from . import strategies
 
 
-@given(strategies.boxes_lists, strategies.max_children_counts)
+@given(strategies.box_list_strategy, strategies.max_child_count_strategy)
 def test_basic(boxes: list[Box[ScalarT]], max_children: int) -> None:
     result = Tree(boxes, max_children=max_children)
 
@@ -21,7 +21,7 @@ def test_basic(boxes: list[Box[ScalarT]], max_children: int) -> None:
     assert result.max_children == max_children
 
 
-@given(strategies.boxes_lists, strategies.max_children_counts)
+@given(strategies.box_list_strategy, strategies.max_child_count_strategy)
 def test_properties(boxes: list[Box[ScalarT]], max_children: int) -> None:
     result = Tree(boxes, max_children=max_children)
 

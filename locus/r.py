@@ -6,9 +6,9 @@ from ground.context import Context as _Context, get_context as _get_context
 from ground.hints import Box as _Box, Point as _Point
 from reprit.base import generate_repr as _generate_repr
 
-from .core import box as _box
-from .core.hints import HasCustomRepr as _HasCustomRepr, ScalarT as _ScalarT
-from .core.r import (
+from ._core import box as _box
+from ._core.hints import HasCustomRepr as _HasCustomRepr, ScalarT as _ScalarT
+from ._core.r import (
     AnyNode as _AnyNode,
     Item as _Item,
     create_root as _create_root,

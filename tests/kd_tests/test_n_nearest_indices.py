@@ -7,10 +7,10 @@ from locus.kd import Tree
 from tests.hints import ScalarT
 from tests.utils import to_point_squared_distance
 
-from . import strategies
+from .strategies import tree_with_point_and_size_strategy
 
 
-@given(strategies.tree_with_point_and_size_strategy)
+@given(tree_with_point_and_size_strategy)
 def test_basic(
     tree_with_point_and_n: tuple[Tree[ScalarT], Point[ScalarT], int],
 ) -> None:
@@ -22,7 +22,7 @@ def test_basic(
     assert all(isinstance(element, int) for element in result)
 
 
-@given(strategies.tree_with_point_and_size_strategy)
+@given(tree_with_point_and_size_strategy)
 def test_properties(
     tree_with_point_and_n: tuple[Tree[ScalarT], Point[ScalarT], int],
 ) -> None:

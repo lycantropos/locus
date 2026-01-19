@@ -2,7 +2,7 @@ from typing import Protocol, TypeVar
 
 from typing_extensions import Self
 
-from locus.core.hints import Scalar as _Scalar
+from locus._core.hints import Scalar as _Scalar
 
 
 class Scalar(_Scalar, Protocol):

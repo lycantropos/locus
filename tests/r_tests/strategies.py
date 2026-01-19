@@ -3,7 +3,7 @@ from functools import partial
 from ground.hints import Box, Point
 from hypothesis import strategies as st
 
-from locus.core.hilbert import MAX_COORDINATE
+from locus._core.hilbert import MAX_COORDINATE
 from locus.r import Tree
 from tests.hints import ScalarT
 from tests.strategies import (
@@ -13,14 +13,16 @@ from tests.strategies import (
 )
 
 MIN_BOXES_SIZE = 2
-max_children_counts = st.sampled_from(
+max_child_count_strategy = st.sampled_from(
     [2**power for power in range(1, 10)]
 ) | st.integers(2, MAX_COORDINATE)
-boxes_strategies = scalar_strategy_strategy.map(to_box_strategy)
-boxes_lists = boxes_strategies.flatmap(
+box_strategy_strategy = scalar_strategy_strategy.map(to_box_strategy)
+box_list_strategy = box_strategy_strategy.flatmap(
     partial(st.lists, min_size=MIN_BOXES_SIZE)
 )
-trees = st.builds(Tree, boxes_lists, max_children=max_children_counts)
+tree_strategy = st.builds(
+    Tree, box_list_strategy, max_children=max_child_count_strategy
+)
 
 
 def scalar_strategy_to_tree_with_box_strategy(
@@ -30,14 +32,14 @@ def scalar_strategy_to_tree_with_box_strategy(
     min_size: int = MIN_BOXES_SIZE,
     max_size: int | None = None,
 ) -> st.SearchStrategy[tuple[Tree[ScalarT], Box[ScalarT]]]:
-    boxes = to_box_strategy(scalar_strategy)
+    box_strategy = to_box_strategy(scalar_strategy)
     return st.tuples(
         st.builds(
             Tree,
-            st.lists(boxes, min_size=min_size, max_size=max_size),
-            max_children=max_children_counts,
+            st.lists(box_strategy, min_size=min_size, max_size=max_size),
+            max_children=max_child_count_strategy,
         ),
-        boxes,
+        box_strategy,
     )
 
 
@@ -47,7 +49,8 @@ tree_with_box_strategy = scalar_strategy_strategy.flatmap(
 
 
 def scalars_to_trees_with_points(
-    scalars: st.SearchStrategy[ScalarT],
+    scalar_strategy: st.SearchStrategy[ScalarT],
+    /,
     *,
     min_size: int = MIN_BOXES_SIZE,
     max_size: int | None = None,
@@ -56,20 +59,22 @@ def scalars_to_trees_with_points(
         st.builds(
             Tree,
             st.lists(
-                to_box_strategy(scalars), min_size=min_size, max_size=max_size
+                to_box_strategy(scalar_strategy),
+                min_size=min_size,
+                max_size=max_size,
             ),
-            max_children=max_children_counts,
+            max_children=max_child_count_strategy,
         ),
-        to_point_strategy(scalars),
+        to_point_strategy(scalar_strategy),
     )
 
 
-trees_with_points = scalar_strategy_strategy.flatmap(
+tree_with_point_strategy = scalar_strategy_strategy.flatmap(
     scalars_to_trees_with_points
 )
 
 
-def scalars_to_trees_with_points_and_sizes(
+def scalar_to_tree_with_point_and_size_strategy(
     scalar_strategy: st.SearchStrategy[ScalarT],
     /,
     *,
@@ -81,7 +86,9 @@ def scalars_to_trees_with_points_and_sizes(
     ) -> st.SearchStrategy[tuple[Tree[ScalarT], Point[ScalarT], int]]:
         boxes, point = boxes_with_point
         return st.tuples(
-            st.builds(Tree, st.just(boxes), max_children=max_children_counts),
+            st.builds(
+                Tree, st.just(boxes), max_children=max_child_count_strategy
+            ),
             st.just(point),
             st.integers(1, len(boxes)),
         )
@@ -97,5 +104,5 @@ def scalars_to_trees_with_points_and_sizes(
 
 
 trees_with_points_and_sizes = scalar_strategy_strategy.flatmap(
-    scalars_to_trees_with_points_and_sizes
+    scalar_to_tree_with_point_and_size_strategy
 )
