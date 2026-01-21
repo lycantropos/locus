@@ -1,3 +1,4 @@
+import math
 from collections.abc import Callable, Iterable, Sequence
 from functools import partial
 from itertools import groupby
@@ -5,10 +6,9 @@ from math import ceil, log2
 from operator import is_
 from typing import Any, TypeVar, cast
 
-from ground.context import get_context
+from ground.context import Context
 from ground.hints import Box, Point, Segment
-from hypothesis import strategies
-from hypothesis.strategies import SearchStrategy
+from hypothesis import strategies as st
 
 from locus import kd, r, segmental
 from locus._core.box import is_subset_of
@@ -20,12 +20,9 @@ from locus._core.segmental import (
 )
 from tests.hints import ScalarT
 
-Strategy = SearchStrategy
-context = get_context()
-
+context: Context[Any] = Context(coordinate_factory=float, sqrt=math.sqrt)
 
 equivalence = is_
-
 
 _T = TypeVar('_T')
 
@@ -38,8 +35,10 @@ def call(function: Callable[..., _T], args: Iterable[Any], /) -> _T:
     return function(*args)
 
 
-def to_pairs(elements: Strategy[_T], /) -> Strategy[tuple[_T, _T]]:
-    return strategies.tuples(elements, elements)
+def to_pairs(
+    elements: st.SearchStrategy[_T], /
+) -> st.SearchStrategy[tuple[_T, _T]]:
+    return st.tuples(elements, elements)
 
 
 def is_kd_tree_balanced(tree: kd.Tree[ScalarT], /) -> bool:

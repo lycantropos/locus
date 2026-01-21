@@ -11,12 +11,14 @@ from tests.strategies import (
     to_box_strategy,
     to_point_strategy,
 )
-from tests.utils import identity
+from tests.utils import context, identity
 
 non_empty_point_sequence_strategy = point_strategy_strategy.flatmap(
     partial(st.lists, min_size=1)
 )
-tree_strategy = non_empty_point_sequence_strategy.map(Tree)
+tree_strategy = st.builds(
+    Tree, non_empty_point_sequence_strategy, context=st.just(context)
+)
 
 
 def point_strategy_to_tree_strategy(
@@ -26,8 +28,10 @@ def point_strategy_to_tree_strategy(
     min_size: int = 1,
     max_size: int | None = None,
 ) -> st.SearchStrategy[Tree[ScalarT]]:
-    return st.lists(point_strategy, min_size=min_size, max_size=max_size).map(
-        Tree
+    return st.builds(
+        Tree,
+        st.lists(point_strategy, min_size=min_size, max_size=max_size),
+        context=st.just(context),
     )
 
 
@@ -51,7 +55,7 @@ def points_to_trees_with_points_and_sizes(
         points_list: list[Point[ScalarT]], /
     ) -> st.SearchStrategy[tuple[Tree[ScalarT], Point[ScalarT], int]]:
         return st.tuples(
-            st.just(Tree(points_list)),
+            st.just(Tree(points_list, context=context)),
             points,
             st.integers(1, len(points_list)),
         )

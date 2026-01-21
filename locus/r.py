@@ -2,7 +2,7 @@ from collections.abc import Iterator as _Iterator, Sequence as _Sequence
 from heapq import heappop as _heappop, heappush as _heappush
 from typing import Generic as _Generic
 
-from ground.context import Context as _Context, get_context as _get_context
+from ground.context import Context as _Context
 from ground.hints import Box as _Box, Point as _Point
 from reprit.base import generate_repr as _generate_repr
 
@@ -33,8 +33,8 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         boxes: _Sequence[_Box[_ScalarT]],
         /,
         *,
+        context: _Context[_ScalarT],
         max_children: int = 16,
-        context: _Context[_ScalarT] | None = None,
     ) -> None:
         """
         Initializes tree from boxes.
@@ -46,8 +46,6 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
 
         where ``size = len(boxes)``.
         """
-        if context is None:
-            context = _get_context()
         self._boxes, self._context, self._max_children, self._root = (
             boxes,
             context,
@@ -73,11 +71,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         Memory complexity:
             ``O(1)``
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> tree.boxes == boxes
         True
         """
@@ -105,11 +105,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         Memory complexity:
             ``O(1)``
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> tree.max_children == 16
         True
         """
@@ -131,11 +133,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param box: input box.
         :returns: boxes that lie inside the input box.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> tree.find_subsets(Box(-1, 1, 0, 1)) == [Box(-1, 1, 0, 1)]
         True
         >>> (
@@ -167,11 +171,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param box: input box.
         :returns: indices of boxes that lie inside the input box.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> tree.find_subsets_indices(Box(-1, 1, 0, 1)) == [0]
         True
         >>> tree.find_subsets_indices(Box(-2, 2, 0, 2)) == [0, 1]
@@ -199,11 +205,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param box: input box.
         :returns: indices with boxes that lie inside the input box.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> (
         ...     tree.find_subsets_items(Box(-1, 1, 0, 1))
         ...     == [(0, Box(-1, 1, 0, 1))]
@@ -242,11 +250,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param box: input box.
         :returns: boxes that contain the input box.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> tree.find_supersets(Box(-10, 10, 0, 10)) == [Box(-10, 10, 0, 10)]
         True
         >>> (
@@ -278,11 +288,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param box: input box.
         :returns: indices of boxes that contain the input box.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> tree.find_supersets_indices(Box(-10, 10, 0, 10)) == [9]
         True
         >>> tree.find_supersets_indices(Box(-9, 9, 0, 9)) == [8, 9]
@@ -311,11 +323,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param box: input box.
         :returns: indices with boxes that contain the input box.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box = context.box_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> (
         ...     tree.find_supersets_items(Box(-10, 10, 0, 10))
         ...     == [(9, Box(-10, 10, 0, 10))]
@@ -374,11 +388,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :returns:
             indices of boxes in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> tree.n_nearest_indices(2, Point(0, 0)) == [9, 8]
         True
         >>> (
@@ -413,11 +429,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param point: input point.
         :returns: boxes in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> (
         ...     tree.n_nearest_boxes(2, Point(0, 0))
         ...     == [Box(-10, 10, 0, 10), Box(-9, 9, 0, 9)]
@@ -455,11 +473,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :returns:
             indices with boxes in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> (
         ...     tree.n_nearest_items(2, Point(0, 0))
         ...     == [(9, Box(-10, 10, 0, 10)), (8, Box(-9, 9, 0, 9))]
@@ -493,11 +513,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param point: input point.
         :returns: index of box in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> tree.nearest_index(Point(0, 0)) == 9
         True
         """
@@ -519,11 +541,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param point: input point.
         :returns: box in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> tree.nearest_box(Point(0, 0)) == Box(-10, 10, 0, 10)
         True
         """
@@ -547,11 +571,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :returns:
             index with box in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box, Point = context.box_cls, context.point_cls
         >>> boxes = [Box(-index, index, 0, index) for index in range(1, 11)]
-        >>> tree = Tree(boxes)
+        >>> tree = Tree(boxes, context=context)
         >>> tree.nearest_item(Point(0, 0)) == (9, Box(-10, 10, 0, 10))
         True
         >>> tree.nearest_item(Point(-10, 0)) == (9, Box(-10, 10, 0, 10))

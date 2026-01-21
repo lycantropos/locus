@@ -11,6 +11,7 @@ from tests.strategies import (
     to_box_strategy,
     to_point_strategy,
 )
+from tests.utils import context
 
 MIN_BOXES_SIZE = 2
 max_child_count_strategy = st.sampled_from(
@@ -21,7 +22,10 @@ box_list_strategy = box_strategy_strategy.flatmap(
     partial(st.lists, min_size=MIN_BOXES_SIZE)
 )
 tree_strategy = st.builds(
-    Tree, box_list_strategy, max_children=max_child_count_strategy
+    Tree,
+    box_list_strategy,
+    context=st.just(context),
+    max_children=max_child_count_strategy,
 )
 
 
@@ -37,6 +41,7 @@ def scalar_strategy_to_tree_with_box_strategy(
         st.builds(
             Tree,
             st.lists(box_strategy, min_size=min_size, max_size=max_size),
+            context=st.just(context),
             max_children=max_child_count_strategy,
         ),
         box_strategy,
@@ -63,6 +68,7 @@ def scalars_to_trees_with_points(
                 min_size=min_size,
                 max_size=max_size,
             ),
+            context=st.just(context),
             max_children=max_child_count_strategy,
         ),
         to_point_strategy(scalar_strategy),
@@ -87,7 +93,10 @@ def scalar_to_tree_with_point_and_size_strategy(
         boxes, point = boxes_with_point
         return st.tuples(
             st.builds(
-                Tree, st.just(boxes), max_children=max_child_count_strategy
+                Tree,
+                st.just(boxes),
+                context=st.just(context),
+                max_children=max_child_count_strategy,
             ),
             st.just(point),
             st.integers(1, len(boxes)),

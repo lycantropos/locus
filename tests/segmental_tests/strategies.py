@@ -11,6 +11,7 @@ from tests.strategies import (
     to_point_strategy,
     to_segment_strategy,
 )
+from tests.utils import context
 
 MIN_SEGMENTS_SIZE = 2
 max_children_counts = st.sampled_from(
@@ -20,7 +21,12 @@ segments_strategies = scalar_strategy_strategy.map(to_segment_strategy)
 segments_lists = segments_strategies.flatmap(
     partial(st.lists, min_size=MIN_SEGMENTS_SIZE)
 )
-trees = st.builds(Tree, segments_lists, max_children=max_children_counts)
+trees = st.builds(
+    Tree,
+    segments_lists,
+    context=st.just(context),
+    max_children=max_children_counts,
+)
 
 
 def scalar_strategy_to_tree_with_segment_strategy(
@@ -35,6 +41,7 @@ def scalar_strategy_to_tree_with_segment_strategy(
         st.builds(
             Tree,
             st.lists(segments, min_size=min_size, max_size=max_size),
+            context=st.just(context),
             max_children=max_children_counts,
         ),
         segments,
@@ -61,6 +68,7 @@ def scalar_strategy_to_tree_with_point_strategy(
                 min_size=min_size,
                 max_size=max_size,
             ),
+            context=st.just(context),
             max_children=max_children_counts,
         ),
         to_point_strategy(scalar_strategy),
@@ -88,7 +96,10 @@ def scalar_strategy_to_tree_with_point_and_size_strategy(
         segments_list, point = segments_list_with_point
         return st.tuples(
             st.builds(
-                Tree, st.just(segments_list), max_children=max_children_counts
+                Tree,
+                st.just(segments_list),
+                context=st.just(context),
+                max_children=max_children_counts,
             ),
             st.just(point),
             st.integers(1, len(segments_list)),
@@ -125,7 +136,10 @@ def scalar_strategy_to_tree_with_segment_and_size_strategy(
         segments_list, segment = segments_list_with_segment
         return st.tuples(
             st.builds(
-                Tree, st.just(segments_list), max_children=max_children_counts
+                Tree,
+                st.just(segments_list),
+                context=st.just(context),
+                max_children=max_children_counts,
             ),
             st.just(segment),
             st.integers(1, len(segments_list)),

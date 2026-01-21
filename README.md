@@ -45,8 +45,10 @@ python -m pip install -e '.'
 ## Usage
 
 ```python
->>> from ground.context import get_context
->>> context = get_context()
+>>> import math
+>>> from fractions import Fraction
+>>> from ground.context import Context
+>>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
 >>> Box, Point, Segment = (
 ...     context.box_cls,
 ...     context.point_cls,
@@ -54,7 +56,7 @@ python -m pip install -e '.'
 ... )
 >>> from locus import kd
 >>> points = list(map(Point, range(-10, 11), range(0, 20)))
->>> kd_tree = kd.Tree(points)
+>>> kd_tree = kd.Tree(points, context=context)
 >>> kd_tree.nearest_index(Point(0, 0)) == 5
 True
 >>> kd_tree.nearest_point(Point(0, 0)) == Point(-5, 5)
@@ -71,7 +73,7 @@ True
 >>> boxes = list(
 ...     map(Box, range(-10, 11), range(0, 20), range(-20, 0), range(-10, 11))
 ... )
->>> r_tree = r.Tree(boxes)
+>>> r_tree = r.Tree(boxes, context=context)
 >>> r_tree.nearest_index(Point(0, 0)) == 10
 True
 >>> r_tree.nearest_box(Point(0, 0)) == Box(0, 10, -10, 0)

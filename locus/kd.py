@@ -2,7 +2,7 @@ from collections.abc import Iterator as _Iterator, Sequence as _Sequence
 from heapq import heappush as _heappush, heapreplace as _heapreplace
 from typing import Generic as _Generic
 
-from ground.context import Context as _Context, get_context as _get_context
+from ground.context import Context as _Context
 from ground.hints import Box as _Box, Point as _Point
 from reprit.base import generate_repr as _generate_repr
 
@@ -31,7 +31,7 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         points: _Sequence[_Point[_ScalarT]],
         /,
         *,
-        context: _Context[_ScalarT] | None = None,
+        context: _Context[_ScalarT],
     ) -> None:
         """
         Initializes tree from points.
@@ -43,8 +43,6 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
 
         where ``dimension = len(points[0])``, ``size = len(points)``.
         """
-        if context is None:
-            context = _get_context()
         self._context, self._points, self._root = (
             context,
             points,
@@ -80,11 +78,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         Memory complexity:
             ``O(1)``
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
+        >>> tree = Tree(points, context=context)
         >>> tree.points == points
         True
         """
@@ -111,11 +111,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param point: input point.
         :returns: indices of points in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
+        >>> tree = Tree(points, context=context)
         >>> tree.n_nearest_indices(2, Point(0, 0)) == [2, 3]
         True
         >>> (
@@ -150,11 +152,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param point: input point.
         :returns: points in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
+        >>> tree = Tree(points, context=context)
         >>> (
         ...     tree.n_nearest_points(2, Point(0, 0))
         ...     == [Point(-3, 2), Point(-2, 3)]
@@ -191,11 +195,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :returns:
             indices with points in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
+        >>> tree = Tree(points, context=context)
         >>> (
         ...     tree.n_nearest_items(2, Point(0, 0))
         ...     == [(2, Point(-3, 2)), (3, Point(-2, 3))]
@@ -264,11 +270,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param point: input point.
         :returns: index of a point in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
+        >>> tree = Tree(points, context=context)
         >>> tree.nearest_index(Point(0, 0)) == 2
         True
         >>> tree.nearest_index(Point(-3, 2)) == 2
@@ -294,11 +302,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param point: input point.
         :returns: point in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
+        >>> tree = Tree(points, context=context)
         >>> tree.nearest_point(Point(0, 0)) == Point(-3, 2)
         True
         >>> tree.nearest_point(Point(-3, 2)) == Point(-3, 2)
@@ -325,11 +335,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param point: input point.
         :returns: index with point in the tree the nearest to the input point.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Point = context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
+        >>> tree = Tree(points, context=context)
         >>> tree.nearest_item(Point(0, 0)) == (2, Point(-3, 2))
         True
         >>> tree.nearest_item(Point(-3, 2)) == (2, Point(-3, 2))
@@ -379,11 +391,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param box: box to search in.
         :returns: indices of points that lie inside the box.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box, Point = context.box_cls, context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
+        >>> tree = Tree(points, context=context)
         >>> tree.find_box_indices(Box(-3, 3, 0, 1)) == []
         True
         >>> tree.find_box_indices(Box(-3, 3, 0, 2)) == [2]
@@ -413,11 +427,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param box: box to search in.
         :returns: points that lie inside the box.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box, Point = context.box_cls, context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
+        >>> tree = Tree(points, context=context)
         >>> tree.find_box_points(Box(-3, 3, 0, 1)) == []
         True
         >>> tree.find_box_points(Box(-3, 3, 0, 2)) == [Point(-3, 2)]
@@ -449,11 +465,13 @@ class Tree(_HasCustomRepr, _Generic[_ScalarT]):
         :param box: box to search in.
         :returns: indices with points in the tree that lie inside the box.
 
-        >>> from ground.context import get_context
-        >>> context = get_context()
+        >>> import math
+        >>> from fractions import Fraction
+        >>> from ground.context import Context
+        >>> context = Context(coordinate_factory=Fraction, sqrt=math.sqrt)
         >>> Box, Point = context.box_cls, context.point_cls
         >>> points = list(map(Point, range(-5, 6), range(10)))
-        >>> tree = Tree(points)
+        >>> tree = Tree(points, context=context)
         >>> tree.find_box_items(Box(-3, 3, 0, 1)) == []
         True
         >>> tree.find_box_items(Box(-3, 3, 0, 2)) == [(2, Point(-3, 2))]
